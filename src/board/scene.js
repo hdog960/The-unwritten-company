@@ -1,5 +1,6 @@
 import {cellRect,getTile,hitTestBoard,logicalPointFromClient,measureBoard} from './geometry.js';
 import {drawHero,drawFoe} from './miniatures.js';
+import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -132,7 +133,7 @@ function drawSelection(ctx,rect){
     line(ctx,[[px+arm*hx,py+arm*hy],[px,py],[px+arm*vx,py+arm*vy]],'#ffe2a5',Math.max(1.5,s*.04));
   }
 }
-export function renderBoard(ctx,board,selection=null,overlay=null){
+export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);
   for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
     const rect=cellRect(board,col,row);
@@ -243,9 +244,11 @@ export function renderBoard(ctx,board,selection=null,overlay=null){
     const rect=cellRect(board,selection.column,selection.row);
     if(rect)drawSelection(ctx,rect);
   }
+  if(frame)drawWorldEffect(ctx,board,frame);
 }
-export function createBoardPreview({stage,story,container,canvas,toggle,status,onModeChange=()=>{},onCellSelect=()=>{},onBoardReady=()=>{}}){
+export function createBoardPreview({stage,story,container,canvas,toggle,status,onModeChange=()=>{},onCellSelect=()=>{},onBoardReady=()=>{},onEscape=()=>{}}){
   let board=null,visible=false,selection=null,commandOverlay=null;
+  let fx=null,lastFxToken=null,fxRequest=0,press=null;
   const context=canvas.getContext('2d',{alpha:false});
   if(!context){status.textContent='Canvas preview unavailable on this device.';toggle.disabled=true;return;}
   const redraw=()=>{
@@ -258,7 +261,7 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     context.setTransform(canvas.width/bounds.width,0,0,canvas.height/bounds.height,0,0);
     board=measureBoard(bounds.width,bounds.height);
     if(selection&&(selection.column>=board.columns||selection.row>=board.rows))selection=null;
-    renderBoard(context,board,selection,commandOverlay);
+    renderBoard(context,board,selection,commandOverlay,fx);
     onBoardReady(board);
     for(const [key,value] of Object.entries({columns:board.columns,rows:board.rows,tile:board.tile,offsetX:board.x,offsetY:board.y}))canvas.dataset[key]=String(value);
     canvas.dataset.rendered='true';
@@ -282,29 +285,50 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     const candidate=hitTestBoard(board,point.x,point.y);
     if(!candidate)return;
     selection=candidate;
-    renderBoard(context,board,selection,commandOverlay);
+    renderBoard(context,board,selection,commandOverlay,fx);
     onCellSelect(candidate,board);
     updateStatus();
   };
-  const onPointer=event=>{
+  // A destination is chosen on pointer UP only after an unmoved primary tap.
+  // Prevents drag, pinch, canceled gesture or nonprimary pointer from committing.
+  canvas.addEventListener('pointerdown',event=>{
     if(!visible)return;
+    if(press){press.dragged=true;return}
+    if(!event.isPrimary || event.pointerType==='mouse'&&event.button!==0)return;
+    press={id:event.pointerId,x:event.clientX,y:event.clientY,dragged:false};
+    canvas.dataset.pointer='pending';
+  });
+  canvas.addEventListener('pointermove',event=>{
+    if(press?.id!==event.pointerId)return;
+    if(Math.hypot(event.clientX-press.x,event.clientY-press.y)>11)press.dragged=true;
+  });
+  canvas.addEventListener('pointercancel',event=>{
+    if(press?.id===event.pointerId){press=null;canvas.dataset.pointer='canceled'}
+  });
+  canvas.addEventListener('pointerup',event=>{
+    const last=press;press=null;
+    if(!visible||!last||last.id!==event.pointerId)return;
+    const distance=Math.hypot(event.clientX-last.x,event.clientY-last.y);
+    if(last.dragged||distance>11){canvas.dataset.pointer='dragged';return}
+    canvas.dataset.pointer='tap';
     const bounds=canvas.getBoundingClientRect();
     select(logicalPointFromClient(bounds,event.clientX,event.clientY));
-  };
-  canvas.addEventListener('pointerdown',onPointer);
+  });
   canvas.addEventListener('keydown',event=>{
     if(!visible||!board)return;
-    if(event.key==='Escape'){event.preventDefault();selection=null;renderBoard(context,board,null,commandOverlay);updateStatus();return;}
+    if(event.key==='Escape'){event.preventDefault();selection=null;onEscape();renderBoard(context,board,null,commandOverlay,fx);updateStatus();return;}
     const moves={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
     if(!moves[event.key]&&event.key!=='Enter'&&event.key!==' ')return;
     event.preventDefault();
     const [dx,dy]=moves[event.key]||[0,0];
     const current=selection||{column:Math.floor(board.columns/2),row:Math.floor(board.rows/2)};
     selection={column:Math.max(0,Math.min(board.columns-1,current.column+dx)),row:Math.max(0,Math.min(board.rows-1,current.row+dy))};
-    renderBoard(context,board,selection,commandOverlay);onCellSelect(selection,board);updateStatus();
+    renderBoard(context,board,selection,commandOverlay,fx);onCellSelect(selection,board);updateStatus();
   });
   toggle.addEventListener('click',()=>{
     visible=!visible;
+    press=null;
+    if(!visible){cancelAnimationFrame(fxRequest);fx=null;}
     stage.classList.toggle('board-mode',visible);
     story.hidden=visible;
     container.hidden=!visible;
@@ -317,11 +341,29 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
   const observer=typeof ResizeObserver==='function'?new ResizeObserver(redraw):null;
   observer?.observe(stage);
   window.addEventListener('resize',redraw,{passive:true});
+  const animate=now=>{
+    if(!visible||!board||!fx)return;
+    fx={...fx,progress:Math.max(0,Math.min(1,(now-fx.started)/EFFECT_DURATION_MS))};
+    canvas.dataset.fxPhase=String(Math.round(fx.progress*100));
+    renderBoard(context,board,selection,commandOverlay,fx);
+    if(fx.progress<1)fxRequest=requestAnimationFrame(animate);
+    else {fx=null;fxRequest=0;renderBoard(context,board,selection,commandOverlay);}
+  };
   return Object.freeze({
     getBoard:()=>board,
     setCommandOverlay(next){
       commandOverlay=next;
-      if(visible&&board)renderBoard(context,board,selection,commandOverlay);
+      const event=next?.visualEvent;
+      if(visible&&board&&isValidEffect(event)&&event.token!==lastFxToken){
+        lastFxToken=event.token;
+        cancelAnimationFrame(fxRequest);fx=null;
+        canvas.dataset.fxKey=event.token;canvas.dataset.fxKind=event.kind;
+        if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          fx={event,started:performance.now(),progress:0};
+          fxRequest=requestAnimationFrame(animate);
+        }
+      }
+      if(visible&&board)renderBoard(context,board,selection,commandOverlay,fx);
     }
   });
 }

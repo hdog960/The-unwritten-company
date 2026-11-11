@@ -45,7 +45,7 @@ export function createCommandState(){
   const ap=Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,MAX_AP]));
   const mp=Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,MAX_MOVEMENT]));
   const guards=Object.freeze(Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,0])));
-  return Object.freeze({actorId:'captain',ap:Object.freeze(ap),mp:Object.freeze(mp),guards,positions:null,targets:null,battleMode:'practice',partyHp:null,ended:Object.freeze([]),phaseCount:0,lastEnemyPhase:Object.freeze([]),seed:'Lantern-001',rollIndex:0,lastCombat:null,turn:1,abilityId:null,moveMode:false,target:null,preview:null,confirmations:0,feedback:'Choose Move or an ability. Two stationary training foes await.'});
+  return Object.freeze({actorId:'captain',ap:Object.freeze(ap),mp:Object.freeze(mp),guards,visualEvent:null,positions:null,targets:null,battleMode:'practice',partyHp:null,ended:Object.freeze([]),phaseCount:0,lastEnemyPhase:Object.freeze([]),seed:'Lantern-001',rollIndex:0,lastCombat:null,turn:1,abilityId:null,moveMode:false,target:null,preview:null,confirmations:0,feedback:'Choose Move or an ability. Two stationary training foes await.'});
 }
 export function remainingAp(state){return state.ap[state.actorId];}
 export function remainingMove(state){return state.mp[state.actorId];}
@@ -115,6 +115,7 @@ export function confirmPreview(state,board){
     const nextMp=Object.freeze({...state.mp,[state.actorId]:remainingMove(state)-route.cost});
     const nextPositions=moveActor(state.positions,state.actorId,state.target);
     return Object.freeze({...state,mp:nextMp,positions:nextPositions,moveMode:false,abilityId:null,target:null,preview:null,confirmations:state.confirmations+1,
+      visualEvent:Object.freeze({kind:'move',from:state.positions[state.actorId],to:state.target,token:'action-'+(state.confirmations+1)}),
       feedback:'Moved '+(route.path.length-1)+' tiles for '+route.cost+' movement. '+nextMp[state.actorId]+' movement remains; AP unchanged.'});
   }
   const command=getCommand(state.abilityId);
@@ -123,13 +124,15 @@ export function confirmPreview(state,board){
   if(opponent){
     const outcome=rollAttack(state.seed,state.rollIndex,state.actorId,command.id,opponent);
     const updated=Object.freeze({...state,ap:next,targets:applyAttack(state.targets,outcome),rollIndex:state.rollIndex+1,lastCombat:Object.freeze({...outcome,position:opponent.position}),
-      abilityId:null,moveMode:false,target:null,preview:null,confirmations:state.confirmations+1,feedback:combatFeedback(outcome,opponent.name)});
+      abilityId:null,moveMode:false,target:null,preview:null,confirmations:state.confirmations+1,visualEvent:Object.freeze({kind:outcome.critical?'critical':outcome.hit?'hit':'miss',from:state.positions[state.actorId],to:opponent.position,token:'action-'+(state.confirmations+1)}),
+      feedback:combatFeedback(outcome,opponent.name)});
     return state.battleMode==='active'&&outcomeFor(updated)==='won'?
       Object.freeze({...updated,battleMode:'won',feedback:'VICTORY · Both foes down. Tap Replay.'}):updated;
   }
   if(command.id==='ward'){
     const guards=Object.freeze({...state.guards,[state.actorId]:2});
     return Object.freeze({...state,ap:next,guards,abilityId:null,moveMode:false,target:null,preview:null,confirmations:state.confirmations+1,
+      visualEvent:Object.freeze({kind:'ward',from:state.positions[state.actorId],to:state.positions[state.actorId],token:'action-'+(state.confirmations+1)}),
       feedback:state.battleMode==='active'?'Ward +2 Guard · ready for enemy attacks.':'Ward ready · Guard +2. No enemy actions yet.'});
   }
   const message=command.name+' study confirmed at column '+(state.target.column+1)+', row '+(state.target.row+1)+'. '+command.ap+' AP used; no damage or effects applied.';

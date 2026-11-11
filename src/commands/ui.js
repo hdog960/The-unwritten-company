@@ -27,7 +27,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       actorId:state.actorId,positions:state.positions,origin,
       mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
       command:getCommand(state.abilityId),target:state.target,
-      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,partyHp:state.partyHp,intents:enemyIntents(state,board),battleMode:state.battleMode
+      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,visualEvent:state.visualEvent,partyHp:state.partyHp,intents:enemyIntents(state,board),battleMode:state.battleMode
     };
   }
   function paint(){
@@ -121,6 +121,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     }
   }
   function selectActor(id){state=changeActor(state,id);paint();}
+  function cancelPending(){state=cancelPreview(state);paint();}
   function targetCell(cell,nextBoard){
     if(!visible||(!state.abilityId&&!state.moveMode))return;
     if(nextBoard)board=nextBoard;
@@ -144,5 +145,5 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     paint();
     return true;
   }
-  return Object.freeze({setMode,setBoard,setSeed,beginSkirmish,selectActor,targetCell,getState:()=>state});
+  return Object.freeze({setMode,setBoard,setSeed,beginSkirmish,cancelPending,selectActor,targetCell,getState:()=>state});
 }

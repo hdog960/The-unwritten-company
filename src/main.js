@@ -69,6 +69,7 @@ const boardPreview=createBoardPreview({
     commandRail?.setMode(isBoard);
   },
   onCellSelect:(cell,board)=>commandRail?.targetCell(cell,board),
+  onEscape:()=>commandRail?.cancelPending(),
   onBoardReady:board=>commandRail?.setBoard(board)
 });
 

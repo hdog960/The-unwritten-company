@@ -224,3 +224,6 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 .party-card[data-fallen="true"]{opacity:.46;filter:grayscale(.8)}
 .party-card[data-ended="true"]{opacity:.65}
 #combat-summary[data-live="0"]{color:#b8e4b8}
+
+/* v0.09 — touch gestures select a world tile only on stationary pointer release. */
+#battle-canvas{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}

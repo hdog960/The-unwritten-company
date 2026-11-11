@@ -68,7 +68,7 @@ export function rollEnemyAttack(seed,round,foe,actorId,guard){
 }
 export function resolveEnemyPhase(state,board){
   if(state.battleMode!=='active'||outcomeFor(state)!=='active')return state;
-  let targets={...state.targets},hp={...state.partyHp},log=[];
+  let targets={...state.targets},hp={...state.partyHp},log=[],marks=[];
   for(const def of Object.keys(ENEMY_KITS)){
     const foe=targets[def];
     if(!foe||foe.hp<=0)continue;
@@ -80,6 +80,7 @@ export function resolveEnemyPhase(state,board){
     targets[def]=moved;
     if(dist(path.position,state.positions[targetId])>ENEMY_KITS[def].range){
       log.push(ENEMY_KITS[def].name+' advances');
+      marks.push(Object.freeze({kind:'move',from:foe.position,to:moved.position}));
       continue;
     }
     const guard=BASE_GUARD[targetId]+(state.guards[targetId]??0);
@@ -87,11 +88,13 @@ export function resolveEnemyPhase(state,board){
     const damage=Math.min(hp[targetId],result.damage);
     hp[targetId]=Math.max(0,hp[targetId]-damage);
     const name=PARTY_SLOTS.find(x=>x.id===targetId).name;
+    marks.push(Object.freeze({kind:result.hit?'hit':'miss',from:path.position,to:state.positions[targetId]}));
     log.push(ENEMY_KITS[def].name+' '+(result.hit?'hits '+name+' -'+damage:'misses '+name)+
       ' ('+result.face+'+'+result.bonus+' vs '+result.guard+')');
   }
   const frozenHp=Object.freeze(hp),nextTargets=Object.freeze(targets);
-  const result=Object.freeze({...state,targets:nextTargets,partyHp:frozenHp,lastEnemyPhase:Object.freeze(log),phaseCount:(state.phaseCount??0)+1});
+  const result=Object.freeze({...state,targets:nextTargets,partyHp:frozenHp,lastEnemyPhase:Object.freeze(log),phaseCount:(state.phaseCount??0)+1,
+    visualEvent:Object.freeze({kind:'enemy-phase',marks:Object.freeze(marks),token:'enemy-'+(state.phaseCount+1)+'-'+state.turn})});
   return Object.freeze({...result,battleMode:outcomeFor(result),feedback:log.join(' · ')||'The field falls quiet.'});
 }
 export function startBattle(state,board){
@@ -102,7 +105,7 @@ export function startBattle(state,board){
   const mp=Object.freeze(Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,5])));
   const guards=Object.freeze(Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,0])));
   return Object.freeze({...state,partyHp,targets:fresh,ap,mp,guards,actorId:'captain',battleMode:'active',
-    ended:Object.freeze([]),phaseCount:0,turn:1,rollIndex:0,lastCombat:null,lastEnemyPhase:Object.freeze([]),
+    ended:Object.freeze([]),phaseCount:0,turn:1,rollIndex:0,lastCombat:null,visualEvent:null,lastEnemyPhase:Object.freeze([]),
     abilityId:null,moveMode:false,target:null,preview:null,confirmations:0,
     feedback:'SKIRMISH · Defeat both foes. End each hero turn to face their counterattack.'});
 }
