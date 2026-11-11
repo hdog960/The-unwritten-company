@@ -69,3 +69,8 @@ Service worker cache generation is now `tuc-foundation-v0.09-gate-a5` with `./sr
 ## v0.09 Gate A quality refinement 6 — miniatures and warm/cold illumination
 
 Service worker cache generation is `tuc-foundation-v0.09-gate-a6-r1` and precaches `./src/board/illumination.js`. The new original Canvas-only lantern/river wash and unit-shadow/enamel modules do not need online assets or alter battle positions. The `r1` suffix intentionally invalidates the initial `gate-a6` cache from the intermediate screenshot build where footlight arcs crossed cell edges. After this correction, the exact tested build passed cached offline launch, real movement and attack actions, enemy turn and source/PWA tests in Chromium. No player-save schema exists and no live iPhone WebKit/Home Screen test has been performed.
+
+
+## v0.09 Gate A quality refinement 7 — ink targeting, relief and precache integrity
+
+Cache generation is now `tuc-foundation-v0.09-gate-a7-r1` with original static `./src/board/relief.js` and `./src/board/quill.js` precached **once each**. A transient broken intermediate commit had duplicated `quill.js` and caused `Cache.addAll()` to abort; final commit `7648a570` removed the duplicate and added a regression test enforcing unique URLs. The final green Chromium run proves actual controlled-worker installation, offline launch, legal movement, seeded combat and enemy turns. The new source-drawn target quill and enamel condition cuts require no network sprites or remote AI. No local battle save/resume exists, and iPhone WebKit/Home Screen remains untested.
