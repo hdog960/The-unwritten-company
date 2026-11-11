@@ -139,8 +139,24 @@ async function main(){
     console.log('Browser smoke complete: 3 iPhone landscape sizes, functional preview, service-worker offline launch');
   }finally{
     try{ws?.close()}catch{}
-    try{chrome?.kill('SIGTERM')}catch{}
-    await fsp.rm(profile,{recursive:true,force:true});
+    if(chrome && chrome.exitCode===null){
+      try{chrome.kill('SIGTERM')}catch{}
+      await Promise.race([
+        new Promise(resolve=>chrome.once('exit',resolve)),
+        delay(2000)
+      ]);
+      if(chrome.exitCode===null){
+        try{chrome.kill('SIGKILL')}catch{}
+        await delay(250);
+      }
+    }
+    // Browser result is authoritative; a still-exiting Chrome must not falsely fail
+    // an otherwise successful smoke test during temporary profile cleanup.
+    try{
+      await fsp.rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:150});
+    }catch(error){
+      console.warn('Temporary Chrome profile cleanup warning:',error.code??error.message);
+    }
   }
 }
 try{
