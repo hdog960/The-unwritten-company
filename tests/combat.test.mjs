@@ -5,7 +5,7 @@ import {placeParty,previewMovement,isWalkable} from '../src/movement/pathfinding
 import {createCommandState,setCombatSeed,setMovementBoard,changeActor,chooseAbility,chooseTarget,canConfirm,cancelPreview,confirmPreview,endStudyTurn,remainingAp,remainingMove} from '../src/commands/engine.js';
 const wide={columns:8,rows:6};
 const p=(column,row)=>({column,row});
-const initialized=(seed='Sable-777')=>setCombatSeed(setMovementBoard(createCommandState(),wide),seed);
+const initialized=(seed='Sable-777')=>setMovementBoard(setCombatSeed(createCommandState(),seed),wide);
 const attack=(state,actor,skill,target)=>chooseTarget(chooseAbility(changeActor(state,actor),skill),target,wide);
 
 test('two original static enemies spawn on legal non-party tiles even on compact boards',()=>{
