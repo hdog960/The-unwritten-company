@@ -309,6 +309,7 @@ async function main(){
       await tapCell(fromCol,fromRow-1);
       await run("document.querySelector('#command-confirm').click()");
       assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'4','moving one flat tile should cost exactly 1 MP');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/Moved 1 tile for 1 movement/,'movement status uses readable singular language');
 
       assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'move','world-native movement trail should trigger');
 
@@ -336,6 +337,7 @@ async function main(){
       assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'4','Mirelle movement should persist');
       await run("document.querySelector('#command-end-turn').click()");
       assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','end study turn should restore selected movement');
+      assert.equal(await run("document.querySelector('#command-end-turn').textContent"),'End Turn','compact label fits landscape rail');
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','end study turn should restore AP too');
       await run("document.querySelector('[data-ability-id=\"ward\"]').click()");
       await tapCell(fromCol,fromRow-1);
