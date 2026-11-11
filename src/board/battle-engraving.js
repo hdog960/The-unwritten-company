@@ -45,12 +45,34 @@ export function threatEngravings(board,intents,positions={}){
 }
 
 /** Sewn-under-footpaths and rim carvings: heroes remain drawn above all strokes. */
+
+/** One intent symbol per living party tile. Actual attacks outrank approaches.
+ * The two separate enemy trajectories remain drawn independently below it.
+ */
+export function threatGlyphs(intents,positions={}){
+ if(!Array.isArray(intents))return Object.freeze([]);
+ const byVictim=new Map();
+ for(const intent of intents){
+  const id=intent?.victimId,at=id&&positions[id];
+  if(!at||!Number.isInteger(at.column)||!Number.isInteger(at.row))continue;
+  const old=byVictim.get(id);
+  byVictim.set(id,{victimId:id,position:at,attack:!!intent.attack||(old?.attack??false)});
+ }
+ return Object.freeze([...byVictim.values()].map(x=>Object.freeze({
+  victimId:x.victimId,position:Object.freeze({column:x.position.column,row:x.position.row}),
+  attack:x.attack
+ })));
+}
+
 export function paintThreatEngravings(ctx,board,intents,positions){
   if(!ctx||!board)return 0;
   const marks=threatEngravings(board,intents,positions);
   if(!marks.length)return 0;
-  const totals=new Map();
-  for(const mark of marks)totals.set(mark.victimId,(totals.get(mark.victimId)||0)+1);
+  const totals=new Map(),strongest=new Map();
+  for(const mark of marks){
+    totals.set(mark.victimId,(totals.get(mark.victimId)||0)+1);
+    strongest.set(mark.victimId,mark.attack||(strongest.get(mark.victimId)??false));
+  }
   const seen=new Set();
   ctx.save();clipBoard(ctx,board);
   for(const mark of marks){
@@ -80,15 +102,16 @@ export function paintThreatEngravings(ctx,board,intents,positions){
     // One outlined rim per threatened tile, even when two enemies target it.
     if(seen.has(victimId))continue;
     seen.add(victimId);
-    const x=victim.x,y=victim.y,r=victim.s*.395;
-    ctx.save();ctx.globalAlpha=attack?.85:.58;
-    ctx.strokeStyle=color;ctx.lineWidth=Math.max(1.4,s*.037);
-    ctx.setLineDash(attack?[s*.12,s*.065]:[s*.22,s*.115]);
+    const x=victim.x,y=victim.y,r=victim.s*.395,urgent=strongest.get(victimId)===true;
+    const rimColor=urgent?COLORS.attack:COLORS.approach;
+    ctx.save();ctx.globalAlpha=urgent?.85:.58;
+    ctx.strokeStyle=rimColor;ctx.lineWidth=Math.max(1.4,s*.037);
+    ctx.setLineDash(urgent?[s*.12,s*.065]:[s*.22,s*.115]);
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
     // Notched wax corner at the tile edge signals actual danger without a HUD.
     for(let i=0;i<Math.min(3,totals.get(victimId));i++){
       const px=x-r+i*s*.083,py=y+r*.91;
-      stroke(ctx,[[px,py],[px+s*.042,py-s*.068]],color,Math.max(1,s*.024));
+      stroke(ctx,[[px,py],[px+s*.042,py-s*.068]],rimColor,Math.max(1,s*.024));
     }
     ctx.restore();
   }

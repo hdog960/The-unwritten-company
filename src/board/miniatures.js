@@ -1,6 +1,7 @@
 /** The Illuminated Table — original v0.09 six-figure painted-miniature atlas.
  * Source-drawn at a 100-unit scale; never remote image or copyrighted sprites.
  */
+import {paintWeaponRig} from './weapon-rigs.js';
 export const HERO_SILHOUETTES=Object.freeze(['captain','brunna','kess','mirelle']);
 export const FOE_SILHOUETTES=Object.freeze(['briar','shade']);
 const H=100;
@@ -66,11 +67,7 @@ function drawCaptain(ctx){
   polygon(ctx,[[25,43],[35,40],[39,53],[35,69],[26,73],[18,60],[20,48]],'#d6b775','#473e38',2.5);
   polygon(ctx,[[25,47],[34,45],[35,54],[31,64],[24,67],[22,58]],'#345b60','#243a3d',1.4);
   ornament(ctx,27,55);
-  // Sword raised over left shoulder.
-  mark(ctx,[[69,53],[79,24]],'#cbd9ce',4.8);
-  mark(ctx,[[69,53],[79,24]],'#f4e9c8',1.3);
-  mark(ctx,[[64,47],[75,51]],'#e9c888',4);
-  bead(ctx,65,61,5,'#a5b8ad','#213843');
+  // Signature weapon is painted separately by the animated paper-joint rig.
 }
 function drawBrunna(ctx){
   cape(ctx,49,41,'#703e43','#cc917a');
@@ -92,10 +89,7 @@ function drawBrunna(ctx){
   polygon(ctx,[[37,22],[43,13],[60,13],[65,24],[57,23],[42,25]],'#bca780','#48444a');
   polygon(ctx,[[36,20],[25,13],[30,10],[42,16]],'#d6b981','#48444a');
   polygon(ctx,[[63,19],[75,12],[71,8],[60,17]],'#d6b981','#48444a');
-  // Enormous oath hammer slung against right edge.
-  mark(ctx,[[80,20],[76,67]],'#a67d57',5);
-  polygon(ctx,[[67,15],[87,13],[91,26],[67,29]],'#afb4a8','#3d4c50',2);
-  mark(ctx,[[71,19],[86,18]],'#f0d7a4',2);
+  // Signature weapon is painted separately by the animated paper-joint rig.
   polygon(ctx,[[15,50],[29,48],[35,60],[28,72],[16,72],[10,60]],'#8b5c53','#2c3b41');
   ornament(ctx,22,60);
 }
@@ -115,11 +109,7 @@ function drawKess(ctx){
   polygon(ctx,[[60,26],[73,18],[63,31]],'#d9b38f','#385044',1.3);
   polygon(ctx,[[34,22],[40,10],[55,8],[68,23],[58,19],[50,18],[41,24]],'#305447','#263b3c',2);
   mark(ctx,[[36,20],[52,12],[62,17]],'#86ac86',2);
-  // Twin asymmetric crescent daggers.
-  mark(ctx,[[27,55],[18,36],[22,29]],'#dfdfc9',4);
-  mark(ctx,[[76,59],[85,42],[81,30]],'#d8dfcd',4);
-  mark(ctx,[[20,51],[32,49]],'#d3af6a',3);
-  mark(ctx,[[72,54],[83,58]],'#d3af6a',3);
+  // Signature weapon is painted separately by the animated paper-joint rig.
   bead(ctx,50,56,2.5,'#dfc98e');
 }
 function drawMirelle(ctx){
@@ -135,12 +125,7 @@ function drawMirelle(ctx){
   polygon(ctx,[[39,20],[52,3],[57,12],[61,20]],'#6c5a86','#30384c',2.4);
   mark(ctx,[[37,21],[67,22]],'#d6b980',2.6);
   bead(ctx,52,14,2.2,'#d9c5a9');
-  // Arcane starstaff with pale illuminated copper boughs.
-  mark(ctx,[[81,76],[76,18]],'#bda778',4);
-  polygon(ctx,[[76,13],[83,21],[76,29],[69,21]],'#a3d8d2','#376d75',1.8);
-  bead(ctx,76,21,4.2,'#d7fff1','#6bb9b8');
-  mark(ctx,[[71,15],[65,12]],'#d6eddb',1.2);
-  mark(ctx,[[82,15],[87,10]],'#d6eddb',1.2);
+  // Signature weapon is painted separately by the animated paper-joint rig.
   polygon(ctx,[[25,44],[33,38],[37,55],[28,58]],'#9d8796','#353a48');
   bead(ctx,26,57,2,'#e9c98d');
 }
@@ -274,6 +259,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   else if(id==='mirelle')drawMirelle(ctx);
   else drawCaptain(ctx);
   finishHeroInk(ctx,id,pose);
+  paintWeaponRig(ctx,id,pose);
   if(!fallen)actionBrush(ctx,id,pose);
   ctx.restore();
   if(fallen){mark(ctx,[[25,55],[75,55]],'#dcbfa3',2);mark(ctx,[[49,48],[49,65]],'#dcbfa3',2);}
@@ -330,6 +316,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   if(pose?.kind==='stagger')ctx.translate(6*Math.sin(Math.PI*pose.progress),4*Math.sin(Math.PI*pose.progress));
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
+  paintWeaponRig(ctx,foe.id,pose);
   actionBrush(ctx,foe.id,pose,true);
   ctx.restore();
   // A real in-world miniature health enamel, not a floating HUD.

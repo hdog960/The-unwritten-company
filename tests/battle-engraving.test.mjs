@@ -76,7 +76,8 @@ test('engraved underlay composes before figures; threat glyphs remain identifiab
  const scene=fs.readFileSync('src/board/scene.js','utf8');
  assert.ok(scene.indexOf('paintThreatEngravings(ctx,board,overlay?.intents')<scene.indexOf('drawHero(ctx,rect'));
  assert.ok(scene.indexOf('paintTravelEngraving(ctx,board,overlay)')<scene.indexOf('drawFoe(ctx,rect'));
- assert.ok(scene.indexOf('paintThreatSymbol(ctx,rect,intent.attack')>scene.indexOf('drawFoe(ctx,rect'));
+ assert.ok(scene.indexOf('paintThreatSymbol(ctx,rect,glyph.attack')>scene.indexOf('drawFoe(ctx,rect'));
+ assert.match(scene,/for\(const glyph of threatGlyphs/,'repeated attacks must share one visible glyph');
  assert.doesNotMatch(scene,/ctx\.fillRect\(rect\.x\+2,rect\.y\+2,rect\.width-4/);
  const board=measureBoard(435,286),ctx=fake();
  const state=chooseTarget(chooseMove(s),{column:2,row:5},{columns:8,rows:6});
