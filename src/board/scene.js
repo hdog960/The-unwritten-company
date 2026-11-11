@@ -9,6 +9,7 @@ import {paintFloorVignettes} from './scenery.js';
 import {animatedHeroRect} from './motion.js';
 import {puppetPose} from './choreography.js';
 import {paintMaterialTransitions} from './shoreline.js';
+import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from './illumination.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -157,6 +158,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintJoinedTerrain(ctx,board,getTile);
   paintMaterialTransitions(ctx,board,getTile);
   paintBoardLighting(ctx,board);
+  paintLanternPools(ctx,board,getTile);
   // Four old guild-site floor inlays sit beneath the battle's unit layer.
   const vignetteOccupants={...(overlay?.positions??{})};
   for(const [id,foe] of Object.entries(overlay?.targets??{}))if(foe.hp>0)vignetteOccupants['foe:'+id]=foe.position;
@@ -172,20 +174,24 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const rect=animatedHeroRect(board,{column:miniature.col,row:miniature.row},id,frame);
     if(!rect)continue;
     const member=PARTY_SLOTS.find(item=>item.id===id);
+    paintMiniatureBackdrop(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0,hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp});
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
     drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,miniaturePose(frame,{column:miniature.col,row:miniature.row}));
+    paintMiniatureFootlights(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0});
     paintUnitEmblem(ctx,rect,id,overlay?.actorId===id);
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
     if(rect){
+      paintMiniatureBackdrop(ctx,rect,foe.id,{fallen:foe.hp<=0,hp:foe.hp,maxHp:foe.maxHp});
       // The ink strike ring is transient. No permanent 'last hit' aura that
       // misleadingly resembles a selected legal target after an action ends.
       const current=frame?.event;
       const targeted=current&&['hit','miss','critical'].includes(current.kind)&&
         current.to?.column===foe.position.column&&current.to?.row===foe.position.row;
       drawFoe(ctx,rect,foe,targeted?overlay?.lastCombat:null,miniaturePose(frame,foe.position,true));
+      paintMiniatureFootlights(ctx,rect,foe.id,{fallen:foe.hp<=0});
     }
   }
 
