@@ -1,0 +1,14 @@
+{
+  "name": "the-unwritten-company",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Unwritten Company — static iPhone-first fantasy roguelike",
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/validate.mjs && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
