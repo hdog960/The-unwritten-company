@@ -45,3 +45,10 @@ const atelier=fs.readFileSync('src/board/atelier.js','utf8');
 assert.match(atelier,/paintAtelierTile/);
 assert.match(atelier,/paintBoardLighting/);
 assert.match(atelier,/paintUnitStand/);
+
+
+const diorama=fs.readFileSync('src/board/diorama.js','utf8');
+assert.match(diorama,/paintJoinedTerrain/);
+assert.match(diorama,/paintGutterFiligree/);
+assert.match(diorama,/paintUnitEmblem/);
+assert.match(diorama,/paintThreatSymbol/);

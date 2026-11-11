@@ -459,6 +459,7 @@ async function main(){
       await run("document.querySelector('#start-skirmish').click()");
       for(let n=0;n<40;n++){if(await run("document.querySelector('#command-view').dataset.battleMode==='active'"))break;await delay(35)}
       assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','House starter did not enter live battle');
+      assert.match(await run("document.querySelector('#battle-canvas').getAttribute('aria-label')"),/battlefield/,'battlefield accessible label preserved');
       assert.equal(await run("document.querySelector('#command-turn').textContent"),'Round 1');
       assert.equal(await run("document.querySelector('#command-end-turn').textContent"),'End Turn');
       const skirmishReadout=await run("(()=>{const e=document.querySelector('#command-readout');return {scroll:e.scrollHeight,client:e.clientHeight,text:e.textContent}})()");
@@ -468,6 +469,14 @@ async function main(){
       assert.deepEqual(originalParty,{captain:20,brunna:24,kess:16,mirelle:14});
       const intentions=await run("JSON.parse(document.querySelector('#combat-summary').dataset.intents)");
       assert.equal(intentions.length,2,'foes must telegraph genuine target selection');
+
+      const symbols=await run("(()=>{const e=document.querySelector('#combat-summary');return{text:e.textContent,attacks:+e.dataset.attackers,title:e.title}})()");
+      assert.equal(symbols.attacks,intentions.filter(i=>i.attack).length,'semantic world threats and compact rail agree');
+      assert.match(symbols.title,/(attacks|approaches)/,'enemy intent has a readable descriptive title');
+      assert.ok(intentions.every(i=>symbols.text.includes(i.attack?'!':'→')),'attack and movement use distinguishable non-color symbols');
+      const artSource=await run("performance.getEntriesByType('resource').filter(x=>x.name.includes('/src/board/diorama.js')).length");
+      assert.ok(artSource>=1,'the new world-art module must actually load in the browser, not just in a unit test');
+
       assert.ok(intentions.every(x=>x.victimId&&x.detail&&x.position));
       if(width===844||width===667||width===932){
         await fsp.mkdir('artifacts',{recursive:true});
