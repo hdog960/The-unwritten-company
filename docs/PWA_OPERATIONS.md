@@ -64,3 +64,8 @@ The service worker now caches src/board/targeting.js, src/board/scenery.js, and 
 ## v0.09 Gate A quality refinement 5 — local choreographed miniatures and wet-ink edges
 
 Service worker cache generation is now `tuc-foundation-v0.09-gate-a5` with `./src/board/choreography.js` and `./src/board/shoreline.js` explicitly precached. All other actual imported game/PWA modules, relative project-path assets and icons remain present. The latest verified Chromium test warmed the cache, relaunched offline and successfully ran actual seeded combat, movement and an enemy phase. Choreographed attacks and watercolor terrain are local Canvas paths; no remote image or gameplay APIs. Real iPhone Safari/Home Screen lifecycle and battery impact are **not yet measured**. Interrupted fights are not resumable; no persistent skirmish save format exists.
+
+
+## v0.09 Gate A quality refinement 6 — miniatures and warm/cold illumination
+
+Service worker cache generation is `tuc-foundation-v0.09-gate-a6-r1` and precaches `./src/board/illumination.js`. The new original Canvas-only lantern/river wash and unit-shadow/enamel modules do not need online assets or alter battle positions. The `r1` suffix intentionally invalidates the initial `gate-a6` cache from the intermediate screenshot build where footlight arcs crossed cell edges. After this correction, the exact tested build passed cached offline launch, real movement and attack actions, enemy turn and source/PWA tests in Chromium. No player-save schema exists and no live iPhone WebKit/Home Screen test has been performed.
