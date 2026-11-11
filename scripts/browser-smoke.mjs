@@ -147,7 +147,7 @@ async function main(){
       assert.equal(tapped.r,'0','pointer hit-test row incorrect');
       assert.ok(tapped.text.includes('Selected column 1, row 1'),'status not updated from real pointer hit');
 
-      const partyInfo=await run("(()=>{const cards=[...document.querySelectorAll('#party-roster .party-card')],rail=document.querySelector('.left-rail').getBoundingClientRect(),roster=document.querySelector('#party-roster').getBoundingClientRect();return {count:cards.length,ids:cards.map(x=>x.dataset.memberId),pressed:cards.filter(x=>x.getAttribute('aria-pressed')==='true').map(x=>x.dataset.memberId),hidden:document.getElementById('party-view').hidden,chronicleHidden:document.getElementById('chronicle-view').hidden,buttons:cards.map(x=>{const r=x.getBoundingClientRect();return {width:r.width,height:r.height,bottom:r.bottom,top:r.top,visible:r.bottom<=rail.bottom+1 && r.top>=rail.top-1,portraitLoaded:x.querySelector('img')?.complete&&x.querySelector('img')?.naturalWidth>0}}),railBottom:rail.bottom,rosterBottom:roster.bottom};})()");
+      const partyInfo=await run("(()=>{const cards=[...document.querySelectorAll('#party-roster .party-card')],rail=document.querySelector('.left-rail').getBoundingClientRect(),roster=document.querySelector('#party-roster').getBoundingClientRect();return {readoutBottom:document.querySelector('#party-readout').getBoundingClientRect().bottom,readoutTop:document.querySelector('#party-readout').getBoundingClientRect().top,count:cards.length,ids:cards.map(x=>x.dataset.memberId),pressed:cards.filter(x=>x.getAttribute('aria-pressed')==='true').map(x=>x.dataset.memberId),hidden:document.getElementById('party-view').hidden,chronicleHidden:document.getElementById('chronicle-view').hidden,buttons:cards.map(x=>{const r=x.getBoundingClientRect();return {width:r.width,height:r.height,bottom:r.bottom,top:r.top,visible:r.bottom<=rail.bottom+1 && r.top>=rail.top-1,portraitLoaded:x.querySelector('img')?.complete&&x.querySelector('img')?.naturalWidth>0}}),railBottom:rail.bottom,rosterBottom:roster.bottom};})()");
       assert.equal(partyInfo.count,4,'four party slots required');
       assert.deepEqual(partyInfo.ids,['captain','brunna','kess','mirelle']);
       assert.deepEqual(partyInfo.pressed,['captain'],'custom hero initially active');
@@ -160,6 +160,7 @@ async function main(){
         assert.ok(b.portraitLoaded,'party artwork failed to load');
       }
       assert.ok(partyInfo.rosterBottom<=partyInfo.railBottom+1,'party list exceeds visible left rail');
+      assert.ok(partyInfo.readoutBottom<=partyInfo.railBottom+1,'selected party status clipped below visible left rail');
       // CDP pointer input on the actual rendered party button, not element.click().
       const brunna=await run("(()=>{const r=document.querySelector('[data-member-id=\"brunna\"]').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()");
       await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:brunna.x,y:brunna.y,button:'left',buttons:1,clickCount:1});

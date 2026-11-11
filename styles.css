@@ -134,3 +134,20 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
   .party-view{gap:3px}
   .party-disclaimer{display:none}
 }
+
+/* v0.04 landscape portrait compact mode: preserve 44px controls and a fully readable active readout. */
+@media (orientation:landscape) and (max-height:460px){
+  .left-rail{padding:9px 8px 7px}
+  .left-rail .party-view{gap:3px}
+  .party-heading-block .eyebrow{font-size:8px}
+  .party-heading-block h2{font-size:14px;line-height:1.12;margin:1px 0}
+  .party-roster{gap:3px}
+  .party-card{height:44px;min-height:44px;grid-template-columns:33px minmax(0,1fr);gap:5px;padding:2px 3px}
+  .party-card[data-selected="true"]{padding:1px 2px}
+  .portrait-frame{width:33px;height:36px}
+  .party-name{font-size:10.5px}
+  .party-role{font-size:8px}
+  .party-health-num{font-size:8px}
+  .party-readout{font-size:9px;line-height:1.22;min-height:24px;padding:3px 4px}
+  .party-disclaimer{display:none}
+}
