@@ -124,6 +124,9 @@ function drawMiniature(ctx,rect,kind){
   }else if(kind==='scribe'){
     line(ctx,[[cx+s*.13,cy-s*.13],[cx+s*.24,cy-s*.33]],'#d8b97d',Math.max(1.8,s*.045));
     disk(ctx,cx+s*.24,cy-s*.34,s*.04,'#95d1ba');
+  }else if(kind==='rogue'){
+    poly(ctx,[[cx-s*.2,cy-s*.2],[cx,cy-s*.41],[cx+s*.19,cy-s*.18]],'#4c6455');
+    line(ctx,[[cx+s*.15,cy+s*.05],[cx+s*.29,cy-s*.24]],'#c7d5cc',Math.max(1.5,s*.035));
   }else{
     poly(ctx,[[cx-s*.18,cy-s*.28],[cx,cy-s*.39],[cx+s*.13,cy-s*.28]],'#d7b983');
     line(ctx,[[cx+s*.14,cy+s*.02],[cx+s*.26,cy-s*.22]],'#d9d8bc',Math.max(1.5,s*.035));
@@ -152,12 +155,49 @@ export function renderBoard(ctx,board,selection=null,overlay=null){
       ctx.stroke();
     }
   }
-  const samples=[
-    {col:Math.min(1,board.columns-1),row:board.rows-2,kind:'knight'},
-    {col:Math.min(2,board.columns-1),row:board.rows-1,kind:'scribe'},
-    {col:board.columns-2,row:Math.min(1,board.rows-1),kind:'ward'}
-  ];
-  for(const sample of samples)drawMiniature(ctx,cellRect(board,sample.col,sample.row),sample.kind);
+  const miniatures=overlay?.positions?
+    Object.entries(overlay.positions).map(([id,at])=>({col:at.column,row:at.row,kind:id==='brunna'?'ward':id==='mirelle'?'scribe':id==='kess'?'rogue':'knight',id})):
+    [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
+  for(const miniature of miniatures){
+    const rect=cellRect(board,miniature.col,miniature.row);
+    if(rect)drawMiniature(ctx,rect,miniature.kind);
+  }
+  // World-native movement path: dotted route and tiles, never a floating HUD.
+  if(overlay?.mode==='movement' && overlay?.evaluation?.path?.length>1){
+    const route=overlay.evaluation.path;
+    const valid=overlay.evaluation.valid;
+    const color=valid?'#92ead1':'#eb9b79';
+    ctx.save();ctx.strokeStyle=color;ctx.lineWidth=Math.max(2,board.tile*.055);
+    ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.setLineDash([board.tile*.13,board.tile*.11]);
+    ctx.beginPath();
+    for(let i=0;i<route.length;i++){
+      const rect=cellRect(board,route[i].column,route[i].row);
+      const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();ctx.setLineDash([]);
+    for(let i=1;i<route.length;i++){
+      const rect=cellRect(board,route[i].column,route[i].row);
+      const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+      disk(ctx,x,y,Math.max(2,board.tile*.07),color,'#163537',Math.max(.7,board.tile*.02));
+    }
+    ctx.restore();
+  }
+  if(overlay?.mode==='movement' && overlay?.target){
+    const rect=cellRect(board,overlay.target.column,overlay.target.row);
+    if(rect){
+      ctx.fillStyle=overlay.evaluation?.valid?'#73e4b929':'#ea806529';
+      ctx.fillRect(rect.x+2,rect.y+2,rect.width-4,rect.height-4);
+      ctx.strokeStyle=overlay.evaluation?.valid?'#91f6d4':'#ff9c7e';
+      ctx.lineWidth=Math.max(2,board.tile*.05);
+      ctx.strokeRect(rect.x+3,rect.y+3,rect.width-6,rect.height-6);
+    }
+  }
+  if(overlay?.origin && overlay?.positions){
+    const marker=cellRect(board,overlay.origin.column,overlay.origin.row);
+    if(marker){ctx.beginPath();ctx.arc(marker.x+marker.width/2,marker.y+marker.height/2,marker.width*.32,0,Math.PI*2);ctx.strokeStyle='#d9eeb9';ctx.lineWidth=Math.max(1.5,board.tile*.034);ctx.stroke();}
+  }
   if(overlay?.command){
     const originRect=cellRect(board,overlay.origin.column,overlay.origin.row);
     if(originRect){

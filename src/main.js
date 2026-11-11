@@ -84,5 +84,6 @@ commandRail=createCommandRail({
   confirm:document.getElementById('command-confirm'),
   cancel:document.getElementById('command-cancel'),
   endTurn:document.getElementById('command-end-turn'),
+  move:document.getElementById('command-move'),
   onOverlayChange:preview=>boardPreview?.setCommandOverlay(preview)
 });

@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="masthead">
       <div class="brand"><span class="mark" aria-hidden="true">✧</span><div><span class="eyebrow">THE ADVENTURERS' GUILD OF BELLWETHER</span><h1>The Unwritten Company</h1></div></div>
-      <div class="build-pill" aria-label="Current development version">v0.05 <span>Tactical command study • No campaign playable yet</span></div>
+      <div class="build-pill" aria-label="Current development version">v0.06 <span>Movement pathfinding study • No campaign playable yet</span></div>
     </header>
     <main class="table" id="main">
       <aside class="rail panel left-rail" aria-labelledby="chronicle-heading">
@@ -108,7 +108,7 @@
             <p class="preview-label">Awaiting a seed</p>
             <p class="preview-empty">A thousand possible troubles await your signature.</p>
           </section>
-          <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.05</div>
+          <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.06</div>
         </section>
         <section id="command-view" class="command-view" aria-label="Two-action-point tactical preview controls" hidden>
           <p class="command-caption">COMMAND STUDY · NO DAMAGE</p>
@@ -118,11 +118,14 @@
             <button type="button" id="command-cancel" class="command-cancel" disabled>Cancel</button>
             <button type="button" id="command-confirm" class="command-confirm" disabled>Confirm</button>
           </div>
-          <button type="button" id="command-end-turn" class="command-end-turn">End Study Turn</button>
+          <div class="command-bottom">
+            <button type="button" id="command-move" class="command-move" aria-pressed="false">Move 5/5</button>
+            <button type="button" id="command-end-turn" class="command-end-turn">End Study Turn</button>
+          </div>
         </section>
       </aside>
     </main>
-    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.05: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
+    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.06: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
   </div>
   <div class="portrait-notice" role="note">Turn your phone sideways to view the adventurer's command table.</div>
 </body>

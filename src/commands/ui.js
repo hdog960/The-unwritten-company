@@ -1,6 +1,7 @@
-import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarget,cancelPreview,confirmPreview,endStudyTurn,changeActor,getCommand,studyOrigin,targetResult,canConfirm} from './engine.js';
+import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarget,cancelPreview,confirmPreview,endStudyTurn,changeActor,getCommand,studyOrigin,targetResult,canConfirm,chooseMove,remainingMove,setMovementBoard} from './engine.js';
+import {previewMovement,MAX_MOVEMENT} from '../movement/pathfinding.js';
 
-export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,onOverlayChange}){
+export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,onOverlayChange}){
   let state=createCommandState();
   let board=null,visible=false;
   const buttons=new Map();
@@ -18,16 +19,29 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     buttons.set(skill.id,button);
   }
   function overlay(){
-    if(!visible||!board||!state.abilityId)return null;
-    return {origin:studyOrigin(state.actorId,board),command:getCommand(state.abilityId),target:state.target,evaluation:state.preview};
+    if(!visible||!board)return null;
+    const origin=state.positions?.[state.actorId]??studyOrigin(state.actorId,board);
+    return {
+      actorId:state.actorId,positions:state.positions,origin,
+      mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
+      command:getCommand(state.abilityId),target:state.target,
+      evaluation:state.preview
+    };
   }
   function paint(){
     const ap=remainingAp(state);
     apValue.textContent=ap+'/'+MAX_AP+' AP';
     apValue.dataset.ap=String(ap);
+    move.textContent='Move '+remainingMove(state)+'/'+MAX_MOVEMENT;
+    move.setAttribute('aria-label','Movement: '+remainingMove(state)+' of '+MAX_MOVEMENT+' points available. Preview a path. Does not spend action points.');
+    move.dataset.mp=String(remainingMove(state));
+    move.dataset.selected=String(state.moveMode);
+    move.setAttribute('aria-pressed',String(state.moveMode));
+    move.disabled=remainingMove(state)<=0;
     turnValue.textContent='Study turn '+state.turn;
     readout.textContent=state.feedback;
     readout.dataset.ability=state.abilityId??'';
+    readout.dataset.mode=state.moveMode?'movement':state.abilityId?'ability':'idle';
     readout.dataset.valid=state.preview?(state.preview.valid?'true':'false'):'pending';
     view.dataset.actorId=state.actorId;
     view.dataset.ap=String(ap);
@@ -40,15 +54,17 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       button.setAttribute('aria-pressed',String(selected));
     }
     confirm.disabled=!board||!canConfirm(state,board);
-    cancel.disabled=!state.abilityId;
+    cancel.disabled=!state.abilityId&&!state.moveMode;
     onOverlayChange(overlay());
   }
   function setBoard(nextBoard){
     board=nextBoard;
-    if(state.target&&state.abilityId){
-      const reevaluated=targetResult(getCommand(state.abilityId),state.actorId,state.target,board);
-      if(!reevaluated.valid){state=cancelPreview(state)}
-      else state=Object.freeze({...state,preview:reevaluated});
+    state=setMovementBoard(state,board);
+    if(state.target&&(state.abilityId||state.moveMode)){
+      const reevaluated=state.moveMode?
+        previewMovement(board,state.positions,state.actorId,state.target,remainingMove(state)):
+        targetResult(getCommand(state.abilityId),state.actorId,state.target,board,state.positions);
+      state=Object.freeze({...state,preview:reevaluated,feedback:reevaluated.reason});
     }
     paint();
   }
@@ -63,10 +79,11 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
   }
   function selectActor(id){state=changeActor(state,id);paint();}
   function targetCell(cell,nextBoard){
-    if(!visible||!state.abilityId)return;
+    if(!visible||(!state.abilityId&&!state.moveMode))return;
     if(nextBoard)board=nextBoard;
     state=chooseTarget(state,cell,board);paint();
   }
+  move.addEventListener('click',()=>{state=chooseMove(state);paint();});
   confirm.addEventListener('click',()=>{state=confirmPreview(state,board);paint();});
   cancel.addEventListener('click',()=>{state=cancelPreview(state);paint();});
   endTurn.addEventListener('click',()=>{state=endStudyTurn(state);paint();});
