@@ -12,7 +12,7 @@ import {paintMaterialTransitions} from './shoreline.js';
 import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from './illumination.js';
 import {paintWorldRelief,paintHeroEnamelStatus} from './relief.js';
 import {paintQuillPreview} from './quill.js';
-import {paintThreatEngravings,paintTravelEngraving} from './battle-engraving.js';
+import {paintThreatEngravings,paintTravelEngraving,threatGlyphs} from './battle-engraving.js';
 import {paintPressRelics} from './press-ruins.js';
 import {paintPuppetShadow} from './paper-puppets.js';
 
@@ -218,11 +218,9 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   }
 
   // Danger symbols sit on the world tile margin; stitched routes are BELOW figures.
-  for(const intent of overlay?.intents??[]){
-    const target=overlay?.positions?.[intent.victimId];
-    if(!target)continue;
-    const rect=cellRect(board,target.column,target.row);
-    if(rect)paintThreatSymbol(ctx,rect,intent.attack===true);
+  for(const glyph of threatGlyphs(overlay?.intents,overlay?.positions)){
+    const rect=cellRect(board,glyph.position.column,glyph.position.row);
+    if(rect)paintThreatSymbol(ctx,rect,glyph.attack);
   }
   // No redundant origin halo is painted across the acting figure's face.
   // Selected-unit enamel stand and tiny corner sigil already identify the actor.

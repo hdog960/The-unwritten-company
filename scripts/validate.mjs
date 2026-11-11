@@ -89,3 +89,7 @@ const pressRuins=fs.readFileSync('src/board/press-ruins.js','utf8');
 const paperPuppets=fs.readFileSync('src/board/paper-puppets.js','utf8');
 assert.match(pressRuins,/paintPressRelics/);
 assert.match(paperPuppets,/paintPuppetShadow/);
+
+const articulated=fs.readFileSync('src/board/weapon-rigs.js','utf8');
+assert.match(articulated,/paintWeaponRig/);
+assert.match(miniature,/paintWeaponRig/);
