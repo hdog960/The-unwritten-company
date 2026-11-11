@@ -4,6 +4,7 @@ import {paintJoinedTerrain,paintGutterFiligree,paintUnitEmblem,paintThreatSymbol
 import {drawHero,drawFoe} from '../src/board/miniatures.js';
 import {renderBoard} from '../src/board/scene.js';
 import {measureBoard} from '../src/board/geometry.js';
+import {transitionPairs,paintMaterialTransitions} from '../src/board/shoreline.js';
 import {createCommandState,setMovementBoard} from '../src/commands/engine.js';
 
 function ink(){
@@ -95,4 +96,19 @@ test('complete diorama still draws with original game party and foe positions',(
     guards:s.guards,intents:[{from:s.targets.briar.position,victimId:'kess',attack:true}]});
   assert.ok(ctx.calls.length>1600,'actual rendered scene includes tile grain, continuities, characters and threats');
   assert.equal(ctx.calls.filter(c=>c[0]==='save').length,ctx.calls.filter(c=>c[0]==='restore').length);
+});
+
+test('painterly shoreline and ink-root bleeds use actual neighboring materials without altering terrain',()=>{
+  const before=JSON.stringify(board);
+  const kinds=paired();
+  const pairs=transitionPairs(board,kinds);
+  assert.ok(pairs.some(p=>p.kind==='water'||p.other==='water'),'water reaches a shore');
+  assert.ok(pairs.some(p=>p.kind==='moss'||p.other==='moss'),'moss joins stone');
+  const a=ink(),b=ink();
+  assert.equal(paintMaterialTransitions(a,board,kinds),pairs.length);
+  assert.equal(paintMaterialTransitions(b,board,kinds),pairs.length);
+  assert.deepEqual(a.calls,b.calls,'deterministic original seam artwork');
+  assert.equal(JSON.stringify(board),before);
+  assert.equal(a.calls.filter(c=>c[0]==='save').length,a.calls.filter(c=>c[0]==='restore').length);
+  assert.ok(a.calls.some(c=>c[0]==='clip'));
 });
