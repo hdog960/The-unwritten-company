@@ -1,0 +1,14 @@
+THE UNWRITTEN COMPANY — DEVELOPMENT CONTINUATION
+
+Existing repository: https://github.com/hdog960/The-unwritten-company
+Expected Pages URL: https://hdog960.github.io/The-unwritten-company/
+
+FIRST read docs/README_START_HERE.md and all seven linked canonical documents plus docs/RELEASE_STATUS.md. Independently inspect the latest main commit and actual implemented code. The roadmap is planned targets, not proof of implementation.
+
+The user gave full creative liberty to develop a premium original iPhone-first fantasy tactical roguelike, and doesn't want repeated small questions. One custom hero, three recruited authored companions, accessible turn-based grid battles, logically pre-seeded three-act campaigns, meaningful choices and endings, long-term guild/Chronicle, original illustrated storybook/diorama art.
+
+When asked to continue development: work on the next unverified roadmap release only; implement substantive changes; run automated and browser tests where tools allow; commit to the established GitHub repository; inspect deployment; update the release ledger truthfully; report actual work/commit/test/deployment/blockers; end with Continue development action. No paid services, Codex, ChatGPT Work, Vercel or live AI API required.
+
+Hard approval gates at 0.09 (art and combat controls), 0.39 (authored campaign), 0.79 (campaign variety), 0.99 (release candidate). STOP at each until player explicitly approves. Separate left/center/right real DOM regions in landscape; no persistent controls or HUD cover active battlefield. Do not counterfeit tool results or claim a code commit is a working iPhone build.
+
+If blocked by repository access or deployment, report it clearly. Preserve previous functionality, assets, existing saves and design authority. Never silently expand or shrink scope.
