@@ -80,11 +80,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.06'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.07'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.06 page did not initialize');
+      throw new Error('v0.07 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -307,6 +307,76 @@ async function main(){
       await run("document.querySelector('#command-cancel').click()");
       console.log('Movement PASS',width+'x'+height,'blocked/occupied, valid path and cost, cancel, commit, per-party MP, end turn');
 
+      // Seeded combat: a stationary Briar Sentry at (cols-1,0), next to Kess.
+      assert.match(await run("document.querySelector('#combat-summary').textContent"),/Briar 13\/13.*Shade 16\/16/);
+      await run("document.querySelector('[data-member-id=\"kess\"]').click()");
+      const foeC=boardMetrics.cols-1,foeR=0;
+      const targetInfo=await run("(()=>({ap:document.querySelector('#command-ap').dataset.ap,mp:document.querySelector('#command-move').dataset.mp,seed:document.querySelector('#seed').value}))()");
+      assert.equal(targetInfo.ap,'2');
+      assert.equal(targetInfo.mp,'5');
+      assert.equal(targetInfo.seed,'Sable-777');
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      await tapCell(foeC,foeR);
+      const previewCombat=await run("(()=>({valid:document.querySelector('#command-readout').dataset.valid,description:document.querySelector('#command-readout').textContent,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex,readoutScroll:document.querySelector('#command-readout').scrollHeight,readoutHeight:document.querySelector('#command-readout').clientHeight}))()");
+      assert.equal(previewCombat.valid,'true','training foe within Spark range must be targetable');
+      assert.match(previewCombat.description,/60% hit.*Guard 12/);
+      assert.equal(previewCombat.ap,'2','target preview must not charge AP');
+      assert.equal(previewCombat.rollIndex,'0','target preview must not consume an RNG roll');
+      assert.ok(previewCombat.readoutScroll<=previewCombat.readoutHeight+1,'hit chance must fit in the right-rail preview');
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/combat-target-'+width+'x'+height+'.png',Buffer.from(shot.data,'base64'));
+      }
+      await run("document.querySelector('#command-cancel').click()");
+      assert.equal(await run("document.querySelector('#command-readout').dataset.attackIndex"),'0');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2');
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      await tapCell(foeC,foeR);
+      await run("document.querySelector('#command-confirm').click()");
+      const missOne=await run("(()=>({face:document.querySelector('#command-readout').dataset.roll,hit:document.querySelector('#command-readout').dataset.hit,hp:document.querySelector('#command-readout').dataset.targetHp,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex}))()");
+      assert.deepEqual(missOne,{face:'7',hit:'false',hp:'13',ap:'1',rollIndex:'1'},'first Sable-777 Kess Spark roll must be reproducible miss');
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      await tapCell(foeC,foeR);
+      await run("document.querySelector('#command-confirm').click()");
+      const missTwo=await run("(()=>({face:document.querySelector('#command-readout').dataset.roll,hit:document.querySelector('#command-readout').dataset.hit,hp:document.querySelector('#command-readout').dataset.targetHp,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex}))()");
+      assert.deepEqual(missTwo,{face:'4',hit:'false',hp:'13',ap:'0',rollIndex:'2'},'second seeded roll must be a different deterministic miss');
+      assert.equal(await run("document.querySelector('[data-ability-id=\"spark\"]').disabled"),true);
+      await run("document.querySelector('#command-end-turn').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2');
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      await tapCell(foeC,foeR);
+      await run("document.querySelector('#command-confirm').click()");
+      const hitThree=await run("(()=>({face:document.querySelector('#command-readout').dataset.roll,hit:document.querySelector('#command-readout').dataset.hit,hp:document.querySelector('#command-readout').dataset.targetHp,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex,summary:document.querySelector('#combat-summary').textContent,feedback:document.querySelector('#command-readout').textContent,tooltip:document.querySelector('#command-readout').title,scroll:document.querySelector('#command-readout').scrollHeight,height:document.querySelector('#command-readout').clientHeight}))()");
+      assert.equal(hitThree.face,'15');
+      assert.equal(hitThree.hit,'true');
+      assert.equal(hitThree.hp,'10');
+      assert.equal(hitThree.ap,'1');
+      assert.equal(hitThree.rollIndex,'3');
+      assert.match(hitThree.summary,/Briar 10\/13/);
+      assert.match(hitThree.feedback,/HIT.*10\/13/);
+      assert.match(hitThree.tooltip,/Roll 15 \+ 3 = 18 versus Guard 12/);
+      assert.ok(hitThree.scroll<=hitThree.height+1,'damage + defense result must fit on-screen');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'no duplicate HP damage on repeat confirm');
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/combat-hit-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+      }
+      // Ward is defensive state, not an enemy turn: +2 Guard until this actor ends a turn.
+      await run("document.querySelector('[data-member-id=\"brunna\"]').click()");
+      await run("document.querySelector('[data-ability-id=\"ward\"]').click()");
+      await tapCell(2,boardMetrics.rows-1);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true');
+      await run("document.querySelector('#command-confirm').click()");
+      assert.equal(await run("document.querySelector('#command-view').dataset.guard"),'2');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/Guard \+2/);
+      await run("document.querySelector('#command-end-turn').click()");
+      assert.equal(await run("document.querySelector('#command-view').dataset.guard"),'0');
+      assert.match(await run("document.querySelector('#combat-summary').textContent"),/Briar 10\/13/,'ending the demonstration turn must not heal training foes');
+      console.log('Combat PASS',width+'x'+height,'seeded misses 7/4, hit 15, HP 13→10, 2 AP economy, Ward, target/defense legibility');
+
+
 
 
       console.log('Battle PASS',width+'x'+height,'grid='+boardMetrics.cols+'x'+boardMetrics.rows,'cell='+boardMetrics.tile.toFixed(1),'canvas='+boardMetrics.board.width.toFixed(0)+'x'+boardMetrics.board.height.toFixed(0));
@@ -361,6 +431,18 @@ async function main(){
     assert.equal(await run("document.querySelector('#command-readout').dataset.mode"),'movement','offline movement module did not load');
     await run("document.querySelector('#command-cancel').click()");
     assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','offline movement cancel should be free');
+
+    await run("document.querySelector('[data-member-id=\"kess\"]').click()");
+    await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+    const offlineTarget=await run("(()=>{const c=document.querySelector('#battle-canvas');const b=c.getBoundingClientRect();return{x:b.left+(+c.dataset.offsetX)+(+c.dataset.tile)*((+c.dataset.columns)-.5),y:b.top+(+c.dataset.offsetY)+(+c.dataset.tile)*.5}})()");
+    await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:offlineTarget.x,y:offlineTarget.y,button:'left',buttons:1,clickCount:1});
+    await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:offlineTarget.x,y:offlineTarget.y,button:'left',buttons:0,clickCount:1});
+    assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','offline seeded foe must be targetable');
+    await run("document.querySelector('#command-confirm').click()");
+    assert.equal(await run("document.querySelector('#command-readout').dataset.attackIndex"),'1','offline combat roll module did not run');
+    assert.match(await run("document.querySelector('#command-readout').textContent"),/HIT|MISS|CRIT/);
+    console.log('Browser PASS offline seeded combat resolution');
+
     console.log('Browser PASS offline movement and cancel');
     console.log('Browser PASS offline command rail and cancel');
 
