@@ -119,23 +119,28 @@ test('reflow preserves legal locations, corrects duplicate positions, never dest
   assert.ok(isWalkable(wide,fixed.mirelle));
   assert.equal(Object.isFrozen(moveActor(fixed,'mirelle',point(4,3))),true);
 });
-test('seedless deterministic spatial property test on 120 position combinations',()=>{
-  const p=placeParty(wide);
-  for(let x=0;x<8;x++)for(let y=0;y<6;y++){
-    const goal=point(x,y);
-    const route=shortestPath(wide,p.captain,goal,p,'captain');
-    if(!route.found)continue;
-    assert.deepEqual(route.path[0],p.captain);
-    assert.deepEqual(route.path.at(-1),goal);
-    let cost=0;
-    for(let i=1;i<route.path.length;i++){
-      const at=route.path[i],before=route.path[i-1];
-      assert.equal(Math.abs(at.column-before.column)+Math.abs(at.row-before.row),1);
-      assert.ok(isWalkable(wide,at));
-      assert.ok(!Object.entries(p).some(([id,pos])=>id!=='captain'&&pos.column===at.column&&pos.row===at.row));
-      cost+=getTile(at.row,at.column)==='water'?2:1;
+test('deterministic spatial property test on 120 destination combinations',()=>{
+  let checked=0;
+  for(const board of [wide,{columns:7,rows:6},{columns:6,rows:5}]){
+    const p=placeParty(board);
+    for(let x=0;x<board.columns;x++)for(let y=0;y<board.rows;y++){
+      checked++;
+      const goal=point(x,y);
+      const route=shortestPath(board,p.captain,goal,p,'captain');
+      if(!route.found)continue;
+      assert.deepEqual(route.path[0],p.captain);
+      assert.deepEqual(route.path.at(-1),goal);
+      let cost=0;
+      for(let i=1;i<route.path.length;i++){
+        const at=route.path[i],prior=route.path[i-1];
+        assert.equal(Math.abs(at.column-prior.column)+Math.abs(at.row-prior.row),1);
+        assert.ok(isWalkable(board,at));
+        assert.ok(!Object.entries(p).some(([id,pos])=>id!=='captain'&&pos.column===at.column&&pos.row===at.row));
+        cost+=getTile(at.row,at.column)==='water'?2:1;
+      }
+      assert.equal(cost,route.cost);
+      assert.deepEqual(route,shortestPath(board,p.captain,goal,p,'captain'));
     }
-    assert.equal(cost,route.cost);
-    assert.deepEqual(route,shortestPath(wide,p.captain,goal,p,'captain'));
   }
+  assert.equal(checked,120);
 });

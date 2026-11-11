@@ -266,6 +266,9 @@ async function main(){
       await tapCell(fromCol,fromRow-1);
       assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','adjacent destination should preview a valid route');
       assert.match(await run("document.querySelector('#command-readout').textContent"),/cost 1 movement/);
+      const reading=await run("(()=>{const e=document.querySelector('#command-readout');return{scroll:e.scrollHeight,client:e.clientHeight,text:e.textContent}})()");
+      assert.ok(reading.scroll<=reading.client+1,'movement preview text clipped at '+width+'x'+height);
+
       assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','preview must not spend movement');
       const activePreview=await run("document.querySelector('#command-readout').textContent");
       if(width===844){
