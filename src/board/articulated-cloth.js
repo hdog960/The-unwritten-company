@@ -34,7 +34,8 @@ const clamp=v=>Number.isFinite(v)?Math.min(1,Math.max(0,v)):0;
 const closed=v=>Math.max(4,Math.min(96,v));
 export function clothPose(id,pose=null){
  const item=ink[id];if(!item)return null;
- const t=clamp(pose?.progress),pulse=Math.sin(Math.PI*t);
+ const t=clamp(pose?.progress),raw=Math.sin(Math.PI*t);
+ const pulse=Math.abs(raw)<1e-10?0:raw;
  let fold=0,drop=0;
  if(pose?.kind==='attack'){fold=.17*pulse;drop=-.035*pulse;}
  if(pose?.kind==='recoil'){fold=-.13*pulse;drop=.018*pulse;}
