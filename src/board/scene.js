@@ -147,7 +147,7 @@ export function miniaturePose(frame,position,isEnemy=false){
     if(mark.kind==='ward'&&same(mark.to,position))return {kind:'ward',progress:q};
     if(mark.kind==='move'&&same(mark.to,position))return {kind:'move',progress:q};
     if(mark.kind==='hit'||mark.kind==='critical'||mark.kind==='miss'){
-      if(same(mark.to,position))return {kind:mark.kind==='miss'?'recoil':'recoil',progress:q};
+      if(same(mark.to,position)&&mark.kind!=='miss')return {kind:mark.kind==='critical'?'stagger':'recoil',progress:q};
       if(same(mark.from,position))return {kind:'attack',progress:q};
     }
   }

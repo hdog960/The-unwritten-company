@@ -225,6 +225,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(pose?.kind==='attack')ctx.translate((id==='kess'?4.8:id==='brunna'?-3.1:2.4)*Math.sin(Math.PI*pose.progress),
     -(id==='brunna'?5.4:id==='mirelle'?2.6:4.8)*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='recoil')ctx.translate(-3.8*Math.sin(Math.PI*pose.progress),2.6*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='stagger')ctx.translate(-5.5*Math.sin(Math.PI*pose.progress),3.9*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='move')ctx.translate(0,-3*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='ward')ctx.translate(0,-2.2*Math.sin(Math.PI*pose.progress));
   if(id==='brunna')drawBrunna(ctx);
@@ -284,6 +285,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   ctx.save();
   if(pose?.kind==='attack')ctx.translate(-2.5*Math.sin(Math.PI*pose.progress),-4.4*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='recoil')ctx.translate(4.7*Math.sin(Math.PI*pose.progress),2.1*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='stagger')ctx.translate(6*Math.sin(Math.PI*pose.progress),4*Math.sin(Math.PI*pose.progress));
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
   ctx.restore();

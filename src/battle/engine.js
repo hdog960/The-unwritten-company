@@ -88,7 +88,7 @@ export function resolveEnemyPhase(state,board){
     const damage=Math.min(hp[targetId],result.damage);
     hp[targetId]=Math.max(0,hp[targetId]-damage);
     const name=PARTY_SLOTS.find(x=>x.id===targetId).name;
-    marks.push(Object.freeze({kind:result.hit?'hit':'miss',from:path.position,to:state.positions[targetId]}));
+    marks.push(Object.freeze({kind:result.critical?'critical':result.hit?'hit':'miss',from:path.position,to:state.positions[targetId]}));
     log.push(ENEMY_KITS[def].name+' '+(result.hit?'hits '+name+' -'+damage:'misses '+name)+
       ' ('+result.face+'+'+result.bonus+' vs '+result.guard+')');
   }

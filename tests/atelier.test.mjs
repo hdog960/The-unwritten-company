@@ -60,6 +60,11 @@ test('pose lookup supports attack windup, hero recoil, guarding, travel and enem
   assert.deepEqual(miniaturePose(attack,from),{kind:'attack',progress:.35});
   assert.deepEqual(miniaturePose(attack,to),{kind:'recoil',progress:.35});
   assert.equal(miniaturePose(attack,third),null);
+  const missed={event:{kind:'miss',from,to,token:'miss'},progress:.5};
+  assert.deepEqual(miniaturePose(missed,from),{kind:'attack',progress:.5});
+  assert.equal(miniaturePose(missed,to),null,'a miss must never stagger an untouched target');
+  const critical={event:{kind:'critical',from,to,token:'crit'},progress:.4};
+  assert.deepEqual(miniaturePose(critical,to),{kind:'stagger',progress:.4},'critical impact should be visually distinct');
   const ward={event:{kind:'ward',from,to:from,token:'b'},progress:.4};
   assert.deepEqual(miniaturePose(ward,from),{kind:'ward',progress:.4});
   const travel={event:{kind:'move',from,to,token:'c',path:[from,to]},progress:.7};
