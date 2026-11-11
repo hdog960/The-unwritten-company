@@ -71,3 +71,22 @@ test('the illuminated battlefield still composes with real hero/foe targets and 
   assert.ok(ctx.calls.some(c=>c[0]==='clip'));
   balanced(ctx);
 });
+
+test('every decorative miniature footlight stays inside its own world tile at narrow sizes',()=>{
+  for(const size of [31,38,55,69]){
+    const rect={x:6,y:8,width:size,height:size};
+    for(const id of Object.keys(FIGURE_AURAS)){
+      for(const active of [true,false]){
+        const ctx=ink();
+        assert.equal(paintMiniatureFootlights(ctx,rect,id,{active}),true);
+        for(const [kind,x,y,r] of ctx.calls.filter(c=>c[0]==='arc')){
+          assert.ok(x-r>=rect.x-.01&&x+r<=rect.x+rect.width+.01,
+            'footlight horizontally overflows '+id+' '+size);
+          assert.ok(y-r>=rect.y-.01&&y+r<=rect.y+rect.height+.01,
+            'footlight vertically overflows '+id+' '+size);
+        }
+        balanced(ctx);
+      }
+    }
+  }
+});

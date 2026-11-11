@@ -1,6 +1,6 @@
 /* Static-project scoped, offline-first asset storage; no runtime AI or paid backend. */
 const CACHE_PREFIX = 'tuc-foundation-';
-const CACHE_NAME = CACHE_PREFIX + 'v0.09-gate-a6';
+const CACHE_NAME = CACHE_PREFIX + 'v0.09-gate-a6-r1';
 const CORE_ASSETS = [
   './','./index.html','./styles.css','./manifest.webmanifest',
   './src/main.js','./src/content/catalog.js','./src/engine/state.js',

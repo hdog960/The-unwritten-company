@@ -106,13 +106,13 @@ export function paintMiniatureBackdrop(ctx,rect,id,options={}){
  * floating health HUD or opaque gameplay controls are ever drawn. */
 export function paintMiniatureFootlights(ctx,rect,id,{active=false,fallen=false}={}){
   if(!ctx||!rect||!Object.hasOwn(FIGURE_AURAS,id))return false;
-  const s=rect.width,cx=rect.x+s*.5,cy=rect.y+s*.85;
+  const s=rect.width,cx=rect.x+s*.5,cy=rect.y+s*.72;
   const c=FIGURE_AURAS[id];
   ctx.save();
   if(!fallen){
-    ctx.globalAlpha=active?1:.7;
+    ctx.globalAlpha=active?.84:.38;
     const from=active?-.8:Math.PI*.08,to=active?3.8:Math.PI*.87;
-    ring(ctx,cx,cy,s*.3,c,Math.max(1,s*.028),from,to);
+    ring(ctx,cx,cy,s*(active?.21:.155),c,Math.max(.8,s*(active?.025:.017)),from,to);
     // Three tiny engraved brass studs on the front enamel base.
     for(let i=-1;i<=1;i++){
       const theta=Math.PI*.5+i*.46;
@@ -123,7 +123,7 @@ export function paintMiniatureFootlights(ctx,rect,id,{active=false,fallen=false}
       line(ctx,[[cx-s*.3,cy-s*.08],[cx-s*.25,cy-s*.16]],'#d6b381',Math.max(.8,s*.019));
       line(ctx,[[cx+s*.3,cy-s*.08],[cx+s*.25,cy-s*.16]],'#d6b381',Math.max(.8,s*.019));
     }else if(id==='shade'){
-      ring(ctx,cx,cy,s*.34,'#94ddd3',Math.max(.9,s*.021),1.1,2.5);
+      ring(ctx,cx,cy,s*.19,'#94ddd3',Math.max(.8,s*.018),1.1,2.5);
     }
   }
   ctx.restore();return true;
