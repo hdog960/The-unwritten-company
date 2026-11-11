@@ -1,88 +1,130 @@
-/** v0.09 original, terrain-clipped battle VFX. Pure drawing; no game logic or RNG. */
+/** The Illuminated Table / Gate A revision.
+ * Hand-inked anticipation → travel → impact → recovery; purely presentational.
+ * No time-based damage, gameplay RNG, network assets or overlaid UI text.
+ */
 import {cellRect} from './geometry.js';
 export const EFFECT_KINDS=Object.freeze(['hit','critical','miss','ward','move','enemy-phase']);
-export const EFFECT_DURATION_MS=390;
+export const EFFECT_DURATION_MS=490;
 export function isValidEffect(event){
   return !!event&&EFFECT_KINDS.includes(event.kind)&&typeof event.token==='string'&&event.token.length>0;
 }
-const clamp=p=>Math.max(0,Math.min(1,Number.isFinite(p)?p:0));
+const clamp=x=>Math.max(0,Math.min(1,Number.isFinite(x)?x:0));
 const center=(board,pos)=>{
   const r=pos?cellRect(board,pos.column,pos.row):null;
   return r?{x:r.x+r.width*.5,y:r.y+r.height*.5,s:r.width}:null;
 };
-function arc(ctx,cx,cy,r,from,to,color,width){
-  ctx.beginPath();ctx.arc(cx,cy,r,from,to);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();
+const mix=(a,b,t)=>a+(b-a)*clamp(t);
+const ease=t=>{const x=clamp(t);return x*x*(3-2*x);};
+function ring(ctx,cx,cy,r,from,to,color,width){
+  ctx.beginPath();ctx.arc(cx,cy,Math.max(1,r),from,to);
+  ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();
 }
-function rune(ctx,cx,cy,r,color){
+function glyph(ctx,x,y,r,color,sides=6){
   ctx.beginPath();
-  for(let i=0;i<6;i++){const a=(Math.PI/3)*i-Math.PI/6;const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);}
-  ctx.closePath();ctx.strokeStyle=color;ctx.lineWidth=Math.max(1.5,r*.115);ctx.stroke();
+  for(let i=0;i<sides;i++){
+    const a=Math.PI*2*i/sides-Math.PI/6;
+    const p=[x+Math.cos(a)*r,y+Math.sin(a)*r];
+    if(i)ctx.lineTo(...p);else ctx.moveTo(...p);
+  }
+  ctx.closePath();ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,r*.105);ctx.stroke();
 }
-function strike(ctx,board,mark,p){
-  const from=center(board,mark.from),to=center(board,mark.to);
-  if(!to)return;
-  const s=to.s;
-  const color=mark.kind==='critical'?'#ffe4a2':mark.kind==='miss'?'#a5d7e7':'#f7a688';
-  if(from){
+function flash(ctx,x,y,s,p,kind){
+  const color=kind==='critical'?'#ffedb3':kind==='miss'?'#9fe2e6':'#fac09c';
+  const rays=kind==='critical'?10:kind==='miss'?4:7;
+  for(let i=0;i<rays;i++){
+    const a=Math.PI*2*i/rays+.13;
+    const small=s*(.1+.07*p),large=s*(.2+.23*p);
     ctx.beginPath();
-    ctx.moveTo(from.x,from.y-s*.1);
-    ctx.quadraticCurveTo((from.x+to.x)/2,to.y-s*.4,to.x,to.y);
-    ctx.strokeStyle=color;ctx.lineWidth=Math.max(2.3,s*.08)*(1-p*.5);
-    ctx.stroke();
+    ctx.moveTo(x+Math.cos(a)*small,y+Math.sin(a)*small);
+    ctx.lineTo(x+Math.cos(a)*large,y+Math.sin(a)*large);
+    ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,s*.038)*(1-p*.48);ctx.stroke();
   }
-  if(mark.kind==='miss'){
-    ctx.setLineDash([s*.14,s*.13]);
-    arc(ctx,to.x,to.y,s*(.2+.21*p),0,Math.PI*2,color,Math.max(1.5,s*.052));
+  ring(ctx,x,y,s*(.12+.24*p),-.6,Math.PI*1.7,color,Math.max(1.5,s*.068)*(1-p*.58));
+  if(kind==='critical')glyph(ctx,x,y,s*(.17+.18*p),'#fff6d3',8);
+  if(kind==='miss'){
+    ctx.setLineDash([s*.09,s*.075]);
+    ring(ctx,x,y,s*(.3+.15*p),0,Math.PI*2,'#9fbfd5',Math.max(1,s*.028));
     ctx.setLineDash([]);
-    return;
   }
-  for(let i=0;i<(mark.kind==='critical'?9:6);i++){
-    const angle=i*Math.PI*2/(mark.kind==='critical'?9:6)+.2;
-    const inner=s*(.12+.07*p),outer=s*(.25+.17*p);
-    ctx.beginPath();
-    ctx.moveTo(to.x+Math.cos(angle)*inner,to.y+Math.sin(angle)*inner);
-    ctx.lineTo(to.x+Math.cos(angle)*outer,to.y+Math.sin(angle)*outer);
-    ctx.strokeStyle=color;ctx.lineWidth=Math.max(1.2,s*.039)*(1-p*.32);ctx.stroke();
+}
+function channel(ctx,board,mark,p){
+  const origin=center(board,mark.from),dest=center(board,mark.to);
+  if(!dest)return;
+  const s=dest.s;
+  const windup=clamp(p/.26),travel=clamp((p-.2)/.42),impact=clamp((p-.58)/.42);
+  const shade=mark.kind==='miss'?'#a5dce2':mark.kind==='critical'?'#ffe4ac':mark.skillId==='sigil'?'#e8d29b':mark.skillId==='spark'?'#9adcd2':'#efa684';
+  if(origin&&windup<1){
+    ctx.globalAlpha=.7*(1-windup);
+    glyph(ctx,origin.x,origin.y-s*.06,s*(.13+.15*windup),shade,mark.skillId==='sigil'?4:6);
+    ring(ctx,origin.x,origin.y,s*(.2+.12*windup),-.8,2.1,shade,Math.max(1.3,s*.028));
+    ctx.globalAlpha=1;
   }
-  arc(ctx,to.x,to.y,s*(.13+.22*p),-.6,Math.PI*.85,color,Math.max(2,s*.073)*(1-p*.5));
-  if(mark.kind==='critical'){
-    ctx.beginPath();
-    for(let i=0;i<8;i++){
-      const a=i*Math.PI/4;
-      const r=s*(i%2===0?.21:.09)*(1+p*.6);
-      const x=to.x+Math.cos(a)*r,y=to.y+Math.sin(a)*r;
-      if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);
+  if(origin&&p>.15&&p<.76){
+    const head=ease(travel),tx=mix(origin.x,dest.x,head),ty=mix(origin.y,dest.y,head);
+    const mx=mix(origin.x,dest.x,Math.max(0,head-.21));
+    const my=mix(origin.y,dest.y,Math.max(0,head-.21))-s*.04*Math.sin(Math.PI*head);
+    ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(tx,ty);
+    ctx.strokeStyle=shade;ctx.lineWidth=Math.max(2,s*(mark.skillId==='strike'?.095:.07));
+    ctx.lineCap='round';ctx.stroke();
+    ctx.beginPath();ctx.arc(tx,ty,s*(.045+head*.035),0,Math.PI*2);
+    ctx.fillStyle='#fff3d1';ctx.fill();
+  }
+  if(p>.46){
+    ctx.globalAlpha=1-.18*impact;
+    flash(ctx,dest.x,dest.y,s,impact,mark.kind);
+    if(mark.skillId==='sigil'&&mark.kind!=='miss'){
+      glyph(ctx,dest.x,dest.y,s*(.19+.18*impact),'#ecdaa3',4);
+      glyph(ctx,dest.x,dest.y,s*(.11+.15*impact),'#b6e5d3',4);
     }
-    ctx.closePath();ctx.strokeStyle='#fff3cc';ctx.lineWidth=1.6;ctx.stroke();
   }
 }
 function ward(ctx,board,mark,p){
   const to=center(board,mark.to);
   if(!to)return;
-  const r=to.s*(.26+.1*p);
-  rune(ctx,to.x,to.y,r,'#b7f6de');
-  rune(ctx,to.x,to.y,r*.7,'#c6c4ed');
-  arc(ctx,to.x,to.y,r*.85,-.8,1.9,'#e8d8a4',Math.max(1.8,to.s*.038));
+  const r=to.s*(.23+.17*ease(p));
+  ctx.globalAlpha=1-p*.65;
+  glyph(ctx,to.x,to.y,r,'#b8e9df',6);
+  glyph(ctx,to.x,to.y,r*.73,'#d2bee3',6);
+  ring(ctx,to.x,to.y,r*.85,-.9,2.1,'#fff2cd',Math.max(1.7,to.s*.055));
+  // Glowing enamel shield motif; world-space and no text.
+  ctx.beginPath();ctx.moveTo(to.x,to.y-r*.5);
+  ctx.lineTo(to.x+r*.38,to.y-r*.13);ctx.lineTo(to.x+r*.26,to.y+r*.35);
+  ctx.lineTo(to.x,to.y+r*.58);ctx.lineTo(to.x-r*.26,to.y+r*.35);
+  ctx.lineTo(to.x-r*.38,to.y-r*.13);ctx.closePath();
+  ctx.strokeStyle='#f2d6a7';ctx.lineWidth=Math.max(1,to.s*.026);ctx.stroke();
+  ctx.globalAlpha=1;
 }
 function movement(ctx,board,mark,p){
-  const a=center(board,mark.from),b=center(board,mark.to);
-  if(!a||!b)return;
-  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-  ctx.setLineDash([Math.max(2,a.s*.11),Math.max(2,a.s*.08)]);
-  ctx.lineWidth=Math.max(2,a.s*.05);ctx.strokeStyle='#b9f1d5';ctx.stroke();ctx.setLineDash([]);
-  arc(ctx,b.x,b.y,b.s*(.12+.18*p),0,Math.PI*2,'#d6e8b3',Math.max(1.6,b.s*.035));
+  const path=(mark.path?.length>1?mark.path:[mark.from,mark.to]).map(at=>center(board,at)).filter(Boolean);
+  if(path.length<2)return;
+  const eased=ease(p);
+  const total=path.length-1,f=eased*total;
+  const idx=Math.min(total-1,Math.floor(f)),t=f-idx;
+  const a=path[idx],b=path[idx+1];
+  const px=mix(a.x,b.x,t),py=mix(a.y,b.y,t);
+  ctx.setLineDash([Math.max(2,a.s*.075),Math.max(2,a.s*.085)]);
+  ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<=idx;i++)ctx.lineTo(path[i].x,path[i].y);
+  ctx.lineTo(px,py);
+  ctx.strokeStyle='#b6ebca';ctx.lineWidth=Math.max(1.7,a.s*.055);ctx.stroke();
+  ctx.setLineDash([]);
+  ring(ctx,px,py,a.s*(.09+.08*Math.sin(Math.PI*eased)),0,Math.PI*2,'#f0e5b7',Math.max(1.5,a.s*.034));
+  if(eased>.67)ring(ctx,b.x,b.y,b.s*(.08+.17*eased),-.5,2.8,'#a0dbca',Math.max(1.3,a.s*.034));
 }
 export function drawWorldEffect(ctx,board,frame){
   if(!ctx||!board||!isValidEffect(frame?.event))return false;
-  const p=clamp(frame.progress);
-  ctx.save();
-  ctx.beginPath();ctx.rect(board.x,board.y,board.mapWidth,board.mapHeight);ctx.clip();
-  ctx.globalAlpha=.95*(1-p*.88);
+  const progress=clamp(frame.progress);
+  ctx.save();ctx.beginPath();ctx.rect(board.x,board.y,board.mapWidth,board.mapHeight);ctx.clip();
   const marks=frame.event.kind==='enemy-phase'?frame.event.marks??[]:[frame.event];
-  for(const mark of marks){
-    if(mark.kind==='ward')ward(ctx,board,mark,p);
-    else if(mark.kind==='move')movement(ctx,board,mark,p);
-    else strike(ctx,board,mark,p);
-  }
+  // Foe gestures sequence rather than obscuring every defender at once.
+  marks.forEach((mark,i)=>{
+    const local=frame.event.kind==='enemy-phase'?
+      clamp((progress-i*.2)/(1-.2*Math.max(0,marks.length-1))):progress;
+    ctx.save();ctx.globalAlpha=.98*(1-.1*local);
+    if(mark.kind==='ward')ward(ctx,board,mark,local);
+    else if(mark.kind==='move')movement(ctx,board,mark,local);
+    else channel(ctx,board,mark,local);
+    ctx.restore();
+  });
   ctx.restore();return true;
 }
