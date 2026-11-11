@@ -10,7 +10,7 @@ import {animatedHeroRect} from './motion.js';
 import {puppetPose} from './choreography.js';
 import {paintMaterialTransitions} from './shoreline.js';
 import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from './illumination.js';
-import {paintWorldRelief} from './relief.js';
+import {paintWorldRelief,paintHeroEnamelStatus} from './relief.js';
 import {paintQuillPreview} from './quill.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
@@ -183,6 +183,12 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
     drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,miniaturePose(frame,{column:miniature.col,row:miniature.row}));
     paintMiniatureFootlights(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0});
+    paintHeroEnamelStatus(ctx,rect,{
+      hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp??null,
+      ward:(overlay?.guards?.[id]??0)>0,
+      ended:overlay?.ended?.includes(id)??false,
+      fallen:overlay?.partyHp?.[id]===0
+    });
     paintUnitEmblem(ctx,rect,id,overlay?.actorId===id);
   }
   for(const foe of Object.values(overlay?.targets??{})){

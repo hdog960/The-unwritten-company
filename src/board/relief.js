@@ -63,3 +63,52 @@ export function paintWorldRelief(ctx,board,materialAt){
   }
   ctx.restore();return total;
 }
+
+/** Tiny physical cut-ins to the paper/enamel figure base.
+ * Pure appearance: wounded, guarded and finished states are supplied by
+ * the real command engine. No extra on-board buttons, labels or hitboxes.
+ */
+export function paintHeroEnamelStatus(ctx,rect,{hp=null,maxHp=null,ward=false,ended=false,fallen=false}={}){
+  if(!ctx||!rect)return false;
+  const s=rect.width,x=rect.x,y=rect.y;
+  const ratio=Number.isFinite(hp)&&Number.isFinite(maxHp)&&maxHp>0?
+    Math.max(0,Math.min(1,hp/maxHp)):1;
+  ctx.save();
+  ctx.beginPath();ctx.rect(x+1,y+1,s-2,s-2);ctx.clip();
+  if(fallen||ratio===0){
+    // Broken wax stamp: the dead pawn's base stays recognizably inert.
+    stroke(ctx,[[x+s*.66,y+s*.84],[x+s*.76,y+s*.75],
+      [x+s*.82,y+s*.87]],'#c4a998',Math.max(1,s*.031));
+  }else{
+    if(ratio<.5){
+      const count=ratio<.26?3:2;
+      // Slash cuts (rather than another difficult-to-read red HP meter).
+      for(let i=0;i<count;i++){
+        const px=x+s*(.62+i*.069),py=y+s*.87;
+        stroke(ctx,[[px,py],[px+s*.037,py-s*.065]],
+          '#ffbe94',Math.max(.9,s*.027));
+      }
+    }
+    if(ward){
+      // Carved Oathkeeper-style ward on the *left* of the standing base.
+      const cx=x+s*.16,cy=y+s*.72,r=s*.082;
+      ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r*.82,cy-r*.36);
+      ctx.lineTo(cx+r*.7,cy+r*.56);ctx.lineTo(cx,cy+r);
+      ctx.lineTo(cx-r*.7,cy+r*.56);ctx.lineTo(cx-r*.82,cy-r*.36);ctx.closePath();
+      ctx.fillStyle='#243a4adc';ctx.fill();ctx.strokeStyle='#d4c4f4';
+      ctx.lineWidth=Math.max(.9,s*.027);ctx.stroke();
+      stroke(ctx,[[cx-r*.26,cy],[cx,cy+r*.2],[cx+r*.33,cy-r*.27]],
+        '#ecf3d9',Math.max(.9,s*.024));
+    }
+    if(ended){
+      // Diagonal etched hatch in the bottom right; subdued because this
+      // character cannot take another action this round.
+      for(let i=0;i<3;i++){
+        const px=x+s*(.72+i*.066),py=y+s*.72;
+        stroke(ctx,[[px,py],[px+s*.049,py+s*.065]],
+          '#d0be997d',Math.max(1,s*.023));
+      }
+    }
+  }
+  ctx.restore();return true;
+}
