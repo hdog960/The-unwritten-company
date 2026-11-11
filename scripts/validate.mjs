@@ -77,3 +77,7 @@ for(const name of ['relief','quill']){
  const art=fs.readFileSync('src/board/'+name+'.js','utf8');
  assert.ok(art.length>900,'Original source art is missing: '+name);
 }
+
+const engraving=fs.readFileSync('src/board/battle-engraving.js','utf8');
+assert.match(engraving,/paintThreatEngravings/);
+assert.match(engraving,/paintTravelEngraving/);

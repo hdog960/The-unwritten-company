@@ -12,6 +12,7 @@ import {paintMaterialTransitions} from './shoreline.js';
 import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from './illumination.js';
 import {paintWorldRelief,paintHeroEnamelStatus} from './relief.js';
 import {paintQuillPreview} from './quill.js';
+import {paintThreatEngravings,paintTravelEngraving} from './battle-engraving.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -170,6 +171,9 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   // but beneath the miniatures. Invalid / empty live-battle tiles stay dark.
   paintTargetIndicators(ctx,board,overlay?.targetIndicators);
   paintQuillPreview(ctx,board,overlay);
+  // Floor engraving is drawn before figures; enemy vectors can never cross faces.
+  paintThreatEngravings(ctx,board,overlay?.intents,overlay?.positions);
+  paintTravelEngraving(ctx,board,overlay);
   const miniatures=overlay?.positions?
     Object.entries(overlay.positions).map(([id,at])=>({col:at.column,row:at.row,kind:id==='brunna'?'ward':id==='mirelle'?'scribe':id==='kess'?'rogue':'knight',id})):
     [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
@@ -205,56 +209,12 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     }
   }
 
-  // Hatched, world-surface enemy telegraphs; all labels remain in the right rail.
+  // Danger symbols sit on the world tile margin; stitched routes are BELOW figures.
   for(const intent of overlay?.intents??[]){
-    const rect=cellRect(board,overlay.positions[intent.victimId]?.column,overlay.positions[intent.victimId]?.row);
-    const source=cellRect(board,intent.from?.column,intent.from?.row);
-    if(!rect)continue;
-    const x=rect.x+rect.width/2,y=rect.y+rect.height/2,s=rect.width;
-    ctx.save();ctx.beginPath();ctx.arc(x,y,s*.36,0,Math.PI*2);
-    ctx.strokeStyle=intent.attack?'#f5a18f':'#d8c68a';
-    ctx.lineWidth=Math.max(2,s*.043);
-    ctx.setLineDash(intent.attack?[s*.09,s*.07]:[s*.18,s*.12]);ctx.stroke();ctx.setLineDash([]);
-    if(source){
-      const sx=source.x+source.width/2,sy=source.y+source.height/2;
-      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(x,y);
-      ctx.strokeStyle=intent.attack?'#f6a18d7f':'#cdbd8e6b';
-      ctx.lineWidth=Math.max(.9,s*.017);ctx.setLineDash([s*.14,s*.14]);ctx.stroke();
-    }
-    ctx.restore();
-    paintThreatSymbol(ctx,rect,!!intent.attack);
-  }
-  // World-native movement path: dotted route and tiles, never a floating HUD.
-  if(overlay?.mode==='movement' && overlay?.evaluation?.path?.length>1){
-    const route=overlay.evaluation.path;
-    const valid=overlay.evaluation.valid;
-    const color=valid?'#92ead1':'#eb9b79';
-    ctx.save();ctx.strokeStyle=color;ctx.lineWidth=Math.max(2,board.tile*.055);
-    ctx.lineJoin='round';ctx.lineCap='round';
-    ctx.setLineDash([board.tile*.13,board.tile*.11]);
-    ctx.beginPath();
-    for(let i=0;i<route.length;i++){
-      const rect=cellRect(board,route[i].column,route[i].row);
-      const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
-      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-    }
-    ctx.stroke();ctx.setLineDash([]);
-    for(let i=1;i<route.length;i++){
-      const rect=cellRect(board,route[i].column,route[i].row);
-      const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
-      disk(ctx,x,y,Math.max(2,board.tile*.07),color,'#163537',Math.max(.7,board.tile*.02));
-    }
-    ctx.restore();
-  }
-  if(overlay?.mode==='movement' && overlay?.target){
-    const rect=cellRect(board,overlay.target.column,overlay.target.row);
-    if(rect){
-      ctx.fillStyle=overlay.evaluation?.valid?'#73e4b929':'#ea806529';
-      ctx.fillRect(rect.x+2,rect.y+2,rect.width-4,rect.height-4);
-      ctx.strokeStyle=overlay.evaluation?.valid?'#91f6d4':'#ff9c7e';
-      ctx.lineWidth=Math.max(2,board.tile*.05);
-      ctx.strokeRect(rect.x+3,rect.y+3,rect.width-6,rect.height-6);
-    }
+    const target=overlay?.positions?.[intent.victimId];
+    if(!target)continue;
+    const rect=cellRect(board,target.column,target.row);
+    if(rect)paintThreatSymbol(ctx,rect,intent.attack===true);
   }
   if(overlay?.origin && overlay?.positions){
     const marker=cellRect(board,overlay.origin.column,overlay.origin.row);
