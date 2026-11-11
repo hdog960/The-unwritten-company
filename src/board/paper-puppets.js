@@ -22,7 +22,7 @@ export function foldedShadowProfile(id,pose=null){
   if(pose?.kind==='move'){lean=.012*t;lift=.03*t;}
   if(pose?.kind==='ward'){lean=0;lift=.018*t;}
   return Object.freeze(outline.map(([x,y],i)=>Object.freeze([
-    Math.max(.07,Math.min(.93,x+lean*(i%3===0?.5:1))),
+    Math.max(.07,Math.min(.93,x+lean*(i%3===0 ? .5 : 1))),
     Math.max(.38,Math.min(.92,y-lift))
   ])));
 }
