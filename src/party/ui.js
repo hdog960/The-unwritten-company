@@ -39,29 +39,28 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
     buttons.push(button);
   }
   function render(){
-    const member=activePartyMember(state);
-    roster.dataset.selectedId=member.id;
+    const selectedMember=activePartyMember(state);
+    roster.dataset.selectedId=selectedMember.id;
     buttons.forEach(button=>{
-      const rosterMember=PARTY_SLOTS.find(m=>m.id===button.dataset.memberId);
-      const selected=button.dataset.memberId===member.id;
+      const member=PARTY_SLOTS.find(m=>m.id===button.dataset.memberId);
+      const selected=member.id===selectedMember.id;
       button.dataset.selected=String(selected);
       button.setAttribute('aria-pressed',String(selected));
       button.tabIndex=selected?0:-1;
-      const member=rosterMember;
       const hp=currentBattle?.partyHp?.[member.id]??member.hp;
       const ended=currentBattle?.ended?.includes(member.id)??false;
-      const fallen=currentBattle?.partyHp&&hp<=0;
+      const fallen=!!currentBattle?.partyHp&&hp<=0;
       const inactive=currentBattle?.battleMode==='active'&&(fallen||ended);
       button.disabled=!!inactive;
-      button.dataset.fallen=String(!!fallen);
+      button.dataset.fallen=String(fallen);
       button.dataset.ended=String(ended);
       button.querySelector('.party-health-num').textContent=hp+'/'+member.maxHp;
       button.querySelector('.party-health-fill').style.width=(100*hp/member.maxHp)+'%';
       button.setAttribute('aria-label',member.name+', '+member.role+', '+hp+' of '+member.maxHp+' HP'+(fallen?', fallen':ended?', turn completed':'')+'.');
     });
-    const hp=currentBattle?.partyHp?.[member.id]??member.hp;
-    readout.textContent=member.name+' · '+hp+'/'+member.maxHp+' HP · '+(currentBattle?.battleMode==='active'?'In skirmish':currentBattle?.battleMode==='won'?'Victory':currentBattle?.battleMode==='lost'?'Defeat':'Study only')+'.';
-    readout.dataset.selectedId=member.id;
+    const hp=currentBattle?.partyHp?.[selectedMember.id]??selectedMember.hp;
+    readout.textContent=selectedMember.name+' · '+hp+'/'+selectedMember.maxHp+' HP · '+(currentBattle?.battleMode==='active'?'In skirmish':currentBattle?.battleMode==='won'?'Victory':currentBattle?.battleMode==='lost'?'Defeat':'Study only')+'.';
+    readout.dataset.selectedId=selectedMember.id;
   }
   function setSelected(id,focus=false){
     if(currentBattle?.battleMode==='active'&&((currentBattle.partyHp?.[id]??0)<=0||currentBattle.ended?.includes(id)))return;
