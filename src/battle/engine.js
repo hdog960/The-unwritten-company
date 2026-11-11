@@ -117,12 +117,12 @@ export function endBattleTurn(state,board){
     return Object.freeze({...next,actorId:who,feedback:PARTY_SLOTS.find(x=>x.id===who).name+' is ready. '+ended.length+' hero turn(s) complete.'});
   }
   const counter=resolveEnemyPhase(next,board);
-  if(counter.battleMode==='lost')return Object.freeze({...counter,ended,abilityId:null,moveMode:false,target:null,preview:null,feedback:'DEFEAT · The Company falls. Replay the skirmish.'});
+  if(counter.battleMode==='lost')return Object.freeze({...counter,ended,abilityId:null,moveMode:false,target:null,preview:null,feedback:'DEFEAT · Company fallen. Replay to try again.'});
   const alive=aliveParty(counter);
   const ap=Object.freeze({...counter.ap,...Object.fromEntries(alive.map(id=>[id,2]))});
   const mp=Object.freeze({...counter.mp,...Object.fromEntries(alive.map(id=>[id,5]))});
   const guards=Object.freeze(Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,0])));
   return Object.freeze({...counter,ap,mp,guards,actorId:alive[0],turn:state.turn+1,ended:Object.freeze([]),
     abilityId:null,moveMode:false,target:null,preview:null,
-    feedback:'ROUND '+(state.turn+1)+' · '+counter.lastEnemyPhase.join('; ')});
+    feedback:'ROUND '+(state.turn+1)+' · '+counter.lastEnemyPhase.map(event=>event.replace(/ \([^)]*\)/g,'')).join('; ')});
 }

@@ -125,7 +125,7 @@ export function confirmPreview(state,board){
     const updated=Object.freeze({...state,ap:next,targets:applyAttack(state.targets,outcome),rollIndex:state.rollIndex+1,lastCombat:Object.freeze({...outcome,position:opponent.position}),
       abilityId:null,moveMode:false,target:null,preview:null,confirmations:state.confirmations+1,feedback:combatFeedback(outcome,opponent.name)});
     return state.battleMode==='active'&&outcomeFor(updated)==='won'?
-      Object.freeze({...updated,battleMode:'won',feedback:'VICTORY · Both foes defeated in '+state.turn+' round(s). Replay or return to Inkfall House.'}):updated;
+      Object.freeze({...updated,battleMode:'won',feedback:'VICTORY · Both foes down. Tap Replay.'}):updated;
   }
   if(command.id==='ward'){
     const guards=Object.freeze({...state.guards,[state.actorId]:2});

@@ -423,6 +423,10 @@ async function main(){
       const afterEnemy=await run("JSON.parse(document.querySelector('#command-view').dataset.partyHp)");
       assert.ok(Object.keys(afterEnemy).every(id=>afterEnemy[id]<=originalParty[id]),'enemy attacks cannot heal the party');
       assert.match(await run("document.querySelector('#command-readout').textContent"),/ROUND 2.*(hits|misses|advances)/);
+      const fullEnemyMessage=await run("(()=>{const r=document.querySelector('#command-readout');return{height:r.clientHeight,content:r.scrollHeight,detail:r.title}})()");
+      assert.ok(fullEnemyMessage.content<=fullEnemyMessage.height+1,'full visible enemy summary must fit narrow right rail');
+      assert.match(fullEnemyMessage.detail,/vs/,'complete defense math must remain available to screen reader/long press');
+
       if(width===844||width===667){
         await fsp.mkdir('artifacts',{recursive:true});
         const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
@@ -463,6 +467,10 @@ async function main(){
       assert.equal(terminal.mode,'won','actual UI battle must be winnable');
       assert.equal(terminal.foes.filter(x=>x.hp>0).length,0);
       assert.equal(terminal.replay,'Replay Skirmish');
+      const victoryText=await run("(()=>{const r=document.querySelector('#command-readout');return{height:r.clientHeight,content:r.scrollHeight,text:r.textContent}})()");
+      assert.ok(victoryText.content<=victoryText.height+1,'victory status must fit without scroll');
+      assert.match(victoryText.text,/VICTORY/);
+
       assert.ok(shots>=5&&moves>=1&&ends>=1,'real skirmish must require attacks, movement and turn passing');
       if(width===844||width===667){
         await fsp.mkdir('artifacts',{recursive:true});

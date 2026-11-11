@@ -58,6 +58,8 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
       button.querySelector('.party-health-fill').style.width=(100*hp/member.maxHp)+'%';
       button.setAttribute('aria-label',member.name+', '+member.role+', '+hp+' of '+member.maxHp+' HP'+(fallen?', fallen':ended?', turn completed':'')+'.');
     });
+    const section=party.querySelector('.party-heading-block .eyebrow');
+    if(section)section.textContent=currentBattle?.battleMode==='active'?'THE COMPANY · SKIRMISH':currentBattle?.battleMode==='won'?'THE COMPANY · VICTORIOUS':currentBattle?.battleMode==='lost'?'THE COMPANY · FALLEN':'THE COMPANY · STUDY';
     const hp=currentBattle?.partyHp?.[selectedMember.id]??selectedMember.hp;
     readout.textContent=selectedMember.name+' · '+hp+'/'+selectedMember.maxHp+' HP · '+(currentBattle?.battleMode==='active'?'In skirmish':currentBattle?.battleMode==='won'?'Victory':currentBattle?.battleMode==='lost'?'Defeat':'Study only')+'.';
     readout.dataset.selectedId=selectedMember.id;

@@ -39,7 +39,9 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     combatSummary.textContent=finished?(state.battleMode==='won'?'VICTORY · BOTH FOES DOWN':'DEFEAT · COMPANY FALLEN'):
       active?(intents.length?intents.map(i=>i.name+'→'+i.victimId).join(' · '):'SKIRMISH · HOLD'):
       foes.length?foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join(' · '):'TWO TRAINING FOES';
-    combatSummary.setAttribute('aria-label',foes.length?foes.map(x=>x.fullName+': '+x.hp+' of '+x.maxHp+' health, Guard '+x.guard).join('. '):'Two stationary training foes');
+    combatSummary.setAttribute('aria-label',
+      (active?intents.map(i=>i.name+' '+(i.attack?'will attack ':'will approach ')+i.victimId).join('. ')+'. ':'')+
+      (foes.length?foes.map(x=>x.fullName+': '+x.hp+' of '+x.maxHp+' health, Guard '+x.guard).join('. '):'Two stationary training foes'));
     combatSummary.dataset.live=String(foes.filter(x=>x.hp>0).length);
     combatSummary.dataset.foes=JSON.stringify(foes.map(x=>({id:x.id,hp:x.hp,col:x.position.column,row:x.position.row})));
     combatSummary.dataset.intents=JSON.stringify(intents);
@@ -73,7 +75,10 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     readout.dataset.roll=state.lastCombat?String(state.lastCombat.face):'';
     readout.dataset.targetHp=state.lastCombat?String(state.lastCombat.healthAfter):'';
     readout.dataset.attackIndex=String(state.rollIndex);
-    readout.title=state.lastCombat?('Roll '+state.lastCombat.face+' + '+state.lastCombat.bonus+' = '+state.lastCombat.total+' versus Guard '+state.lastCombat.guard+'; '+(state.lastCombat.hit?'hit':'miss')+', '+state.lastCombat.damage+' damage.'):state.feedback;
+    readout.title=state.feedback.startsWith('ROUND ')&&state.lastEnemyPhase?.length?
+      state.lastEnemyPhase.join('; '):
+      state.lastCombat?('Roll '+state.lastCombat.face+' + '+state.lastCombat.bonus+' = '+state.lastCombat.total+' versus Guard '+state.lastCombat.guard+'; '+(state.lastCombat.hit?'hit':'miss')+', '+state.lastCombat.damage+' damage.'):state.feedback;
+    readout.setAttribute('aria-label',readout.title);
     view.dataset.guard=String(state.guards[state.actorId]);
     view.dataset.confirmations=String(state.confirmations);
     for(const [id,button] of buttons){
