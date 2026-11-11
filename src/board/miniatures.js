@@ -144,6 +144,75 @@ function drawMirelle(ctx){
   polygon(ctx,[[25,44],[33,38],[37,55],[28,58]],'#9d8796','#353a48');
   bead(ctx,26,57,2,'#e9c98d');
 }
+/** Per-figure enamel and stitching: these are small distinct authored shapes,
+ * rather than shared faces, recolors, random procedural hats or text labels.
+ */
+function finishHeroInk(ctx,id,pose){
+  if(id==='captain'){
+    // A page-corner clasp and tiny scriptwork along the captain's cloak.
+    mark(ctx,[[39,42],[42,44],[45,43]],'#f3d7a2',1.4);
+    mark(ctx,[[46,55],[51,58],[57,56]],'#364b50',1.5);
+    for(const y of [49,54,59])bead(ctx,61,y,1.2,'#e5cba4');
+    mark(ctx,[[22,54],[27,50],[32,54],[27,58],[22,54]],'#e2c98e',1.25);
+    // Light catches the raised sword on release.
+    if(pose?.kind==='attack')mark(ctx,[[79,21],[83,16],[85,24]],'#fff0c6',2);
+  }else if(id==='brunna'){
+    // Hammer stamp, rivets and two braid-beads make the dwarf unmistakable.
+    mark(ctx,[[69,19],[77,17],[83,19],[87,24]],'#f2d4a5',1.4);
+    for(const x of [37,64])for(const y of [47,61])bead(ctx,x,y,1.35,'#efd3a1');
+    mark(ctx,[[45,40],[50,45],[47,48]],'#f1b68d',1.5);
+    mark(ctx,[[57,39],[53,46],[58,49]],'#f1b68d',1.5);
+    for(const x of [45,58])bead(ctx,x,48,2.2,'#d8aa6d','#603c3b');
+    if(pose?.kind==='attack')mark(ctx,[[82,8],[88,4],[93,8]],'#fff4c4',2);
+  }else if(id==='kess'){
+    // Forest-leaf clasp, shoulder lacing and split-dagger edges.
+    polygon(ctx,[[48,48],[55,46],[54,53],[50,56]],'#c2d5a1','#3b634d',1.1);
+    mark(ctx,[[45,49],[52,51]],'#f3e4b9',1.2);
+    for(let i=0;i<4;i++){
+      const y=40+i*5;
+      mark(ctx,[[39,y],[43,y+1]],'#c0c69b',1);
+    }
+    mark(ctx,[[17,37],[21,30]],'#fff2d7',1.2);
+    mark(ctx,[[86,42],[83,32]],'#f7e7ca',1.2);
+    if(pose?.kind==='attack'){
+      mark(ctx,[[20,24],[13,21],[10,30]],'#bedfca',2);
+      mark(ctx,[[80,26],[89,22],[90,30]],'#bedfca',2);
+    }
+  }else if(id==='mirelle'){
+    // Constellation hem, luminous crystal facets and ink-quill flourish.
+    for(const [x,y] of [[38,64],[49,68],[57,60],[63,72]]){
+      bead(ctx,x,y,1.7,'#d3c5e9');bead(ctx,x-.4,y-.4,.55,'#fff3cf');
+    }
+    mark(ctx,[[38,64],[49,68],[57,60],[63,72]],'#c5bce592',1);
+    polygon(ctx,[[76,15],[80,21],[76,27],[72,21]],'#d6fbeb','#659f9f',1.4);
+    mark(ctx,[[75,16],[78,20],[76,25]],'#fff4d0',1.4);
+    if(pose?.kind==='attack'||pose?.kind==='ward'){
+      for(const [x,y]of [[66,13],[87,16],[82,33]])bead(ctx,x,y,2.2,'#bcf2df');
+    }
+  }
+}
+function finishFoeInk(ctx,id,pose){
+  if(id==='briar'){
+    // Branch rings, ember sap and rough tree-bark scoring.
+    for(const [x,y]of [[36,52],[61,59],[52,29],[72,45]]){
+      mark(ctx,[[x-4,y-4],[x,y],[x-3,y+7]],'#b2a77a',1.4);
+      mark(ctx,[[x+2,y-5],[x+4,y+3]],'#283b3a',1.3);
+    }
+    for(const [x,y]of [[32,28],[67,30],[74,59]])bead(ctx,x,y,2,'#bc9d65','#4c5740');
+    if(pose?.kind==='attack')for(const x of [22,78])mark(ctx,[[x,42],[x+(x<50?-5:5),34]],'#e7b581',2);
+  }else{
+    // Fractured etched mask and floating constellation-like shards.
+    mark(ctx,[[36,39],[42,30],[51,34],[59,31]],'#a1c6c7',1.6);
+    mark(ctx,[[40,58],[50,65],[61,58]],'#759db7',1.8);
+    for(const [x,y]of [[26,19],[75,31],[21,65],[68,70]]){
+      bead(ctx,x,y,1.8,'#9ee5dc');
+      mark(ctx,[[x-3,y+3],[x+3,y-3]],'#80c2c7',1.1);
+    }
+    if(pose?.kind==='attack'){
+      for(const [x,y]of [[16,31],[84,34],[51,11]])bead(ctx,x,y,2.6,'#d6fff0');
+    }
+  }
+}
 export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(!rect)return;const s=rect.width;
   ctx.save();ctx.translate(rect.x,rect.y);ctx.scale(s/H,s/H);
@@ -153,7 +222,8 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(fallen)ctx.globalAlpha=.28;
   // Animation translates painted paper pieces independently of their fixed
   // pedestals, like a tabletop puppet; no effect on hitboxes or tile geometry.
-  if(pose?.kind==='attack')ctx.translate(2.4*Math.sin(Math.PI*pose.progress),-4.8*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='attack')ctx.translate((id==='kess'?4.8:id==='brunna'?-3.1:2.4)*Math.sin(Math.PI*pose.progress),
+    -(id==='brunna'?5.4:id==='mirelle'?2.6:4.8)*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='recoil')ctx.translate(-3.8*Math.sin(Math.PI*pose.progress),2.6*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='move')ctx.translate(0,-3*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='ward')ctx.translate(0,-2.2*Math.sin(Math.PI*pose.progress));
@@ -161,6 +231,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   else if(id==='kess')drawKess(ctx);
   else if(id==='mirelle')drawMirelle(ctx);
   else drawCaptain(ctx);
+  finishHeroInk(ctx,id,pose);
   ctx.restore();
   if(fallen){mark(ctx,[[25,55],[75,55]],'#dcbfa3',2);mark(ctx,[[49,48],[49,65]],'#dcbfa3',2);}
   ctx.restore();
@@ -214,6 +285,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   if(pose?.kind==='attack')ctx.translate(-2.5*Math.sin(Math.PI*pose.progress),-4.4*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='recoil')ctx.translate(4.7*Math.sin(Math.PI*pose.progress),2.1*Math.sin(Math.PI*pose.progress));
   if(foe.id==='briar')briar(ctx);else shade(ctx);
+  finishFoeInk(ctx,foe.id,pose);
   ctx.restore();
   // A real in-world miniature health enamel, not a floating HUD.
   const barX=17,barY=86,barW=66,barH=6.5;
