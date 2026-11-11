@@ -328,6 +328,20 @@ async function main(){
       await run("document.querySelector('#command-cancel').click()");
       console.log('Movement PASS',width+'x'+height,'blocked/occupied, valid path and cost, cancel, commit, per-party MP, end turn');
 
+      // v0.09 Gate A continuation: direct miniature inspection uses no AP/MP.
+      await tapCell(1,boardMetrics.rows-2);
+      assert.equal(await run("document.querySelector('#command-view').dataset.actorId"),'captain','tap party miniature should select that hero');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','inspection should not spend AP');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/Captain.*HP 20\/20.*Guard/);
+      const inspectRoll=await run("document.querySelector('#command-readout').dataset.attackIndex");
+      await tapCell(boardMetrics.cols-1,0);
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/Briar Sentry.*13\/13 HP.*Guard 12/);
+      assert.match(await run("document.querySelector('#command-readout').getAttribute('aria-label')"),/Briar Sentry/,'unit inspection needs descriptive voiceover text');
+      assert.equal(await run("document.querySelector('#command-readout').dataset.attackIndex"),inspectRoll,'information tap must not consume seeded attack roll');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','enemy information must be free');
+      console.log('Inspection PASS',width+'x'+height,'world-figure selection, enemy HP/Guard, no resource usage');
+
+
       // Seeded combat: a stationary Briar Sentry at (cols-1,0), next to Kess.
       assert.match(await run("document.querySelector('#combat-summary').textContent"),/Briar 13\/13.*Shade 16\/16/);
       await run("document.querySelector('[data-member-id=\"kess\"]').click()");
@@ -371,7 +385,14 @@ async function main(){
       const hitThree=await run("(()=>({face:document.querySelector('#command-readout').dataset.roll,hit:document.querySelector('#command-readout').dataset.hit,hp:document.querySelector('#command-readout').dataset.targetHp,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex,summary:document.querySelector('#combat-summary').textContent,feedback:document.querySelector('#command-readout').textContent,tooltip:document.querySelector('#command-readout').title,scroll:document.querySelector('#command-readout').scrollHeight,height:document.querySelector('#command-readout').clientHeight}))()");
       assert.equal(hitThree.face,'15');
 
+      assert.equal(await run("document.querySelector('#command-readout').dataset.tone"),'hit','positive combat feedback should receive a semantic style');
+
+
       assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'hit','a successful attack should animate an original hit effect');
+
+      const piece=await run("(()=>({kind:document.querySelector('#battle-canvas').dataset.fxKind,selected:document.querySelector('#party-roster').dataset.selectedId}))()");
+      assert.equal(piece.kind,'hit');
+
       assert.match(await run("document.querySelector('#battle-canvas').dataset.fxKey"),/^action-/);
       await delay(85);
       const visualHit=await run("Number(document.querySelector('#battle-canvas').dataset.fxPhase)");
@@ -445,13 +466,25 @@ async function main(){
       const intentions=await run("JSON.parse(document.querySelector('#combat-summary').dataset.intents)");
       assert.equal(intentions.length,2,'foes must telegraph genuine target selection');
       assert.ok(intentions.every(x=>x.victimId&&x.detail&&x.position));
-      if(width===844||width===667){
+      if(width===844||width===667||width===932){
         await fsp.mkdir('artifacts',{recursive:true});
         const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
         await fsp.writeFile('artifacts/skirmish-start-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
       }
       const g=await run("(()=>{const c=document.querySelector('#battle-canvas'),b=c.getBoundingClientRect();return{left:b.left,top:b.top,x:+c.dataset.offsetX,y:+c.dataset.offsetY,tile:+c.dataset.tile}})()");
       const tapBattleTile=async(column,row)=>tap(g.left+g.x+g.tile*(column+.5),g.top+g.y+g.tile*(row+.5));
+
+      const oldSkirmishRoll=await run("document.querySelector('#command-readout').dataset.attackIndex");
+      await tapBattleTile(2,boardMetrics.rows-1);
+      assert.equal(await run("document.querySelector('#command-view').dataset.actorId"),'brunna','select allied miniatures in active combat');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2');
+      await tapBattleTile(1,boardMetrics.rows-2);
+      assert.equal(await run("document.querySelector('#command-view').dataset.actorId"),'captain','retarget captain directly');
+      assert.equal(await run("document.querySelector('#command-readout').dataset.attackIndex"),oldSkirmishRoll,'hero switch must not roll dice');
+      const portraitStamps=await run("Array.from(document.querySelectorAll('.party-card')).map(x=>({name:x.dataset.memberId,lowHp:x.dataset.lowHp,threatened:x.dataset.threatened,warded:x.dataset.warded}))");
+      assert.equal(portraitStamps.length,4);
+      assert.ok(portraitStamps.every(x=>x.threatened==='true'||x.threatened==='false'),'portrait threat status should be explicit');
+
       for(let i=0;i<4;i++)await run("document.querySelector('#command-end-turn').click()");
       assert.equal(await run("document.querySelector('#command-view').dataset.round"),'2');
       assert.equal(await run("document.querySelector('#command-view').dataset.phaseCount"),'1','the fourth hero ends with an actual enemy phase');
