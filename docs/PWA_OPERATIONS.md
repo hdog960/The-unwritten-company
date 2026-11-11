@@ -54,3 +54,8 @@ The source-only `src/board/atelier.js` module is now explicitly cached in the st
 ## v0.09 Gate A correction 3 — cross-tile diorama assets
 
 \`service-worker.js\` now uses cache generation \`tuc-foundation-v0.09-gate-a3\`; the new \`./src/board/diorama.js\` import is in the static asset list alongside all original board, artwork, command, battle and portrait modules. \`npm run browser:smoke\` successfully warmed the cache and confirmed real online and offline-skirmish operation with the latest art module loaded. The new painted joins, ornamentation and role emblems run entirely from local Canvas drawing. No new persistence or save migration exists and no iPhone/WebKit lifecycle has been tested.
+
+
+## v0.09 Gate A fourth correction — offline illustrated floor and precise targeting
+
+The service worker now caches src/board/targeting.js, src/board/scenery.js, and src/board/motion.js under tuc-foundation-v0.09-gate-a4. On the tested Chrome build, online cache warmup followed by offline board movement, attack rolls and real enemy phases passed. Artwork and target cues are drawn locally with no online assets or hidden service requests. No save format or migration exists yet; reload can reset a battle. Real iPhone Safari and installed Home Screen remain user-inspection items.
