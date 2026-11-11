@@ -2,7 +2,7 @@
 import {PARTY_SLOTS} from '../party/model.js';
 import {getTile} from '../board/geometry.js';
 import {MAX_MOVEMENT,placeParty,previewMovement,moveActor} from '../movement/pathfinding.js';
-import {positionTargets,livingOccupants,livingTargetAt,previewStrike,rollAttack,applyAttack,combatFeedback} from '../combat/engine.js';
+import {positionTargets,livingOccupants,livingTargetAt,defeatedTargetAt,previewStrike,rollAttack,applyAttack,combatFeedback} from '../combat/engine.js';
 
 export const MAX_AP = 2;
 export const COMMANDS = Object.freeze([
@@ -67,7 +67,9 @@ export function abilityPreview(state,board){
   const legality=targetResult(skill,state.actorId,state.target,board,state.positions);
   if(!legality.valid||skill.target==='self')return legality;
   const enemy=livingTargetAt(state.targets,state.target);
-  return enemy?previewStrike(state.actorId,skill.id,enemy):Object.freeze({...legality,reason:'Empty tile · practice only. No damage.'});
+  if(enemy)return previewStrike(state.actorId,skill.id,enemy);
+  if(defeatedTargetAt(state.targets,state.target))return Object.freeze({valid:false,reason:'Target defeated. Choose a living foe.'});
+  return Object.freeze({...legality,reason:'Empty tile · practice only. No damage.'});
 }
 export function changeActor(state,id){
   if(!PARTY_SLOTS.some(member=>member.id===id)||id===state.actorId)return state;

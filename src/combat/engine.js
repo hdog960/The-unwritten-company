@@ -40,6 +40,9 @@ export function livingOccupants(party,targets){
   for(const target of Object.values(targets??{}))if(target.hp>0)occupied['enemy:'+target.id]=target.position;
   return Object.freeze(occupied);
 }
+export function defeatedTargetAt(targets,point){
+  return Object.values(targets??{}).find(x=>x.hp===0&&x.position.column===point?.column&&x.position.row===point?.row)??null;
+}
 export function livingTargetAt(targets,point){
   return Object.values(targets??{}).find(x=>x.hp>0&&x.position.column===point?.column&&x.position.row===point?.row)??null;
 }
@@ -75,7 +78,7 @@ export function rollAttack(seed,index,actorId,skillId,target){
   const damage=hit?Math.min(target.hp,rawDamage*(critical?2:1)):0;
   return Object.freeze({
     id:target.id,seed:String(seed),index,actorId,skillId,face,bonus,total:face+bonus,guard:target.guard,
-    hit,critical,damage,rolledDamage:rawDamage,healthBefore:target.hp,healthAfter:Math.max(0,target.hp-damage),
+    hit,critical,damage,rolledDamage:rawDamage,healthBefore:target.hp,healthAfter:Math.max(0,target.hp-damage),maxHp:target.maxHp,
     chance:chanceToHit(actorId,skillId,target.guard)
   });
 }
@@ -86,5 +89,5 @@ export function applyAttack(targets,outcome){
 }
 export function combatFeedback(outcome,name){
   const marker=outcome.critical?'CRIT':outcome.hit?'HIT':'MISS';
-  return marker+' '+name+' · '+outcome.damage+' dmg · '+outcome.healthAfter+'/'+outcome.healthBefore+' HP · d20 '+outcome.face;
+  return marker+' '+(outcome.hit?'-'+outcome.damage+' ':'')+'· '+name+' '+outcome.healthAfter+'/'+outcome.maxHp+' · '+outcome.face+'+'+outcome.bonus+' vs'+outcome.guard;
 }

@@ -57,6 +57,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     readout.dataset.roll=state.lastCombat?String(state.lastCombat.face):'';
     readout.dataset.targetHp=state.lastCombat?String(state.lastCombat.healthAfter):'';
     readout.dataset.attackIndex=String(state.rollIndex);
+    readout.title=state.lastCombat?('Roll '+state.lastCombat.face+' + '+state.lastCombat.bonus+' = '+state.lastCombat.total+' versus Guard '+state.lastCombat.guard+'; '+(state.lastCombat.hit?'hit':'miss')+', '+state.lastCombat.damage+' damage.'):state.feedback;
     view.dataset.guard=String(state.guards[state.actorId]);
     view.dataset.confirmations=String(state.confirmations);
     for(const [id,button] of buttons){
