@@ -25,7 +25,8 @@ test('six bespoke silhouettes replace four static capes, while keeping all livin
  assert.match(src,/paintArticulatedCloth\(ctx,id,pose,'front'\)/);
  assert.match(src,/paintArticulatedCloth\(ctx,foe.id,pose,'back'\)/);
  assert.match(src,/paintArticulatedCloth\(ctx,foe.id,pose,'front'\)/);
- assert.ok(src.indexOf("paintArticulatedCloth(ctx,id,pose,'back')")<src.indexOf("drawCaptain(ctx)"));
+ const heroBody=src.slice(src.indexOf('export function drawHero('),src.indexOf('function briar('));
+ assert.ok(heroBody.indexOf("paintArticulatedCloth(ctx,id,pose,'back')")<heroBody.indexOf("if(id==='brunna')drawBrunna(ctx)"));
  assert.ok(src.indexOf("paintArticulatedCloth(ctx,id,pose,'front')")<src.indexOf("paintWeaponRig(ctx,id,pose)"));
 });
 test('cloth stays attached at shoulders while unique tips trail real attack/ward/recoil/stagger/movement',()=>{
