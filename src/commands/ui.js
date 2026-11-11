@@ -4,6 +4,7 @@ import {previewMovement,MAX_MOVEMENT} from '../movement/pathfinding.js';
 import {livingOccupants} from '../combat/engine.js';
 import {PARTY_SLOTS} from '../party/model.js';
 import {BASE_GUARD} from '../battle/engine.js';
+import {computeTargetIndicators} from '../board/targeting.js';
 
 export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,combatSummary,onOverlayChange,onPartyChange=()=>{}}){
   let state=createCommandState();
@@ -30,6 +31,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       actorId:state.actorId,positions:state.positions,origin,
       mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
       command:getCommand(state.abilityId),target:state.target,
+      targetIndicators:computeTargetIndicators(state,board),
       evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,visualEvent:state.visualEvent,partyHp:state.partyHp,guards:state.guards,intents:enemyIntents(state,board),battleMode:state.battleMode
     };
   }

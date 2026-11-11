@@ -4,6 +4,8 @@ import {paintAtelierTile,paintBoardLighting,paintUnitStand} from './atelier.js';
 import {paintJoinedTerrain,paintGutterFiligree,paintUnitEmblem,paintThreatSymbol} from './diorama.js';
 import {PARTY_SLOTS} from '../party/model.js';
 import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
+import {paintTargetIndicators} from './targeting.js';
+import {paintFloorVignettes} from './scenery.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -164,23 +166,13 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   }
   paintJoinedTerrain(ctx,board,getTile);
   paintBoardLighting(ctx,board);
-  if(overlay?.command){
-    const origin=overlay.origin;
-    for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
-      const target={column:col,row};
-      const distance=Math.abs(origin.column-col)+Math.abs(origin.row-row);
-      const possible=overlay.command.target==='self'?distance===0:
-        distance>0&&distance<=overlay.command.range &&
-        !(overlay.command.id==='sigil'&&getTile(row,col)==='rubble');
-      if(!possible)continue;
-      const cell=cellRect(board,col,row);
-      const cx=cell.x+cell.width/2,cy=cell.y+cell.height/2;
-      ctx.fillStyle='#f9df9954';
-      ctx.beginPath();ctx.arc(cx,cy,Math.max(3,cell.width*.18),0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#f8e2a4aa';ctx.lineWidth=Math.max(1,cell.width*.018);
-      ctx.stroke();
-    }
-  }
+  // Legality originates in the command engine, never reconstructed by artwork.
+  paintTargetIndicators(ctx,board,overlay?.targetIndicators);
+  // The floor contains four original etched guild-site landmarks; they never block
+  // travel or conceal units, and don't change any battle game state.
+  const vignetteOccupants={...(overlay?.positions??{})};
+  for(const [id,foe] of Object.entries(overlay?.targets??{}))if(foe.hp>0)vignetteOccupants['foe:'+id]=foe.position;
+  paintFloorVignettes(ctx,board,vignetteOccupants);
   const miniatures=overlay?.positions?
     Object.entries(overlay.positions).map(([id,at])=>({col:at.column,row:at.row,kind:id==='brunna'?'ward':id==='mirelle'?'scribe':id==='kess'?'rogue':'knight',id})):
     [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
