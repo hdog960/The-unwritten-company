@@ -24,7 +24,9 @@ test('quill preview is absent without a specifically selected command and target
  assert.equal(ctx.calls.length,0);
 });
 test('authoritative legal attack preview creates a thin manuscript arc under figures',()=>{
- const state=chooseTarget(chooseAbility(changeActor(setMovementBoard(createCommandState(),logical),'kess'),'spark'),p(6,1),logical);
+ const armed=chooseAbility(changeActor(setMovementBoard(createCommandState(),logical),'kess'),'spark');
+ const state=chooseTarget(armed,armed.targets.briar.position,logical);
+ assert.equal(state.preview.valid,true,'enemy target must be genuinely legal');
  const ctx=ink();
  const preview={mode:'ability',origin:state.positions.kess,target:state.target,
    evaluation:state.preview,command:{id:'spark'}};
