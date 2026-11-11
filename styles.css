@@ -58,3 +58,19 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 .battle-toggle{width:100%;min-height:44px;display:flex;justify-content:center;text-align:center;background:linear-gradient(#b4c1a5,#738a79);border-color:#d6d9b3;color:#18282c;box-shadow:0 3px 0 #485d52;font-size:11px}
 .board-status{font:11px/1.4 system-ui,-apple-system,sans-serif;color:#d3cdb8;margin:10px 0 0;overflow-wrap:anywhere}
 @media(max-height:380px) and (orientation:landscape){.board-tool{padding-top:6px;margin-top:6px}.battle-toggle{min-height:40px}.board-status{font-size:9px;line-height:1.25;margin-top:5px}}
+
+/* v0.03 hard viewport lock: prevent CSS Grid's intrinsic min-height from stretching the playfield beyond the iPhone screen. */
+@media (orientation:landscape) {
+  .app-shell{height:100dvh;min-height:0;max-height:100dvh;overflow:hidden}
+  .masthead,.footer{flex:0 0 auto}
+  .table{flex:1 1 0;min-height:0;max-height:none;height:0;grid-template-rows:minmax(0,1fr);overflow:hidden}
+  .table>.panel{min-height:0;max-height:100%;height:100%}
+  .stage{min-height:0}
+  .stage.board-mode .battle-surface{width:100%;height:100%;inset:0}
+}
+@media (orientation:portrait) and (max-width:620px) {
+  .app-shell{height:auto;min-height:100dvh;max-height:none;overflow:visible}
+  .table{height:auto;min-height:0;max-height:none;grid-template-rows:auto;overflow:visible}
+  .table>.panel{max-height:none;height:auto}
+  .stage{min-height:260px}
+}

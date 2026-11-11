@@ -124,6 +124,11 @@ async function main(){
       assert.ok(boardMetrics.rows>=3&&boardMetrics.rows<=6,'rows outside supported range');
       assert.ok(boardMetrics.tile>=38,'tile size is not finger-readable at '+width+'x'+height);
       assert.ok(boardMetrics.board.left>=boardMetrics.stage.left-1&&boardMetrics.board.right<=boardMetrics.stage.right+1,'canvas escapes stage');
+      assert.ok(boardMetrics.board.height<=height,'canvas extends beyond device height '+width+'x'+height);
+      assert.ok(boardMetrics.board.bottom<=height-6,'canvas escapes bottom of viewport '+width+'x'+height);
+      assert.ok(boardMetrics.board.top>=36,'canvas incorrectly overlaps app header');
+      assert.ok(boardMetrics.board.height<=boardMetrics.stage.bottom-boardMetrics.stage.top+1,'canvas taller than stage');
+
       assert.ok(boardMetrics.leftRight<=boardMetrics.board.left+1&&boardMetrics.board.right<=boardMetrics.rightLeft+1,'canvas intersects rails');
       assert.ok(boardMetrics.bufferWidth>=boardMetrics.board.width*1.9,'retina-resolution canvas did not size to device pixel ratio');
       assert.equal(boardMetrics.pixels[3],255,'canvas center is transparent/unpainted');
