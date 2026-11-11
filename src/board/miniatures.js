@@ -217,7 +217,7 @@ function actionBrush(ctx,id,pose,foe=false){
   if(!pose||!['attack','recoil','stagger','ward'].includes(pose.kind))return;
   const force=Math.sin(Math.PI*Math.max(0,Math.min(1,pose.progress)));
   if(force<.025)return;
-  ctx.save();ctx.globalAlpha*=Math.min(.88,.24+.64*force);
+  ctx.save();ctx.globalAlpha=(Number.isFinite(ctx.globalAlpha)?ctx.globalAlpha:1)*Math.min(.88,.24+.64*force);
   if(pose.kind==='attack'){
     if(id==='captain'){
       mark(ctx,[[71,18],[85,11],[90,14]],'#fae2a6',2.8*force+1);

@@ -57,3 +57,8 @@ for(const path of ['src/board/targeting.js','src/board/scenery.js','src/board/mo
   const contents=fs.readFileSync(path,'utf8');
   assert.ok(contents.length>200,'Missing Gate A module '+path);
 }
+
+const choreography=fs.readFileSync('src/board/choreography.js','utf8');
+const shoreInk=fs.readFileSync('src/board/shoreline.js','utf8');
+assert.match(choreography,/puppetPose/);
+assert.match(shoreInk,/paintMaterialTransitions/);

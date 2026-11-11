@@ -417,11 +417,15 @@ async function main(){
       assert.match(await run("document.querySelector('#battle-canvas').dataset.fxKey"),/^action-/);
       await delay(85);
       const visualHit=await run("Number(document.querySelector('#battle-canvas').dataset.fxPhase)");
+      assert.equal(await run("document.querySelector('#command-readout').dataset.tone"),'hit');
       assert.ok(visualHit>=0&&visualHit<100,'hit VFX should advance through a short animation');
       if(width===844||width===667){
         await fsp.mkdir('artifacts',{recursive:true});
         const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
         await fsp.writeFile('artifacts/gate-a-impact-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+        await delay(248);
+        const later=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/gate-a-recoil-'+width+'x'+height+'.png',Buffer.from(later.data,'base64'));
       }
 
       assert.equal(hitThree.hit,'true');
