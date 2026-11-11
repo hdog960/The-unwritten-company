@@ -103,3 +103,7 @@ const joints=fs.readFileSync('src/board/pose-gestures.js','utf8');
 assert.match(rhythm,/attackBeat/);
 assert.match(joints,/paintGestureJoints/);
 assert.match(miniature,/paintGestureJoints/);
+
+const actionSeals=fs.readFileSync('src/board/action-seals.js','utf8');
+assert.match(actionSeals,/paintActionSeal/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintActionSeal/);

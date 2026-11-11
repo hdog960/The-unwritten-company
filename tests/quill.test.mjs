@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {measureBoard,cellRect} from '../src/board/geometry.js';
-import {paintQuillPreview,QUILL_PALETTE} from '../src/board/quill.js';
+import {paintQuillPreview,QUILL_PALETTE,bookplateStamp} from '../src/board/quill.js';
 import {paintHeroEnamelStatus} from '../src/board/relief.js';
 import {renderBoard} from '../src/board/scene.js';
 import {createCommandState,setMovementBoard,changeActor,chooseAbility,chooseTarget} from '../src/commands/engine.js';
@@ -33,7 +33,8 @@ test('authoritative legal attack preview creates a thin manuscript arc under fig
  const old=JSON.stringify(preview);
  assert.equal(paintQuillPreview(ctx,board,preview),true);
  assert.ok(ctx.calls.some(x=>x[0]==='bezierCurveTo'),'a real arc is inked between figures');
- assert.ok(ctx.calls.some(x=>x[0]==='strokeRect'),'only an underlay bookplate frames the target');
+ assert.ok(!ctx.calls.some(x=>x[0]==='strokeRect'),'four individual corner clasps replace the old square');
+ assert.equal(bookplateStamp(preview).kind,'committed');
  assert.ok(!ctx.calls.some(x=>x[0]==='fillRect'),'no opaque rectangles over enemy miniatures');
  assert.ok(ctx.calls.some(x=>x[0]==='clip'),'the effect must stay within the central board');
  assert.equal(JSON.stringify(preview),old);
@@ -54,7 +55,7 @@ test('self Ward uses a shield stamp rather than creating a fake projectile arrow
  assert.equal(paintQuillPreview(ctx,board,{mode:'ability',origin:p(2,3),target:p(2,3),
    evaluation:{valid:true},command:{id:'ward'}}),true);
  assert.ok(!ctx.calls.some(x=>x[0]==='bezierCurveTo'));
- assert.ok(ctx.calls.some(x=>x[0]==='strokeRect'));
+ assert.ok(!ctx.calls.some(x=>x[0]==='strokeRect'));
  balanced(ctx);
 });
 test('wounded, guarded, finished and fallen hero bases are distinct engraved drawings',()=>{
@@ -84,4 +85,20 @@ test('status engraving and quill preview preserve full tactical scene and existi
  assert.equal(JSON.stringify(state),before);
  assert.ok(ctx.calls.length>1400);
  balanced(ctx);
+});
+
+test('target preview stamps encode true legal attack, invalid rejection and Ward without color alone',()=>{
+ const base={mode:'ability',origin:p(1,1),target:p(3,3),evaluation:{valid:true},command:{id:'spark'}};
+ const variants=[base,{...base,evaluation:{valid:false}},{...base,command:{id:'ward'}}],seen=[];
+ for(const v of variants){
+  const ctx=ink(),before=JSON.stringify(v);
+  assert.equal(paintQuillPreview(ctx,board,v),true);
+  assert.equal(JSON.stringify(v),before);
+  assert.ok(!ctx.calls.some(x=>x[0]==='strokeRect'));
+  seen.push(JSON.stringify(ctx.calls));
+  balanced(ctx);
+ }
+ assert.equal(new Set(seen).size,3);
+ assert.deepEqual(variants.map(v=>bookplateStamp(v).kind),['committed','rejected','shield']);
+ assert.equal(bookplateStamp(null),null);
 });

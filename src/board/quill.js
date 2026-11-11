@@ -4,6 +4,11 @@
  */
 import {cellRect} from './geometry.js';
 export const QUILL_PALETTE=Object.freeze({ready:'#f2d8a0',invalid:'#ef9c85',ward:'#a4e6d2'});
+export function bookplateStamp(overlay){
+ if(overlay?.mode!=='ability'||!overlay.target)return null;
+ if(overlay.evaluation?.valid!==true)return Object.freeze({kind:'rejected',solid:false});
+ return Object.freeze({kind:overlay.command?.id==='ward'?'shield':'committed',solid:true});
+}
 const center=(board,point)=>{
  const rect=point&&cellRect(board,point.column,point.row);
  return rect?{x:rect.x+rect.width*.5,y:rect.y+rect.height*.5,s:rect.width}:null;
@@ -45,11 +50,20 @@ export function paintQuillPreview(ctx,board,overlay){
    line(ctx,[[nib[0]-ux*s*.08-nx*s*.05,nib[1]-uy*s*.08-ny*s*.05],
      nib,[nib[0]-ux*s*.08+nx*s*.05,nib[1]-uy*s*.08+ny*s*.05]],ink,Math.max(1,s*.028));
  }
- // Under-figure bookplate corners replace the old opaque target tile fill.
- ctx.save();ctx.globalAlpha=valid?.95:.65;
- if(!valid)ctx.setLineDash([s*.05,s*.06]);
- ctx.strokeStyle=ink;ctx.lineWidth=Math.max(1.1,s*.032);
- const side=s*.35;
- ctx.strokeRect(b.x-side,b.y-side,side*2,side*2);
+ // Four hand-inked bookplate clasps rather than a distracting full frame.
+ // Shape is tied only to authoritative validation; not an actionable overlay.
+ const style=bookplateStamp(overlay);
+ ctx.save();ctx.globalAlpha=style.solid?.95:.72;
+ const side=s*.32,arm=s*.11,width=Math.max(1.1,s*.03);
+ for(const [dx,dy,ux,uy] of [[-1,-1,1,1],[1,-1,-1,1],[-1,1,1,-1],[1,1,-1,-1]]){
+   const x=b.x+dx*side,y=b.y+dy*side;
+   line(ctx,[[x+ux*arm,y],[x,y],[x,y+uy*arm]],ink,width);
+   if(style.kind==='rejected')
+     line(ctx,[[x+ux*arm*.26,y+uy*arm*.27],[x+ux*arm*.8,y+uy*arm*.8]],ink,width*.7);
+   else if(style.kind==='committed')
+     line(ctx,[[x+ux*arm*.45,y+uy*arm*.3],[x+ux*arm*.8,y+uy*arm*.3]],ink,width*.6);
+ }
+ if(style.kind==='shield')
+   line(ctx,[[b.x-s*.08,b.y+s*.21],[b.x,b.y+s*.26],[b.x+s*.08,b.y+s*.21]],ink,width);
  ctx.restore();ctx.restore();return true;
 }
