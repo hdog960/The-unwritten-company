@@ -502,6 +502,9 @@ async function main(){
       assert.ok(intentions.every(i=>symbols.text.includes(i.attack?'!':'→')),'attack and movement use distinguishable non-color symbols');
       const artSource=await run("performance.getEntriesByType('resource').filter(x=>x.name.includes('/src/board/diorama.js')).length");
       assert.ok(artSource>=1,'the new world-art module must actually load in the browser, not just in a unit test');
+      const quillModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/quill.js'))");
+      assert.equal(quillModuleLoaded,true,'world-space target quill must be loaded on the actual iPhone-sized page');
+
 
       assert.ok(intentions.every(x=>x.victimId&&x.detail&&x.position));
       if(width===844||width===667||width===932){

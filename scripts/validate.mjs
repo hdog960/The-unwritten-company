@@ -67,3 +67,8 @@ const illumination=fs.readFileSync('src/board/illumination.js','utf8');
 assert.match(illumination,/paintLanternPools/);
 assert.match(illumination,/paintMiniatureBackdrop/);
 assert.match(illumination,/paintMiniatureFootlights/);
+
+const quill=fs.readFileSync('src/board/quill.js','utf8');
+assert.match(quill,/paintQuillPreview/);
+const relief=fs.readFileSync('src/board/relief.js','utf8');
+assert.match(relief,/paintHeroEnamelStatus/);
