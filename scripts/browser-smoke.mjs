@@ -440,7 +440,12 @@ async function main(){
         await fsp.mkdir('artifacts',{recursive:true});
         const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
         await fsp.writeFile('artifacts/gate-a-impact-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
-        await delay(248);
+        // Capture REAL Chromium frames of preparation, release and recovery.
+        await fsp.writeFile('artifacts/gate-a-windup-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+        await delay(130);
+        const release=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/gate-a-release-'+width+'x'+height+'.png',Buffer.from(release.data,'base64'));
+        await delay(118);
         const later=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
         await fsp.writeFile('artifacts/gate-a-recoil-'+width+'x'+height+'.png',Buffer.from(later.data,'base64'));
       }

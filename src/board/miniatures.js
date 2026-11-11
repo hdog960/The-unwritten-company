@@ -3,6 +3,8 @@
  */
 import {paintWeaponRig} from './weapon-rigs.js';
 import {paintArticulatedCloth} from './articulated-cloth.js';
+import {figureBeat} from './combat-beats.js';
+import {paintGestureJoints} from './pose-gestures.js';
 export const HERO_SILHOUETTES=Object.freeze(['captain','brunna','kess','mirelle']);
 export const FOE_SILHOUETTES=Object.freeze(['briar','shade']);
 const H=100;
@@ -245,12 +247,8 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(fallen)ctx.globalAlpha=.28;
   // Animation translates painted paper pieces independently of their fixed
   // pedestals, like a tabletop puppet; no effect on hitboxes or tile geometry.
-  if(pose?.kind==='attack')ctx.translate((id==='kess'?4.8:id==='brunna'?-3.1:2.4)*Math.sin(Math.PI*pose.progress),
-    -(id==='brunna'?5.4:id==='mirelle'?2.6:4.8)*Math.sin(Math.PI*pose.progress));
-  if(pose?.kind==='recoil')ctx.translate(-3.8*Math.sin(Math.PI*pose.progress),2.6*Math.sin(Math.PI*pose.progress));
-  if(pose?.kind==='stagger')ctx.translate(-5.5*Math.sin(Math.PI*pose.progress),3.9*Math.sin(Math.PI*pose.progress));
-  if(pose?.kind==='move')ctx.translate(0,-3*Math.sin(Math.PI*pose.progress));
-  if(pose?.kind==='ward')ctx.translate(0,-2.2*Math.sin(Math.PI*pose.progress));
+  const posture=figureBeat(id,pose);
+  if(posture)ctx.translate(posture.x,posture.y);
   paintArticulatedCloth(ctx,id,pose,'back');
   if(id==='brunna')drawBrunna(ctx);
   else if(id==='kess')drawKess(ctx);
@@ -258,6 +256,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   else drawCaptain(ctx);
   finishHeroInk(ctx,id,pose);
   paintArticulatedCloth(ctx,id,pose,'front');
+  paintGestureJoints(ctx,id,pose);
   paintWeaponRig(ctx,id,pose);
   if(!fallen)actionBrush(ctx,id,pose);
   ctx.restore();
@@ -310,13 +309,13 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
     ctx.restore();return;
   }
   ctx.save();
-  if(pose?.kind==='attack')ctx.translate(-2.5*Math.sin(Math.PI*pose.progress),-4.4*Math.sin(Math.PI*pose.progress));
-  if(pose?.kind==='recoil')ctx.translate(4.7*Math.sin(Math.PI*pose.progress),2.1*Math.sin(Math.PI*pose.progress));
-  if(pose?.kind==='stagger')ctx.translate(6*Math.sin(Math.PI*pose.progress),4*Math.sin(Math.PI*pose.progress));
+  const posture=figureBeat(foe.id,pose);
+  if(posture)ctx.translate(posture.x,posture.y);
   paintArticulatedCloth(ctx,foe.id,pose,'back');
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
   paintArticulatedCloth(ctx,foe.id,pose,'front');
+  paintGestureJoints(ctx,foe.id,pose);
   paintWeaponRig(ctx,foe.id,pose);
   actionBrush(ctx,foe.id,pose,true);
   ctx.restore();

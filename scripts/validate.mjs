@@ -97,3 +97,9 @@ assert.match(miniature,/paintWeaponRig/);
 const clothSource=fs.readFileSync('src/board/articulated-cloth.js','utf8');
 assert.match(clothSource,/paintArticulatedCloth/);
 assert.match(miniature,/paintArticulatedCloth/);
+
+const rhythm=fs.readFileSync('src/board/combat-beats.js','utf8');
+const joints=fs.readFileSync('src/board/pose-gestures.js','utf8');
+assert.match(rhythm,/attackBeat/);
+assert.match(joints,/paintGestureJoints/);
+assert.match(miniature,/paintGestureJoints/);
