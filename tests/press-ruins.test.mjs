@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {measureBoard,cellRect,getTile} from '../src/board/geometry.js';
 import {pressRelics,paintPressRelics,PRESS_RELIC_KINDS} from '../src/board/press-ruins.js';
 import {renderBoard} from '../src/board/scene.js';
@@ -42,7 +43,7 @@ test('physical type chase and torn folio have different deterministic drawn geom
   assert.equal(paintPressRelics(ink(),board,()=> 'stone'),0);
 });
 test('new press wreckage sits below both hero and enemy rendering without changing battle',()=>{
-  const scene=await import('node:fs').then(fs=>fs.readFileSync('src/board/scene.js','utf8'));
+  const scene=fs.readFileSync('src/board/scene.js','utf8');
   assert.ok(scene.indexOf('paintPressRelics(ctx,board,getTile)')>=0);
   assert.ok(scene.indexOf('paintPressRelics(ctx,board,getTile)')<scene.indexOf('drawHero(ctx,rect,id'));
   const state=setMovementBoard(createCommandState(),{columns:8,rows:6}),before=JSON.stringify(state);
