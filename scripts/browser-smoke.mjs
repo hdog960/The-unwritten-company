@@ -182,6 +182,9 @@ async function main(){
       assert.equal(controls.visible,true,'tactical command panel not visible');
       assert.equal(controls.storyHidden,true,'story seed input still visible in battle view');
       assert.equal(controls.ap,'2/2 AP');
+
+      const commandLabel=await run("(()=>{const label=document.querySelector('.command-caption').getBoundingClientRect(),header=document.querySelector('.right-rail .board-tool').getBoundingClientRect();return {labelTop:label.top,headerBottom:header.bottom};})()");
+      assert.ok(commandLabel.labelTop>=commandLabel.headerBottom+2,'command caption overlaps the House/AP header');
       for(const item of controls.rects){
         assert.ok(item.height>=44,'command touch target too short: '+item.id);
         assert.ok(item.left>=controls.right.left-1 && item.right<=controls.right.right+1,'command escapes right rail: '+item.id);
@@ -209,6 +212,12 @@ async function main(){
         const commandImage=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
         await fsp.writeFile('artifacts/command-844x390.png',Buffer.from(commandImage.data,'base64'));
       }
+      if(width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const tiny=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/command-667x375.png',Buffer.from(tiny.data,'base64'));
+      }
+
       await run("document.querySelector('#command-confirm').click()");
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'0','two-AP sigil should consume exactly 2');
       assert.equal(await run("document.querySelector('#command-view').dataset.confirmations"),'1','confirm should record one study action');

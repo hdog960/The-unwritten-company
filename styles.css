@@ -179,6 +179,6 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 @media (orientation:landscape) and (max-height:460px){
   .right-rail.command-mode{padding:4px 6px 4px}
   .command-view{gap:2px}
-  .command-caption{margin:0}
+  .command-caption{margin:4px 0 0}
   .command-readout{height:27px;flex-basis:27px}
 }
