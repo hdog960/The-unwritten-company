@@ -58,7 +58,7 @@ test('each hero has a geometrically distinct, contrast-safe in-world sigil',()=>
     const ctx=ink();const rect=box(38);
     assert.equal(paintUnitEmblem(ctx,rect,id,true),true);
     assert.equal(paintUnitEmblem(ctx,rect,id,false),true);
-    signatures.push(ctx.calls.slice(0,ctx.calls.length/2).map(x=>x[0]).join(','));
+    signatures.push(JSON.stringify(ctx.calls.filter(x=>['moveTo','lineTo','quadraticCurveTo'].includes(x[0]))));
     assert.equal(ctx.calls.filter(c=>c[0]==='save').length,ctx.calls.filter(c=>c[0]==='restore').length);
   }
   assert.equal(new Set(signatures).size,4,'four ink symbols must be distinguishable by shape, not just color');
