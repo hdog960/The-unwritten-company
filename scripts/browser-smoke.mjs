@@ -37,7 +37,9 @@ async function main(){
   try{
     chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
     let port=null;
-    for(let attempt=0;attempt<100;attempt++){
+    // Slow shared CI runners can need longer to write DevToolsActivePort.
+    // Give Chromium up to 30 seconds, but fail honestly if it never starts.
+    for(let attempt=0;attempt<300;attempt++){
       if(chrome.exitCode!==null)throw new Error('Chrome stopped before its CDP socket became available');
       try{
         const active=await fsp.readFile(path.join(profile,'DevToolsActivePort'),'utf8');
