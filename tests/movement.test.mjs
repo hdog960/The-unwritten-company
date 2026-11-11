@@ -70,7 +70,7 @@ test('movement state previews without spending AP or MP; confirm actually reposi
 test('blocked, occupied and over-budget moves fail without teleport or resource loss',()=>{
   let start=setMovementBoard(createCommandState(),wide);
   start=chooseMove(start);
-  for(const tile of [point(1,2),start.positions.brunna,point(0,0)]){
+  for(const tile of [point(1,2),start.positions.brunna,point(7,0)]){
     const s=chooseTarget(start,tile,wide);
     assert.equal(s.preview.valid,false);
     assert.strictEqual(confirmPreview(s,wide),s);
