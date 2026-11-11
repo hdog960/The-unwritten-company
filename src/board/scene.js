@@ -296,9 +296,10 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
   };
   const updateStatus=()=>{
     if(!board)return;
-    const base='Table study: '+board.columns+' columns × '+board.rows+' rows. ';
+    const live=commandOverlay?.battleMode==='active';
+    const base=(live?'Skirmish map':'Table study')+': '+board.columns+' columns × '+board.rows+' rows. ';
     if(!selection){
-      status.textContent=base+'Select a tile to inspect its terrain. The world shows active tactical units in the skirmish, or study figures in training.';
+      status.textContent=base+'Tap a hero or foe to inspect it. Choose a command before targeting an action.';
       canvas.dataset.selectedColumn='';
       canvas.dataset.selectedRow='';
       return;
@@ -396,7 +397,7 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
           fxRequest=requestAnimationFrame(animate);
         }
       }
-      if(visible&&board)renderBoard(context,board,selection,commandOverlay,fx);
+      if(visible&&board){renderBoard(context,board,selection,commandOverlay,fx);updateStatus();}
     }
   });
 }

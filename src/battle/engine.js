@@ -107,7 +107,7 @@ export function startBattle(state,board){
   return Object.freeze({...state,partyHp,targets:fresh,ap,mp,guards,actorId:'captain',battleMode:'active',
     ended:Object.freeze([]),phaseCount:0,turn:1,rollIndex:0,lastCombat:null,visualEvent:null,lastEnemyPhase:Object.freeze([]),
     abilityId:null,moveMode:false,target:null,preview:null,confirmations:0,
-    feedback:'SKIRMISH · Defeat both foes. End each hero turn to face their counterattack.'});
+    feedback:'SKIRMISH · Defeat both foes. End each hero turn.'});
 }
 export function endBattleTurn(state,board){
   if(state.battleMode!=='active'||!board)return state;

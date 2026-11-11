@@ -461,6 +461,9 @@ async function main(){
       assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','House starter did not enter live battle');
       assert.equal(await run("document.querySelector('#command-turn').textContent"),'Round 1');
       assert.equal(await run("document.querySelector('#command-end-turn').textContent"),'End Turn');
+      const skirmishReadout=await run("(()=>{const e=document.querySelector('#command-readout');return {scroll:e.scrollHeight,client:e.clientHeight,text:e.textContent}})()");
+      assert.ok(skirmishReadout.scroll<=skirmishReadout.client+1,'initial skirmish instructions must be fully visible at '+width+'x'+height);
+      assert.match(skirmishReadout.text,/SKIRMISH.*Defeat both foes/);
       const originalParty=await run("JSON.parse(document.querySelector('#command-view').dataset.partyHp)");
       assert.deepEqual(originalParty,{captain:20,brunna:24,kess:16,mirelle:14});
       const intentions=await run("JSON.parse(document.querySelector('#combat-summary').dataset.intents)");
