@@ -35,18 +35,35 @@ async function main(){
   assert.ok(chromeBin,'A Chromium browser is required for the real browser smoke');
   const profile=await fsp.mkdtemp(path.join(os.tmpdir(),'tuc-chrome-'));
   try{
-    chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
     let port=null;
-    // Slow shared CI runners can need longer to write DevToolsActivePort.
-    // Give Chromium up to 30 seconds, but fail honestly if it never starts.
-    for(let attempt=0;attempt<300;attempt++){
-      if(chrome.exitCode!==null)throw new Error('Chrome stopped before its CDP socket became available');
-      try{
-        const active=await fsp.readFile(path.join(profile,'DevToolsActivePort'),'utf8');
-        port=Number(active.split('\n')[0]);break;
-      }catch{await delay(100)}
+    // GitHub shared runners can occasionally stall before Chrome writes its
+    // debugging port. Retry ONLY the browser startup in a completely fresh
+    // profile, not any game, UI, combat, accessibility or offline assertion.
+    for(let launch=1;launch<=2 && !port;launch++){
+      const launchProfile=path.join(profile,'launch-'+launch);
+      await fsp.mkdir(launchProfile,{recursive:true});
+      chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check','--remote-debugging-port=0','--user-data-dir='+launchProfile,'about:blank'],{stdio:'ignore'});
+      for(let attempt=0;attempt<300;attempt++){
+        if(chrome.exitCode!==null || chrome.signalCode!==null)break;
+        try{
+          const active=await fsp.readFile(path.join(launchProfile,'DevToolsActivePort'),'utf8');
+          const candidate=Number(active.split('\n')[0]);
+          if(Number.isInteger(candidate)&&candidate>0){port=candidate;break;}
+        }catch{}
+        await delay(100);
+      }
+      if(port)break;
+      if(chrome.exitCode===null && chrome.signalCode===null){
+        try{chrome.kill('SIGTERM')}catch{}
+        await Promise.race([new Promise(resolve=>chrome.once('exit',resolve)),delay(2000)]);
+        if(chrome.exitCode===null && chrome.signalCode===null){
+          try{chrome.kill('SIGKILL')}catch{}
+          await delay(250);
+        }
+      }
+      if(launch===1)console.warn('Chrome startup did not yield a CDP port; retrying once with a fresh profile');
     }
-    assert.ok(port,'Chrome debugging socket timed out');
+    assert.ok(port,'Chrome debugging socket timed out after two isolated startup attempts');
     let endpoint=null;
     for(let attempt=0;attempt<50;attempt++){
       try{
