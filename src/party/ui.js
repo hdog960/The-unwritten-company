@@ -42,11 +42,12 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
     const member=activePartyMember(state);
     roster.dataset.selectedId=member.id;
     buttons.forEach(button=>{
+      const rosterMember=PARTY_SLOTS.find(m=>m.id===button.dataset.memberId);
       const selected=button.dataset.memberId===member.id;
       button.dataset.selected=String(selected);
       button.setAttribute('aria-pressed',String(selected));
       button.tabIndex=selected?0:-1;
-      const member=PARTY_SLOTS.find(m=>m.id===button.dataset.memberId);
+      const member=rosterMember;
       const hp=currentBattle?.partyHp?.[member.id]??member.hp;
       const ended=currentBattle?.ended?.includes(member.id)??false;
       const fallen=currentBattle?.partyHp&&hp<=0;

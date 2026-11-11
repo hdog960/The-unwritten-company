@@ -304,14 +304,14 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     if(!board)return;
     const base='Table study: '+board.columns+' columns × '+board.rows+' rows. ';
     if(!selection){
-      status.textContent=base+'Select a tile to inspect its terrain. The figures are decorative previews; there is no combat yet.';
+      status.textContent=base+'Select a tile to inspect its terrain. The world shows active tactical units in the skirmish, or study figures in training.';
       canvas.dataset.selectedColumn='';
       canvas.dataset.selectedRow='';
       return;
     }
     canvas.dataset.selectedColumn=String(selection.column);
     canvas.dataset.selectedRow=String(selection.row);
-    status.textContent=base+'Selected column '+(selection.column+1)+', row '+(selection.row+1)+': '+getTile(selection.row,selection.column)+'. Movement is previewed in the right rail; no combat yet.';
+    status.textContent=base+'Selected column '+(selection.column+1)+', row '+(selection.row+1)+': '+getTile(selection.row,selection.column)+'. Combat and movement are controlled in the right rail.';
   };
   const select=(point)=>{
     if(!board)return;
@@ -348,7 +348,7 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     toggle.setAttribute('aria-pressed',String(visible));
     onModeChange(visible);
     if(visible)requestAnimationFrame(redraw);
-    else status.textContent='An original miniature-styled tactical terrain preview; no combat yet.';
+    else status.textContent='A miniature-styled tactical battlefield; begin a skirmish or inspect the table.';
   });
   const observer=typeof ResizeObserver==='function'?new ResizeObserver(redraw):null;
   observer?.observe(stage);
