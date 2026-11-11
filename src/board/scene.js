@@ -1,4 +1,5 @@
 import {cellRect,getTile,hitTestBoard,logicalPointFromClient,measureBoard} from './geometry.js';
+import {drawHero,drawFoe} from './miniatures.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -34,6 +35,19 @@ function paintBackdrop(ctx,board){
   ctx.fillStyle='#110f16aa';ctx.fillRect(board.x-4,board.y+4,board.mapWidth+8,board.mapHeight+7);
   ctx.fillStyle='#c19b65';ctx.fillRect(board.x-5,board.y-5,board.mapWidth+10,board.mapHeight+10);
   ctx.fillStyle='#3a3430';ctx.fillRect(board.x-3,board.y-3,board.mapWidth+6,board.mapHeight+6);
+  // Antique frame: shadow, enamel lip, gilded screws and ornamental inlaid corners.
+  ctx.strokeStyle='#d6b476';ctx.lineWidth=1.6;
+  ctx.strokeRect(board.x-4,board.y-4,board.mapWidth+8,board.mapHeight+8);
+  ctx.strokeStyle='#211d25';ctx.lineWidth=1;
+  ctx.strokeRect(board.x-7,board.y-7,board.mapWidth+14,board.mapHeight+14);
+  for(const [sideX,sideY,signX,signY] of [
+    [board.x-4,board.y-4,1,1],[board.x+board.mapWidth+4,board.y-4,-1,1],
+    [board.x-4,board.y+board.mapHeight+4,1,-1],[board.x+board.mapWidth+4,board.y+board.mapHeight+4,-1,-1]
+  ]){
+    disk(ctx,sideX,sideY,3.1,'#b9955a','#332c2e',1.2);
+    line(ctx,[[sideX+signX*6,sideY],[sideX+signX*17,sideY+signY*4],[sideX+signX*22,sideY+signY*14]],'#a78350',1.5);
+    line(ctx,[[sideX,sideY+signY*6],[sideX+signX*4,sideY+signY*17]],'#a78350',1.3);
+  }
 }
 function drawStone(ctx,x,y,s,r,c){
   const variation=FRACTAL(r,c,7);
@@ -92,6 +106,16 @@ function drawTile(ctx,rect,kind,row,column){
   else if(kind==='water')drawWater(ctx,x,y,s,row,column);
   else if(kind==='rubble')drawRubble(ctx,x,y,s);
   else if(kind==='glyph')drawGlyph(ctx,x,y,s);
+  // Faint illuminated manuscript stippling keeps stone from reading as flat web grid.
+  for(let n=0;n<4;n++){
+    const px=x+s*(.16+.68*FRACTAL(row,column,n+411));
+    const py=y+s*(.18+.63*FRACTAL(row,column,n+535));
+    disk(ctx,px,py,Math.max(.5,s*.009),n%2?'#ebd6a333':'#171f2c55');
+  }
+  if(kind==='glyph'){
+    ctx.strokeStyle='#f3d58a44';ctx.lineWidth=Math.max(1,s*.017);
+    ctx.strokeRect(x+s*.13,y+s*.13,s*.74,s*.74);
+  }
   // Native-to-world seams, no HUD or outside-the-board controls.
   ctx.strokeStyle='#1b292d99';ctx.lineWidth=Math.max(.75,s*.012);
   ctx.strokeRect(x+.75,y+.75,s-1.5,s-1.5);
@@ -106,30 +130,6 @@ function drawSelection(ctx,rect){
     [x+2,y+s-2,1,0,0,-1],[x+s-2,y+s-2,-1,0,0,-1]
   ]){
     line(ctx,[[px+arm*hx,py+arm*hy],[px,py],[px+arm*vx,py+arm*vy]],'#ffe2a5',Math.max(1.5,s*.04));
-  }
-}
-function drawMiniature(ctx,rect,kind){
-  const s=rect.width,cx=rect.x+s*.5,cy=rect.y+s*.51;
-  // Only sample painted miniatures for renderer verification, not recruited party units.
-  ellipse(ctx,cx,cy+s*.26,s*.27,s*.095,'#0c1a2499');
-  ellipse(ctx,cx,cy+s*.22,s*.19,s*.079,kind==='ward'?'#a86155':'#bd9d65');
-  const body=kind==='ward'?'#774b51':kind==='scribe'?'#326c6b':'#605d85';
-  poly(ctx,[[cx-s*.12,cy+s*.12],[cx-s*.17,cy-s*.07],[cx,cy-s*.18],[cx+s*.18,cy-s*.03],[cx+s*.14,cy+s*.16]],body,'#162530',Math.max(.8,s*.025));
-  // Cloaks, shoulders and simplified faces retain silhouette at 40–60px tiles.
-  poly(ctx,[[cx-s*.12,cy-s*.12],[cx-s*.06,cy-s*.3],[cx+s*.08,cy-s*.28],[cx+s*.17,cy-s*.11]],kind==='ward'?'#d19c76':'#a8b79a');
-  disk(ctx,cx,cy-s*.25,s*.075,kind==='ward'?'#c7ac82':'#edc98e','#263641',Math.max(.7,s*.018));
-  if(kind==='ward'){
-    poly(ctx,[[cx-s*.13,cy-s*.27],[cx,cy-s*.42],[cx+s*.14,cy-s*.27]],'#492c34');
-    disk(ctx,cx+s*.09,cy-s*.09,s*.062,'#eb967a','#bd554e',1);
-  }else if(kind==='scribe'){
-    line(ctx,[[cx+s*.13,cy-s*.13],[cx+s*.24,cy-s*.33]],'#d8b97d',Math.max(1.8,s*.045));
-    disk(ctx,cx+s*.24,cy-s*.34,s*.04,'#95d1ba');
-  }else if(kind==='rogue'){
-    poly(ctx,[[cx-s*.2,cy-s*.2],[cx,cy-s*.41],[cx+s*.19,cy-s*.18]],'#4c6455');
-    line(ctx,[[cx+s*.15,cy+s*.05],[cx+s*.29,cy-s*.24]],'#c7d5cc',Math.max(1.5,s*.035));
-  }else{
-    poly(ctx,[[cx-s*.18,cy-s*.28],[cx,cy-s*.39],[cx+s*.13,cy-s*.28]],'#d7b983');
-    line(ctx,[[cx+s*.14,cy+s*.02],[cx+s*.26,cy-s*.22]],'#d9d8bc',Math.max(1.5,s*.035));
   }
 }
 export function renderBoard(ctx,board,selection=null,overlay=null){
@@ -160,49 +160,13 @@ export function renderBoard(ctx,board,selection=null,overlay=null){
     [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
   for(const miniature of miniatures){
     const rect=cellRect(board,miniature.col,miniature.row);
-    if(rect)drawMiniature(ctx,rect,miniature.kind);
+    if(rect)drawHero(ctx,rect,miniature.id??({knight:'captain',ward:'brunna',rogue:'kess',scribe:'mirelle'}[miniature.kind]),overlay?.partyHp?.[miniature.id]===0);
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
-    if(rect)drawTrainingFoe(ctx,rect,foe,overlay?.lastCombat);
+    if(rect)drawFoe(ctx,rect,foe,overlay?.lastCombat);
   }
 
-function drawTrainingFoe(ctx,rect,target,lastCombat){
-  const {x,y,width:s}=rect;
-  const cx=x+s*.5,cy=y+s*.51,alive=target.hp>0;
-  if(!alive){
-    ellipse(ctx,cx,cy+s*.26,s*.3,s*.095,'#1a2531bb');
-    disk(ctx,cx,cy+s*.1,s*.15,'#5e5666','#ad946d',Math.max(1,s*.018));
-    line(ctx,[[cx-s*.12,cy+s*.1],[cx+s*.12,cy+s*.1]],'#ddc397',Math.max(1,s*.026));
-    return;
-  }
-  ellipse(ctx,cx,cy+s*.28,s*.29,s*.09,'#0d1826c9');
-  if(target.id==='briar'){
-    // Spined carved guardian with original willow-wood helmet and iron chest.
-    poly(ctx,[[cx-s*.22,cy+s*.24],[cx-s*.18,cy-s*.13],[cx-s*.03,cy-s*.22],[cx+s*.17,cy-s*.13],[cx+s*.2,cy+s*.2]],'#574b39','#232b2d',Math.max(1,s*.028));
-    poly(ctx,[[cx-s*.2,cy-s*.13],[cx-s*.28,cy-s*.29],[cx-s*.07,cy-s*.23],[cx,cy-s*.43],[cx+s*.1,cy-s*.24],[cx+s*.27,cy-s*.31],[cx+s*.17,cy-s*.13]],'#526e4c','#273b36',Math.max(1,s*.022));
-    disk(ctx,cx,cy-s*.08,s*.13,'#80654d','#d0b57e',Math.max(1,s*.02));
-    disk(ctx,cx-s*.045,cy-s*.085,s*.018,'#f8c987');
-    disk(ctx,cx+s*.045,cy-s*.085,s*.018,'#f8c987');
-    line(ctx,[[cx-s*.08,cy+s*.04],[cx+s*.08,cy+s*.04]],'#d2ad6a',Math.max(1,s*.022));
-  }else{
-    // Hollow bell-like shadow with distinctive turquoise spectral core.
-    poly(ctx,[[cx-s*.24,cy+s*.23],[cx-s*.17,cy-s*.16],[cx,cy-s*.4],[cx+s*.17,cy-s*.16],[cx+s*.25,cy+s*.23]],'#3b435b','#111c32',Math.max(1.5,s*.04));
-    poly(ctx,[[cx-s*.15,cy-s*.16],[cx,cy-s*.33],[cx+s*.16,cy-s*.16],[cx+s*.1,cy+s*.12],[cx-s*.1,cy+s*.12]],'#172b40','#7ca8aa',Math.max(1,s*.025));
-    line(ctx,[[cx-s*.075,cy-s*.13],[cx-s*.02,cy-s*.11],[cx+s*.035,cy-s*.16]],'#a6f0d9',Math.max(1.4,s*.04));
-    disk(ctx,cx,cy+s*.06,s*.058,'#6db2b4','#b9f2da',Math.max(.8,s*.018));
-  }
-  const barX=x+s*.18,barY=y+s*.78,barW=s*.64,barH=Math.max(3.4,s*.065);
-  ctx.fillStyle='#111e29';ctx.fillRect(barX-1,barY-1,barW+2,barH+2);
-  ctx.fillStyle='#6c363c';ctx.fillRect(barX,barY,barW,barH);
-  ctx.fillStyle='#ed9b75';ctx.fillRect(barX,barY,barW*(target.hp/target.maxHp),barH);
-  if(lastCombat?.id===target.id){
-    const hit=lastCombat.hit;
-    ctx.beginPath();ctx.arc(cx,cy-s*.08,s*.35,0,Math.PI*2);
-    ctx.strokeStyle=hit?'#ffe1a2':'#91d8e2';ctx.lineWidth=Math.max(1.5,s*.048);
-    ctx.stroke();
-  }
-}
   // Hatched, world-surface enemy telegraphs; all labels remain in the right rail.
   for(const intent of overlay?.intents??[]){
     const rect=cellRect(board,overlay.positions[intent.victimId]?.column,overlay.positions[intent.victimId]?.row);
