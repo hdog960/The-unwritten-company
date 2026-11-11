@@ -1,0 +1,30 @@
+{
+  "name": "The Unwritten Company",
+  "short_name": "Unwritten Co.",
+  "description": "An original fantasy tactical roguelike. Early development preview.",
+  "lang": "en",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#1d2735",
+  "theme_color": "#1d2735",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "./icons/company-mark-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/company-mark-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

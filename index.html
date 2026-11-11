@@ -4,8 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1d2735">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Unwritten Co.">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/company-mark-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
   <meta name="description" content="The Unwritten Company — an original fantasy campaign roguelike. Early development foundation.">
-  <title>The Unwritten Company — First Page</title>
+  <title>The Unwritten Company — The First Page</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./src/main.js"></script>
 </head>
@@ -13,12 +20,20 @@
   <div class="app-shell">
     <header class="masthead">
       <div class="brand"><span class="mark" aria-hidden="true">✧</span><div><span class="eyebrow">THE ADVENTURERS' GUILD OF BELLWETHER</span><h1>The Unwritten Company</h1></div></div>
-      <div class="build-pill" aria-label="Current development version">v0.01 <span>Foundation • No campaign playable yet</span></div>
+      <div class="build-pill" aria-label="Current development version">v0.02 <span>PWA Foundation • No campaign playable yet</span></div>
     </header>
     <main class="table" id="main">
       <aside class="rail panel left-rail" aria-labelledby="chronicle-heading">
         <div class="panel-top"><span class="seal" aria-hidden="true">✦</span><p class="eyebrow">THE CHRONICLE</p><h2 id="chronicle-heading">A thousand tales, none foretold.</h2></div>
         <div class="chronicle-body"><p>Heroes write history. Sometimes by accident.</p><div class="ink-rule"></div><p class="note">One custom hero. Three companions. An unpredictable fantasy campaign.</p></div>
+        <div class="installation">
+          <details class="install-guide">
+            <summary>Install on iPhone</summary>
+            <p>In Safari, use Share → Add to Home Screen. Open this page online once so the foundation can be cached for offline use.</p>
+          </details>
+          <p class="network-line"><span aria-hidden="true">●</span> <span id="network-status" aria-live="polite">Checking connection…</span></p>
+          <p class="cache-line" id="offline-status" role="status">Checking offline support…</p>
+        </div>
         <div class="rail-foot"><span class="tiny-rune" aria-hidden="true">◇</span>INKFALL HOUSE <span>•</span> BELLWETHER</div>
       </aside>
       <section class="stage panel" aria-labelledby="stage-heading">
@@ -68,10 +83,10 @@
           <p class="preview-label">Awaiting a seed</p>
           <p class="preview-empty">A thousand possible troubles await your signature.</p>
         </section>
-        <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.01</div>
+        <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.02</div>
       </aside>
     </main>
-    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.01: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
+    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.02: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
   </div>
   <div class="portrait-notice" role="note">Turn your phone sideways to view the adventurer's command table.</div>
 </body>

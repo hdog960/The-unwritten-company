@@ -1,5 +1,6 @@
 import { createInitialState, reduce } from './engine/state.js';
 import { VERSION } from './content/catalog.js';
+import { initPwa } from './platform/pwa.js';
 
 const form = document.getElementById('preview-form');
 const input = document.getElementById('seed');
@@ -40,3 +41,5 @@ form.addEventListener('submit',event=>{
 });
 document.documentElement.dataset.release=VERSION;
 render();
+
+initPwa({online:document.getElementById('network-status'),offline:document.getElementById('offline-status')});

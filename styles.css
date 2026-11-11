@@ -33,3 +33,15 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 @media(max-height:380px) and (orientation:landscape){.masthead{min-height:57px;padding-bottom:6px}.table{max-height:calc(100dvh - 77px)}.footer{padding:5px}.stage h2{font-size:17px}.stage-crest{display:none}.stage-caption{font-size:7px}.seal{display:none}.chronicle-body p{font-size:12px;margin:3px 0}.ink-rule{margin:8px 0}}
 @media(orientation:portrait) and (max-width:620px){.app-shell{min-height:100dvh}.table{grid-template-columns:1fr;max-height:none;min-height:0}.stage{min-height:260px;grid-row:1}.left-rail{min-height:160px}.right-rail{min-height:280px}.portrait-notice{display:block;position:fixed;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;background:#132333ed;border:1px solid #dba968;color:#f7ddb0;padding:10px 12px;border-radius:10px;text-align:center;font:600 13px system-ui,sans-serif}.footer{flex-wrap:wrap;gap:5px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* v0.02 PWA installation/connection affordances remain in the left rail, never above the stage. */
+.installation{border-top:1px solid #94734c;margin-top:auto;padding-top:10px}
+.install-guide{font:12px/1.35 system-ui,-apple-system,sans-serif;color:#eedbb8}
+.install-guide summary{cursor:pointer;min-height:30px;display:list-item;list-style:disclosure-closed;padding:5px 0;font-weight:700}
+.install-guide[open] summary{list-style:disclosure-open}
+.install-guide p{font-size:11px;color:#d4c9b7;margin:6px 0;line-height:1.4}
+.network-line,.cache-line{font:600 10px/1.35 system-ui,-apple-system,sans-serif;color:#c4cabb;margin:6px 0 0}
+.network-line span:first-child{font-size:10px;color:#5bb8ab}
+.cache-line{font-weight:400;color:#bfb8a8}
+.rail-foot{margin-top:0}
+@media(max-height:380px) and (orientation:landscape){.installation{padding-top:5px}.install-guide summary{min-height:27px;font-size:11px}.network-line,.cache-line{font-size:9px;margin:3px 0 0}}
