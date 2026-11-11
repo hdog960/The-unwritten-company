@@ -40,7 +40,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     const active=state.battleMode==='active',finished=state.battleMode==='won'||state.battleMode==='lost';
     const intents=active?enemyIntents(state,board):[];
     combatSummary.textContent=finished?(state.battleMode==='won'?'VICTORY · BOTH FOES DOWN':'DEFEAT · COMPANY FALLEN'):
-      active?(intents.length?intents.map(i=>(i.foeId==='briar'?'BRIAR':'SHADE')+'›'+shortName(i.victimId)).join('  ·  '):'SKIRMISH · HOLD'):
+      active?(intents.length?intents.map(i=>(i.foeId==='briar'?'BRIAR':'SHADE')+(i.attack?'!':'→')+shortName(i.victimId)).join('  ·  '):'SKIRMISH · HOLD'):
       foes.length?foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join(' · '):'TWO TRAINING FOES';
     combatSummary.setAttribute('aria-label',
       (active?intents.map(i=>i.name+' '+(i.attack?'will attack ':'will approach ')+i.victimId).join('. ')+'. ':'')+

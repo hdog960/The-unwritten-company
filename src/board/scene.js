@@ -1,6 +1,7 @@
 import {cellRect,getTile,hitTestBoard,logicalPointFromClient,measureBoard} from './geometry.js';
 import {drawHero,drawFoe} from './miniatures.js';
 import {paintAtelierTile,paintBoardLighting,paintUnitStand} from './atelier.js';
+import {paintJoinedTerrain,paintGutterFiligree,paintUnitEmblem,paintThreatSymbol} from './diorama.js';
 import {PARTY_SLOTS} from '../party/model.js';
 import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
 
@@ -154,12 +155,14 @@ export function miniaturePose(frame,position,isEnemy=false){
 }
 export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);
+  paintGutterFiligree(ctx,board);
   for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
     const rect=cellRect(board,col,row);
     const terrain=getTile(row,col);
     drawTile(ctx,rect,terrain,row,col);
     paintAtelierTile(ctx,rect,terrain,row,col);
   }
+  paintJoinedTerrain(ctx,board,getTile);
   paintBoardLighting(ctx,board);
   if(overlay?.command){
     const origin=overlay.origin;
@@ -189,6 +192,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
     drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,miniaturePose(frame,{column:miniature.col,row:miniature.row}));
+    paintUnitEmblem(ctx,rect,id,overlay?.actorId===id);
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
@@ -212,6 +216,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
       ctx.lineWidth=Math.max(.9,s*.017);ctx.setLineDash([s*.14,s*.14]);ctx.stroke();
     }
     ctx.restore();
+    paintThreatSymbol(ctx,rect,!!intent.attack);
   }
   // World-native movement path: dotted route and tiles, never a floating HUD.
   if(overlay?.mode==='movement' && overlay?.evaluation?.path?.length>1){
