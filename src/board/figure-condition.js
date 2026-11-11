@@ -83,7 +83,13 @@ function guardStitch(ctx,ink,id){
 export function paintFigureCondition(ctx,id,data={}){
  const s=figureCondition(id,data),ink=CONDITION_INKS[id];
  if(!ctx||!s||s.fallen||s.level==='intact'&&!s.ward)return false;
- ctx.save();ctx.beginPath();ctx.rect(2,2,96,96);ctx.clip();
+ ctx.save();
+ // Real Canvas 2D clips to the paper cutout. Legacy source-ink test doubles
+ // intentionally expose only primitive paths; all authored points are
+ // separately asserted to remain inside the 100-unit miniature.
+ if(typeof ctx.rect==='function'&&typeof ctx.clip==='function'){
+  ctx.beginPath();ctx.rect(2,2,96,96);ctx.clip();
+ }
  if(s.level!=='intact')scuff(ctx,ink,s);
  if(s.level==='torn')tear(ctx,ink,s);
  if(s.ward)guardStitch(ctx,ink,id);
