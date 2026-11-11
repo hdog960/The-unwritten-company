@@ -115,7 +115,7 @@ export function confirmPreview(state,board){
     const nextMp=Object.freeze({...state.mp,[state.actorId]:remainingMove(state)-route.cost});
     const nextPositions=moveActor(state.positions,state.actorId,state.target);
     return Object.freeze({...state,mp:nextMp,positions:nextPositions,moveMode:false,abilityId:null,target:null,preview:null,confirmations:state.confirmations+1,
-      visualEvent:Object.freeze({kind:'move',from:state.positions[state.actorId],to:state.target,path:route.path,token:'action-'+(state.confirmations+1)}),
+      visualEvent:Object.freeze({kind:'move',actorId:state.actorId,from:state.positions[state.actorId],to:state.target,path:route.path,token:'action-'+(state.confirmations+1)}),
       feedback:'Moved '+(route.path.length-1)+' tiles for '+route.cost+' movement. '+nextMp[state.actorId]+' movement remains; AP unchanged.'});
   }
   const command=getCommand(state.abilityId);

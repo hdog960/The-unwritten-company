@@ -6,6 +6,7 @@ import {PARTY_SLOTS} from '../party/model.js';
 import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
 import {paintTargetIndicators} from './targeting.js';
 import {paintFloorVignettes} from './scenery.js';
+import {animatedHeroRect} from './motion.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -166,20 +167,20 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   }
   paintJoinedTerrain(ctx,board,getTile);
   paintBoardLighting(ctx,board);
-  // Legality originates in the command engine, never reconstructed by artwork.
-  paintTargetIndicators(ctx,board,overlay?.targetIndicators);
-  // The floor contains four original etched guild-site landmarks; they never block
-  // travel or conceal units, and don't change any battle game state.
+  // Four old guild-site floor inlays sit beneath the battle's unit layer.
   const vignetteOccupants={...(overlay?.positions??{})};
   for(const [id,foe] of Object.entries(overlay?.targets??{}))if(foe.hp>0)vignetteOccupants['foe:'+id]=foe.position;
   paintFloorVignettes(ctx,board,vignetteOccupants);
+  // Only the command engine's *actual legal* cells glow, above floor artwork
+  // but beneath the miniatures. Invalid / empty live-battle tiles stay dark.
+  paintTargetIndicators(ctx,board,overlay?.targetIndicators);
   const miniatures=overlay?.positions?
     Object.entries(overlay.positions).map(([id,at])=>({col:at.column,row:at.row,kind:id==='brunna'?'ward':id==='mirelle'?'scribe':id==='kess'?'rogue':'knight',id})):
     [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
   for(const miniature of miniatures){
-    const rect=cellRect(board,miniature.col,miniature.row);
-    if(!rect)continue;
     const id=miniature.id??({knight:'captain',ward:'brunna',rogue:'kess',scribe:'mirelle'}[miniature.kind]);
+    const rect=animatedHeroRect(board,{column:miniature.col,row:miniature.row},id,frame);
+    if(!rect)continue;
     const member=PARTY_SLOTS.find(item=>item.id===id);
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
