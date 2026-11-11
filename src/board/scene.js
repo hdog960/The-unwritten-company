@@ -296,6 +296,8 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     if(press){press.dragged=true;return}
     if(!event.isPrimary || event.pointerType==='mouse'&&event.button!==0)return;
     press={id:event.pointerId,x:event.clientX,y:event.clientY,dragged:false};
+    // Keep the release/cancel event even if a thumb slides outside the canvas.
+    try{canvas.setPointerCapture(event.pointerId)}catch{}
     canvas.dataset.pointer='pending';
   });
   canvas.addEventListener('pointermove',event=>{
@@ -303,6 +305,9 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     if(Math.hypot(event.clientX-press.x,event.clientY-press.y)>11)press.dragged=true;
   });
   canvas.addEventListener('pointercancel',event=>{
+    if(press?.id===event.pointerId){press=null;canvas.dataset.pointer='canceled'}
+  });
+  canvas.addEventListener('lostpointercapture',event=>{
     if(press?.id===event.pointerId){press=null;canvas.dataset.pointer='canceled'}
   });
   canvas.addEventListener('pointerup',event=>{
