@@ -13,6 +13,8 @@ import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from 
 import {paintWorldRelief,paintHeroEnamelStatus} from './relief.js';
 import {paintQuillPreview} from './quill.js';
 import {paintThreatEngravings,paintTravelEngraving} from './battle-engraving.js';
+import {paintPressRelics} from './press-ruins.js';
+import {paintPuppetShadow} from './paper-puppets.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -159,6 +161,8 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     paintAtelierTile(ctx,rect,terrain,row,col);
   }
   paintWorldRelief(ctx,board,getTile);
+  // Broken bookbinder equipment is authored ONLY on existing blocked rubble.
+  paintPressRelics(ctx,board,getTile);
   paintJoinedTerrain(ctx,board,getTile);
   paintMaterialTransitions(ctx,board,getTile);
   paintBoardLighting(ctx,board);
@@ -182,10 +186,12 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const rect=animatedHeroRect(board,{column:miniature.col,row:miniature.row},id,frame);
     if(!rect)continue;
     const member=PARTY_SLOTS.find(item=>item.id===id);
+    const pose=miniaturePose(frame,{column:miniature.col,row:miniature.row});
     paintMiniatureBackdrop(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0,hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp});
+    paintPuppetShadow(ctx,rect,id,{pose,fallen:overlay?.partyHp?.[id]===0});
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
-    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,miniaturePose(frame,{column:miniature.col,row:miniature.row}));
+    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,pose);
     paintMiniatureFootlights(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0});
     paintHeroEnamelStatus(ctx,rect,{
       hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp??null,
@@ -198,13 +204,15 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
     if(rect){
+      const pose=miniaturePose(frame,foe.position,true);
       paintMiniatureBackdrop(ctx,rect,foe.id,{fallen:foe.hp<=0,hp:foe.hp,maxHp:foe.maxHp});
+      paintPuppetShadow(ctx,rect,foe.id,{pose,fallen:foe.hp<=0});
       // The ink strike ring is transient. No permanent 'last hit' aura that
       // misleadingly resembles a selected legal target after an action ends.
       const current=frame?.event;
       const targeted=current&&['hit','miss','critical'].includes(current.kind)&&
         current.to?.column===foe.position.column&&current.to?.row===foe.position.row;
-      drawFoe(ctx,rect,foe,targeted?overlay?.lastCombat:null,miniaturePose(frame,foe.position,true));
+      drawFoe(ctx,rect,foe,targeted?overlay?.lastCombat:null,pose);
       paintMiniatureFootlights(ctx,rect,foe.id,{fallen:foe.hp<=0});
     }
   }
@@ -216,10 +224,8 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const rect=cellRect(board,target.column,target.row);
     if(rect)paintThreatSymbol(ctx,rect,intent.attack===true);
   }
-  if(overlay?.origin && overlay?.positions){
-    const marker=cellRect(board,overlay.origin.column,overlay.origin.row);
-    if(marker){ctx.beginPath();ctx.arc(marker.x+marker.width/2,marker.y+marker.height/2,marker.width*.32,0,Math.PI*2);ctx.strokeStyle='#d9eeb9';ctx.lineWidth=Math.max(1.5,board.tile*.034);ctx.stroke();}
-  }
+  // No redundant origin halo is painted across the acting figure's face.
+  // Selected-unit enamel stand and tiny corner sigil already identify the actor.
   if(selection){
     const rect=cellRect(board,selection.column,selection.row);
     if(rect)drawSelection(ctx,rect);

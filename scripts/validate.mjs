@@ -84,3 +84,8 @@ assert.match(engraving,/paintTravelEngraving/);
 
 const fragments=fs.readFileSync('src/board/impact-fragments.js','utf8');
 assert.match(fragments,/paintImpactFragments/);
+
+const pressRuins=fs.readFileSync('src/board/press-ruins.js','utf8');
+const paperPuppets=fs.readFileSync('src/board/paper-puppets.js','utf8');
+assert.match(pressRuins,/paintPressRelics/);
+assert.match(paperPuppets,/paintPuppetShadow/);
