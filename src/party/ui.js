@@ -9,6 +9,7 @@ function node(tag,cls,text){
 export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}){
   let state=createPartyPreviewState();
   const buttons=[];
+  let currentBattle=null;
   for(const member of PARTY_SLOTS){
     const button=node('button','party-card');
     button.type='button';
@@ -45,11 +46,24 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
       button.dataset.selected=String(selected);
       button.setAttribute('aria-pressed',String(selected));
       button.tabIndex=selected?0:-1;
+      const member=PARTY_SLOTS.find(m=>m.id===button.dataset.memberId);
+      const hp=currentBattle?.partyHp?.[member.id]??member.hp;
+      const ended=currentBattle?.ended?.includes(member.id)??false;
+      const fallen=currentBattle?.partyHp&&hp<=0;
+      const inactive=currentBattle?.battleMode==='active'&&(fallen||ended);
+      button.disabled=!!inactive;
+      button.dataset.fallen=String(!!fallen);
+      button.dataset.ended=String(ended);
+      button.querySelector('.party-health-num').textContent=hp+'/'+member.maxHp;
+      button.querySelector('.party-health-fill').style.width=(100*hp/member.maxHp)+'%';
+      button.setAttribute('aria-label',member.name+', '+member.role+', '+hp+' of '+member.maxHp+' HP'+(fallen?', fallen':ended?', turn completed':'')+'.');
     });
-    readout.textContent=member.name+' · '+member.hp+'/'+member.maxHp+' HP · '+member.status+'. Study only.';
+    const hp=currentBattle?.partyHp?.[member.id]??member.hp;
+    readout.textContent=member.name+' · '+hp+'/'+member.maxHp+' HP · '+(currentBattle?.battleMode==='active'?'In skirmish':currentBattle?.battleMode==='won'?'Victory':currentBattle?.battleMode==='lost'?'Defeat':'Study only')+'.';
     readout.dataset.selectedId=member.id;
   }
   function setSelected(id,focus=false){
+    if(currentBattle?.battleMode==='active'&&((currentBattle.partyHp?.[id]??0)<=0||currentBattle.ended?.includes(id)))return;
     state=selectPartyMember(state,id);
     render();
     onSelect(state.selectedId);
@@ -75,5 +89,10 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
       document.getElementById('battle-toggle')?.focus({preventScroll:true});
     }
   }
-  return Object.freeze({setMode,getState:()=>state,select:id=>setSelected(id)});
+  function updateBattle(battle){
+    currentBattle=battle;
+    if(battle?.actorId)state=selectPartyMember(state,battle.actorId);
+    render();
+  }
+  return Object.freeze({setMode,updateBattle,getState:()=>state,select:id=>setSelected(id)});
 }

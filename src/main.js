@@ -81,6 +81,7 @@ commandRail=createCommandRail({
   apValue:document.getElementById('command-ap'),
   turnValue:document.getElementById('command-turn'),
   combatSummary:document.getElementById('combat-summary'),
+  onPartyChange:partyRail.updateBattle,
   skillGrid:document.getElementById('command-skills'),
   readout:document.getElementById('command-readout'),
   confirm:document.getElementById('command-confirm'),
@@ -88,4 +89,9 @@ commandRail=createCommandRail({
   endTurn:document.getElementById('command-end-turn'),
   move:document.getElementById('command-move'),
   onOverlayChange:preview=>boardPreview?.setCommandOverlay(preview)
+});
+
+document.getElementById('start-skirmish').addEventListener('click',()=>{
+  if(document.getElementById('battle-surface').hidden)document.getElementById('battle-toggle').click();
+  commandRail?.beginSkirmish(document.getElementById('seed').value);
 });

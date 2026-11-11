@@ -1,8 +1,9 @@
-import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarget,cancelPreview,confirmPreview,endStudyTurn,changeActor,getCommand,studyOrigin,targetResult,canConfirm,chooseMove,remainingMove,setMovementBoard,setCombatSeed,abilityPreview} from './engine.js';
+import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarget,cancelPreview,confirmPreview,endStudyTurn,changeActor,getCommand,studyOrigin,targetResult,canConfirm,chooseMove,remainingMove,setMovementBoard,setCombatSeed,abilityPreview,startBattle,endBattleTurn} from './engine.js';
+import {enemyIntents,aliveParty,aliveFoes} from '../battle/engine.js';
 import {previewMovement,MAX_MOVEMENT} from '../movement/pathfinding.js';
 import {livingOccupants} from '../combat/engine.js';
 
-export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,combatSummary,onOverlayChange}){
+export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,combatSummary,onOverlayChange,onPartyChange=()=>{}}){
   let state=createCommandState();
   let board=null,visible=false;
   const buttons=new Map();
@@ -26,24 +27,38 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       actorId:state.actorId,positions:state.positions,origin,
       mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
       command:getCommand(state.abilityId),target:state.target,
-      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat
+      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,partyHp:state.partyHp,intents:enemyIntents(state,board),battleMode:state.battleMode
     };
   }
   function paint(){
     const ap=remainingAp(state);
     apValue.textContent=ap+'/'+MAX_AP+' AP';
     const foes=Object.values(state.targets??{});
-    combatSummary.textContent=foes.length?foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join(' · '):'TWO TRAINING FOES';
+    const active=state.battleMode==='active',finished=state.battleMode==='won'||state.battleMode==='lost';
+    const intents=active?enemyIntents(state,board):[];
+    combatSummary.textContent=finished?(state.battleMode==='won'?'VICTORY · BOTH FOES DOWN':'DEFEAT · COMPANY FALLEN'):
+      active?(intents.length?intents.map(i=>i.name+'→'+i.victimId).join(' · '):'SKIRMISH · HOLD'):
+      foes.length?foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join(' · '):'TWO TRAINING FOES';
     combatSummary.setAttribute('aria-label',foes.length?foes.map(x=>x.fullName+': '+x.hp+' of '+x.maxHp+' health, Guard '+x.guard).join('. '):'Two stationary training foes');
     combatSummary.dataset.live=String(foes.filter(x=>x.hp>0).length);
+    combatSummary.dataset.foes=JSON.stringify(foes.map(x=>({id:x.id,hp:x.hp,col:x.position.column,row:x.position.row})));
+    combatSummary.dataset.intents=JSON.stringify(intents);
+    view.dataset.battleMode=state.battleMode;
+    view.dataset.round=String(state.turn);
+    view.dataset.phaseCount=String(state.phaseCount);
+    view.dataset.partyHp=JSON.stringify(state.partyHp??{});
+    view.dataset.ended=JSON.stringify(state.ended);
+    endTurn.textContent=finished?'Replay Skirmish':active?'End Turn':'End Study Turn';
+    endTurn.setAttribute('aria-label',finished?'Replay the same seeded skirmish':active?'End this hero turn; enemies act once all living heroes finish':'End demonstration turn');
+    endTurn.disabled=false;
     apValue.dataset.ap=String(ap);
     move.textContent='Move '+remainingMove(state)+'/'+MAX_MOVEMENT;
     move.setAttribute('aria-label','Movement: '+remainingMove(state)+' of '+MAX_MOVEMENT+' points available. Preview a path. Does not spend action points.');
     move.dataset.mp=String(remainingMove(state));
     move.dataset.selected=String(state.moveMode);
     move.setAttribute('aria-pressed',String(state.moveMode));
-    move.disabled=remainingMove(state)<=0;
-    turnValue.textContent='Study turn '+state.turn;
+    move.disabled=remainingMove(state)<=0||finished;
+    turnValue.textContent=active?'Round '+state.turn:finished?'Battle ended':'Study turn '+state.turn;
     readout.textContent=state.feedback;
     readout.dataset.ability=state.abilityId??'';
     readout.dataset.mode=state.moveMode?'movement':state.abilityId?'ability':'idle';
@@ -63,12 +78,13 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     for(const [id,button] of buttons){
       const skill=getCommand(id);
       const selected=state.abilityId===id;
-      button.disabled=skill.ap>ap;
+      button.disabled=skill.ap>ap||finished;
       button.dataset.selected=String(selected);
       button.setAttribute('aria-pressed',String(selected));
     }
     confirm.disabled=!board||!canConfirm(state,board);
     cancel.disabled=!state.abilityId&&!state.moveMode;
+    onPartyChange(state);
     onOverlayChange(overlay());
   }
   function setBoard(nextBoard){
@@ -107,7 +123,20 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
   move.addEventListener('click',()=>{state=chooseMove(state);paint();});
   confirm.addEventListener('click',()=>{state=confirmPreview(state,board);paint();});
   cancel.addEventListener('click',()=>{state=cancelPreview(state);paint();});
-  endTurn.addEventListener('click',()=>{state=endStudyTurn(state);paint();});
+  endTurn.addEventListener('click',()=>{
+    if(state.battleMode==='active')state=endBattleTurn(state,board);
+    else if(state.battleMode==='won'||state.battleMode==='lost')state=startBattle(state,board);
+    else state=endStudyTurn(state);
+    paint();
+  });
   paint();
-  return Object.freeze({setMode,setBoard,setSeed,selectActor,targetCell,getState:()=>state});
+  function beginSkirmish(seed){
+    if(!board)return false;
+    state=setCombatSeed(state,seed);
+    state=setMovementBoard(state,board);
+    state=startBattle(state,board);
+    paint();
+    return true;
+  }
+  return Object.freeze({setMode,setBoard,setSeed,beginSkirmish,selectActor,targetCell,getState:()=>state});
 }

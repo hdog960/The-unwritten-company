@@ -213,3 +213,14 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
   color:#f2c995;white-space:nowrap;text-align:center;font:800 8px/1.2 system-ui,sans-serif;
   letter-spacing:0;overflow:hidden;text-overflow:ellipsis;max-width:100%;min-height:10px
 }
+
+/* v0.08 skirmish starter is House-only; battle command area retains its 44px buttons. */
+.start-skirmish{
+  display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:6px;
+  background:linear-gradient(#e0bb7a,#a47a4b);color:#24313a;border:1px solid #f1d293;
+  border-radius:5px;font:800 12px/1.15 Georgia,serif;touch-action:manipulation
+}
+.right-rail.command-mode #start-skirmish{display:none}
+.party-card[data-fallen="true"]{opacity:.46;filter:grayscale(.8)}
+.party-card[data-ended="true"]{opacity:.65}
+#combat-summary[data-live="0"]{color:#b8e4b8}

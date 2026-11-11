@@ -203,6 +203,24 @@ function drawTrainingFoe(ctx,rect,target,lastCombat){
     ctx.stroke();
   }
 }
+  // Hatched, world-surface enemy telegraphs; all labels remain in the right rail.
+  for(const intent of overlay?.intents??[]){
+    const rect=cellRect(board,overlay.positions[intent.victimId]?.column,overlay.positions[intent.victimId]?.row);
+    const source=cellRect(board,intent.from?.column,intent.from?.row);
+    if(!rect)continue;
+    const x=rect.x+rect.width/2,y=rect.y+rect.height/2,s=rect.width;
+    ctx.save();ctx.beginPath();ctx.arc(x,y,s*.36,0,Math.PI*2);
+    ctx.strokeStyle=intent.attack?'#f5a18f':'#d8c68a';
+    ctx.lineWidth=Math.max(2,s*.043);
+    ctx.setLineDash(intent.attack?[s*.09,s*.07]:[s*.18,s*.12]);ctx.stroke();ctx.setLineDash([]);
+    if(source){
+      const sx=source.x+source.width/2,sy=source.y+source.height/2;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(x,y);
+      ctx.strokeStyle=intent.attack?'#f6a18d7f':'#cdbd8e6b';
+      ctx.lineWidth=Math.max(.9,s*.017);ctx.setLineDash([s*.14,s*.14]);ctx.stroke();
+    }
+    ctx.restore();
+  }
   // World-native movement path: dotted route and tiles, never a floating HUD.
   if(overlay?.mode==='movement' && overlay?.evaluation?.path?.length>1){
     const route=overlay.evaluation.path;
