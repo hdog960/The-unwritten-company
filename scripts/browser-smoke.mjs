@@ -80,11 +80,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.08'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.09'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.08 page did not initialize');
+      throw new Error('v0.09 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -200,6 +200,24 @@ async function main(){
       const skillSpot=await run("(()=>{const r=document.querySelector('[data-ability-id=\"sigil\"]').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()");
       await tap(skillSpot.x,skillSpot.y);
       assert.equal(await run("document.querySelector('#command-readout').dataset.ability"),'sigil','2AP ability did not select');
+
+      // A drag from one tile to another is never a tap/target, even with an armed ability.
+      const dragX=boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*.5;
+      const dragY=boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*.5;
+      await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:dragX,y:dragY,button:'left',buttons:1,clickCount:1});
+      await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:dragX+boardMetrics.tile,y:dragY,button:'left',buttons:1});
+      await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX+boardMetrics.tile,y:dragY,button:'left',buttons:0,clickCount:1});
+      assert.equal(await run("document.querySelector('#battle-canvas').dataset.pointer"),'dragged','drag gesture must not become a tile tap');
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'pending','drag must not pick a target');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'drag must not enable AP spending');
+      await run("document.querySelector('#battle-canvas').focus()");
+      await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      assert.equal(await run("document.querySelector('#command-readout').dataset.mode"),'idle','Escape must cancel armed targeting');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','Escape and drag must spend no AP');
+      await tap(skillSpot.x,skillSpot.y);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.ability"),'sigil');
+
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','selecting an ability must not spend AP');
       await tap(boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*.5,boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*.5);
       assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'false','out-of-range target should be invalid');
@@ -287,6 +305,9 @@ async function main(){
       await tapCell(fromCol,fromRow-1);
       await run("document.querySelector('#command-confirm').click()");
       assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'4','moving one flat tile should cost exactly 1 MP');
+
+      assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'move','world-native movement trail should trigger');
+
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','movement must not spend AP');
       assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'double confirmation must be blocked');
       await run("document.querySelector('#command-move').click()");
@@ -349,6 +370,18 @@ async function main(){
       await run("document.querySelector('#command-confirm').click()");
       const hitThree=await run("(()=>({face:document.querySelector('#command-readout').dataset.roll,hit:document.querySelector('#command-readout').dataset.hit,hp:document.querySelector('#command-readout').dataset.targetHp,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex,summary:document.querySelector('#combat-summary').textContent,feedback:document.querySelector('#command-readout').textContent,tooltip:document.querySelector('#command-readout').title,scroll:document.querySelector('#command-readout').scrollHeight,height:document.querySelector('#command-readout').clientHeight}))()");
       assert.equal(hitThree.face,'15');
+
+      assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'hit','a successful attack should animate an original hit effect');
+      assert.match(await run("document.querySelector('#battle-canvas').dataset.fxKey"),/^action-/);
+      await delay(85);
+      const visualHit=await run("Number(document.querySelector('#battle-canvas').dataset.fxPhase)");
+      assert.ok(visualHit>=0&&visualHit<100,'hit VFX should advance through a short animation');
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/gate-a-impact-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+      }
+
       assert.equal(hitThree.hit,'true');
       assert.equal(hitThree.hp,'10');
       assert.equal(hitThree.ap,'1');
@@ -370,6 +403,9 @@ async function main(){
       assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true');
       await run("document.querySelector('#command-confirm').click()");
       assert.equal(await run("document.querySelector('#command-view').dataset.guard"),'2');
+
+      assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'ward','Ward should produce a distinct readable defensive rune');
+
       assert.match(await run("document.querySelector('#command-readout').textContent"),/Guard \+2/);
       await run("document.querySelector('#command-end-turn').click()");
       assert.equal(await run("document.querySelector('#command-view').dataset.guard"),'0');
@@ -396,7 +432,7 @@ async function main(){
       }
       console.log('Browser PASS',width+'x'+height,'stage='+Math.round(metrics.center.width)+'px','preview=active');
 
-      // v0.08: enter a genuine skirmish from the House UI, not an imported reducer.
+      // v0.09: enter a genuine skirmish from the House UI, not an imported reducer.
       const starter=await run("(()=>{const a=document.querySelector('#start-skirmish').getBoundingClientRect(),r=document.querySelector('.right-rail').getBoundingClientRect();return{top:a.top,bottom:a.bottom,height:a.height,railTop:r.top,railBottom:r.bottom}})()");
       assert.ok(starter.height>=44&&starter.top>=starter.railTop-1&&starter.bottom<=starter.railBottom+1,'skirmish starter must be visible and 44px tall');
       await run("document.querySelector('#start-skirmish').click()");
@@ -419,6 +455,9 @@ async function main(){
       for(let i=0;i<4;i++)await run("document.querySelector('#command-end-turn').click()");
       assert.equal(await run("document.querySelector('#command-view').dataset.round"),'2');
       assert.equal(await run("document.querySelector('#command-view').dataset.phaseCount"),'1','the fourth hero ends with an actual enemy phase');
+
+      assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'enemy-phase','enemy phase should produce battle-surface effects');
+
       assert.equal(await run("document.querySelector('#command-view').dataset.ended"),'[]');
       const afterEnemy=await run("JSON.parse(document.querySelector('#command-view').dataset.partyHp)");
       assert.ok(Object.keys(afterEnemy).every(id=>afterEnemy[id]<=originalParty[id]),'enemy attacks cannot heal the party');
@@ -479,6 +518,9 @@ async function main(){
       }
       await run("document.querySelector('#command-end-turn').click()");
       assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','replay must restore active skirmish');
+
+      assert.equal(await run("document.querySelector('#command-view').dataset.ap"),'2','replay must not retain the prior battle AP');
+
       assert.equal(await run("document.querySelector('#command-view').dataset.round"),'1');
       assert.match(await run("document.querySelector('#combat-summary').dataset.foes"),/"hp":13/,'replay must reset enemy HP');
       console.log('Skirmish PASS',width+'x'+height,'victory, attacks='+shots+', moves='+moves+', ends='+ends+', rounds='+terminal.round);
