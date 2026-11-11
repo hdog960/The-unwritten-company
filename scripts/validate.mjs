@@ -107,3 +107,7 @@ assert.match(miniature,/paintGestureJoints/);
 const actionSeals=fs.readFileSync('src/board/action-seals.js','utf8');
 assert.match(actionSeals,/paintActionSeal/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintActionSeal/);
+
+const conditionArt=fs.readFileSync('src/board/figure-condition.js','utf8');
+assert.match(conditionArt,/paintFigureCondition/);
+assert.match(miniature,/paintFigureCondition/);

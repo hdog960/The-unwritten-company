@@ -471,6 +471,12 @@ async function main(){
       assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true');
       await run("document.querySelector('#command-confirm').click()");
       assert.equal(await run("document.querySelector('#command-view').dataset.guard"),'2');
+      // Actual live Guard + injured enemy state, not a hand-set screenshot.
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const marked=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/gate-a-guarded-'+width+'x'+height+'.png',Buffer.from(marked.data,'base64'));
+      }
 
       assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'ward','Ward should produce a distinct readable defensive rune');
 

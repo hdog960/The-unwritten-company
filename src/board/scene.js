@@ -193,7 +193,10 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     paintPuppetShadow(ctx,rect,id,{pose,fallen:overlay?.partyHp?.[id]===0});
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
-    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,pose);
+    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,pose,{
+      hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp??null,
+      guard:overlay?.guards?.[id]??0
+    });
     paintMiniatureFootlights(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0});
     paintHeroEnamelStatus(ctx,rect,{
       hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp??null,
