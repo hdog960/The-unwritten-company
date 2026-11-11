@@ -17,8 +17,7 @@ export function transitionPairs(board,tileAt){
       if(col+dc>=board.columns||row+dr>=board.rows)continue;
       const other=tileAt(row+dr,col+dc);
       if(kind===other)continue;
-      if(!['water','moss','rubble','glyph'].includes(kind)&&
-         !['water','moss','rubble','glyph'].includes(other))continue;
+      if(!['water','moss'].includes(kind)&&!['water','moss'].includes(other))continue;
       out.push(Object.freeze({row,col,vertical:dr===0,kind,other}));
     }
   }
@@ -40,33 +39,32 @@ export function paintMaterialTransitions(ctx,board,tileAt){
     const r=cellRect(board,p.col,p.row);if(!r)continue;
     const s=r.width;
     const water=p.kind==='water'||p.other==='water';
-    const moss=!water&&(p.kind==='moss'||p.other==='moss');
-    const glyph=!water&&!moss&&(p.kind==='glyph'||p.other==='glyph');
-    const c=water?'#88c9c2':moss?'#8baa73':glyph?'#d7be7e':'#c8ac8d';
-    const dark=water?'#234d58':moss?'#3a694e':glyph?'#9e804d':'#4b4a45';
-    const px=p.vertical?r.x+s:r.x,py=p.vertical?r.y:r.y+s;
+    const color=water?'#a2d4c5':'#a5ba82';
+    const deep=water?'#406c70':'#42674e';
+    const borderX=p.vertical?r.x+s:r.x;
+    const borderY=p.vertical?r.y:r.y+s;
     ctx.save();
-    ctx.globalAlpha=.6;
-    for(let i=0;i<3;i++){
-      const t=(i+.6)/3.7,wiggle=(hash(p.row,p.col,i)-.5)*s*.042;
-      // The thin watercolor bleed crosses the old square seam but never
-      // approaches a unit's central hitbox or obstructs target glyphs.
-      const x=p.vertical?px+wiggle:r.x+s*t;
-      const y=p.vertical?r.y+s*t:py+wiggle;
-      const u=s*(.055+.03*hash(p.row,p.col,31+i));
-      const dx=p.vertical?0:1,dy=p.vertical?1:0;
-      line(ctx,[[x-dy*u,y-dx*u],[x-dy*u*.2+dx*s*.13,y-dx*u*.2+dy*s*.13],
-        [x+dy*u,y+dx*u]],c,Math.max(1.05,s*.035));
-      dab(ctx,x-dy*s*.025,y-dx*s*.025,s*(water?.017:.024),dark);
-      if(moss){
+    // The transition is a quiet translucent watercolor wash: the border
+    // remains legible, with no repeating arrow- or HUD-like geometry.
+    ctx.globalAlpha=.34;
+    for(let i=0;i<2;i++){
+      const t=.32+i*.38,grain=(hash(p.row,p.col,i)-.5)*s*.03;
+      const x=p.vertical?borderX+grain:r.x+s*t;
+      const y=p.vertical?r.y+s*t:borderY+grain;
+      const tangX=p.vertical?0:1,tangY=p.vertical?1:0;
+      const half=s*.072;
+      line(ctx,[[x-tangX*half,y-tangY*half],[x+grain*.45,y+grain*.45],
+        [x+tangX*half,y+tangY*half]],color,Math.max(.7,s*.019));
+      dab(ctx,x,y,Math.max(.65,s*.012),deep);
+      if(water){
+        // A single pearl glint where the river meets the stone.
+        dab(ctx,x+(p.vertical?s*.028:0),y+(p.vertical?0:s*.028),
+          Math.max(.55,s*.008),'#e3eaca');
+      }else{
         ctx.beginPath();
-        ctx.ellipse(x+dy*s*.065,y+dx*s*.065,s*.063,s*.021,-Math.PI/4,0,Math.PI*2);
-        ctx.fillStyle='#a7bc85';ctx.fill();
-      }else if(glyph&&i===1){
-        dab(ctx,x,y,s*.024,'#f8e1a1');
-      }else if(water){
-        line(ctx,[[x+dy*u*.5,y+dx*u*.5],[x+dy*u*1.1+dx*s*.048,y+dx*u*1.1+dy*s*.048]],
-          '#e6f1d29c',Math.max(.75,s*.013));
+        ctx.ellipse(x+(p.vertical?s*.034:0),y+(p.vertical?0:s*.034),
+          s*.033,s*.013,-Math.PI/5,0,Math.PI*2);
+        ctx.fillStyle='#b6c7a1';ctx.fill();
       }
     }
     ctx.restore();
