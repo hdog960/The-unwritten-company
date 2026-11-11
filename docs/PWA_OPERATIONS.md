@@ -25,3 +25,7 @@ The offline cache now explicitly includes `src/party/model.js`, `src/party/ui.js
 
 ## v0.05 extension — command study offline cache
 \`service-worker.js\` cache generation \`v0.05\` precaches \`./src/commands/engine.js\` and \`./src/commands/ui.js\` in addition to all previous modules, static illustrations, manifest and icons. Confirmed by a headless Chromium offline reload and execution of the preview's Ward + Cancel controls. Do not conflate cached command previews with a playable offline tactical combat campaign. Bump the cache name when adding new modules or art.
+
+
+## v0.06 — movement module offline cache
+Service worker \`tuc-foundation-v0.06\` now precaches \`./src/movement/pathfinding.js\` alongside its \`src/commands/engine.js\` importer and the rest of the original static app. Headless Chromium successfully ran the command/movement preview while offline after an online cache warmup. Move targets, per-member budget and routes are in-memory **demonstration state**, not persistent saved character advancement. To preserve offline operation, append any later imported module to \`CORE_ASSETS\` and update the cache generation on each release. No claim of real iPhone Safari/Home Screen support verification from Chromium tests.
