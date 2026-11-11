@@ -49,3 +49,8 @@ Service-worker generation `tuc-foundation-v0.09` precaches `./src/board/miniatur
 ## v0.09 Gate A correction 2 — offline illustrated terrain
 
 The source-only `src/board/atelier.js` module is now explicitly cached in the static PWA core alongside `src/board/miniatures.js`, `src/board/effects.js` and `src/board/scene.js`. Cache generation changed to `tuc-foundation-v0.09-gate-a2` without advancing the roadmap milestone. Chromium actually reloaded an offline-cached game and executed real skirmish combat after this change. Continuous texture and puppet motion use deterministic/offline Canvas paths, not remote resources. No campaign or skirmish save persistence has been added; physical iPhone Safari/Home Screen lifecycle remains unverified.
+
+
+## v0.09 Gate A correction 3 — cross-tile diorama assets
+
+\`service-worker.js\` now uses cache generation \`tuc-foundation-v0.09-gate-a3\`; the new \`./src/board/diorama.js\` import is in the static asset list alongside all original board, artwork, command, battle and portrait modules. \`npm run browser:smoke\` successfully warmed the cache and confirmed real online and offline-skirmish operation with the latest art module loaded. The new painted joins, ornamentation and role emblems run entirely from local Canvas drawing. No new persistence or save migration exists and no iPhone/WebKit lifecycle has been tested.
