@@ -12,7 +12,7 @@ export function rigMotion(id,pose=null){
  if(!WEAPON_RIGS.includes(id))return null;
  const p=clamp(pose?.progress),pulse=Math.sin(Math.PI*p);
  let amount=0;
- if(pose?.kind==='attack')amount=([.49,.39,.62,-.31,.34,-.42][WEAPON_RIGS.indexOf(id)])*pulse;
+ if(pose?.kind==='attack')amount=([.49,.18,.62,-.31,.34,-.42][WEAPON_RIGS.indexOf(id)])*pulse;
  else if(pose?.kind==='ward'&&id==='mirelle')amount=.22*pulse;
  else if(pose?.kind==='recoil')amount=-.09*pulse;
  else if(pose?.kind==='stagger')amount=-.14*pulse;
