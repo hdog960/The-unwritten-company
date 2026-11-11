@@ -62,3 +62,8 @@ const choreography=fs.readFileSync('src/board/choreography.js','utf8');
 const shoreInk=fs.readFileSync('src/board/shoreline.js','utf8');
 assert.match(choreography,/puppetPose/);
 assert.match(shoreInk,/paintMaterialTransitions/);
+
+const illumination=fs.readFileSync('src/board/illumination.js','utf8');
+assert.match(illumination,/paintLanternPools/);
+assert.match(illumination,/paintMiniatureBackdrop/);
+assert.match(illumination,/paintMiniatureFootlights/);
