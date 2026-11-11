@@ -336,7 +336,17 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   const barX=17,barY=86,barW=66,barH=6.5;
   ctx.fillStyle='#0d1b25';ctx.fillRect(barX-2,barY-2,barW+4,barH+4);
   ctx.fillStyle='#724349';ctx.fillRect(barX,barY,barW,barH);
-  ctx.fillStyle='#e8ae82';ctx.fillRect(barX,barY,barW*(foe.hp/foe.maxHp),barH);
+  const remaining=Math.max(0,Math.min(1,foe.hp/foe.maxHp));
+  ctx.fillStyle=remaining<=.33?'#edaa89':'#e8ae82';
+  ctx.fillRect(barX,barY,barW*remaining,barH);
+  if(remaining<=.33){
+    // Three engraved diagonal warning cuts survive colorblind viewing and
+    // the smallest tested tile. They are part of the foe's in-world base.
+    for(let i=0;i<3;i++){
+      const px=barX+barW*(.16+i*.19);
+      mark(ctx,[[px,barY+1],[px+4,barY+barH-1]],'#fff0d2',1.35);
+    }
+  }
   ctx.strokeStyle='#e0bd83';ctx.lineWidth=1;ctx.strokeRect(barX,barY,barW,barH);
   if(lastCombat?.id===foe.id){
     ctx.beginPath();ctx.arc(50,45,34,0,Math.PI*2);
