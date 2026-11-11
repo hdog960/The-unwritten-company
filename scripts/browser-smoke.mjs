@@ -479,15 +479,6 @@ async function main(){
       for(let n=0;n<40;n++){if(await run("document.querySelector('#command-view').dataset.battleMode==='active'"))break;await delay(35)}
       assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','House starter did not enter live battle');
 
-      // In a real battle, empty ground must not light up as if it could be attacked.
-      await run("document.querySelector('[data-member-id=\"kess\"]').click()");
-      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
-      const liveTargeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
-      assert.ok(liveTargeting.total>=1&&liveTargeting.total===liveTargeting.enemies,
-        'only actual attackable enemies may receive strong battlefield target rings');
-      await run("document.querySelector('#command-cancel').click()");
-      await run("document.querySelector('[data-member-id=\"captain\"]').click()");
-
       assert.match(await run("document.querySelector('#battle-canvas').getAttribute('aria-label')"),/battlefield/,'battlefield accessible label preserved');
       assert.equal(await run("document.querySelector('#command-turn').textContent"),'Round 1');
       assert.equal(await run("document.querySelector('#command-end-turn').textContent"),'End Turn');
@@ -512,6 +503,16 @@ async function main(){
         const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
         await fsp.writeFile('artifacts/skirmish-start-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
       }
+      // In a real battle, empty ground must not light up as if it could be attacked.
+      await run("document.querySelector('[data-member-id=\"kess\"]').click()");
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      const liveTargeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
+      assert.ok(liveTargeting.total>=1&&liveTargeting.total===liveTargeting.enemies,
+        'only actual attackable enemies may receive strong battlefield target rings');
+      await run("document.querySelector('#command-cancel').click()");
+      await run("document.querySelector('[data-member-id=\"captain\"]').click()");
+
+
       const g=await run("(()=>{const c=document.querySelector('#battle-canvas'),b=c.getBoundingClientRect();return{left:b.left,top:b.top,x:+c.dataset.offsetX,y:+c.dataset.offsetY,tile:+c.dataset.tile}})()");
       const tapBattleTile=async(column,row)=>tap(g.left+g.x+g.tile*(column+.5),g.top+g.y+g.tile*(row+.5));
 
