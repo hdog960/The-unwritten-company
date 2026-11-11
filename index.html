@@ -78,6 +78,10 @@
       <aside class="rail panel right-rail" aria-labelledby="contract-heading">
         <p class="eyebrow">GUILD LEDGER · PROTOTYPE</p>
         <h2 id="contract-heading">A story seed</h2>
+        <div class="board-tool">
+          <button type="button" id="battle-toggle" class="battle-toggle" aria-pressed="false" aria-controls="battle-surface">Inspect tactical table</button>
+          <p id="battle-status" class="board-status" aria-live="polite">An original miniature-styled tactical terrain preview; no combat yet.</p>
+        </div>
         <p class="small-copy">Try a deterministic glimpse of the campaign generator's future inputs. <strong>This is a design preview, not a playable campaign.</strong></p>
         <form id="preview-form">
           <label for="seed">Chronicle seed</label>
@@ -88,10 +92,7 @@
           <p class="preview-label">Awaiting a seed</p>
           <p class="preview-empty">A thousand possible troubles await your signature.</p>
         </section>
-        <div class="board-tool">
-          <button type="button" id="battle-toggle" class="battle-toggle" aria-pressed="false" aria-controls="battle-surface">Inspect tactical table</button>
-          <p id="battle-status" class="board-status" aria-live="polite">An original miniature-styled tactical terrain preview; no combat yet.</p>
-        </div>
+        
         <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.03</div>
       </aside>
     </main>

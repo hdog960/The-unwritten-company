@@ -105,6 +105,11 @@ async function main(){
       assert.ok(metrics.center.width>=220,'center stage too narrow at '+width+'x'+height);
       assert.ok(metrics.left.right<=metrics.center.left+1,'left panel overlaps stage');
       assert.ok(metrics.center.right<=metrics.right.left+1,'right panel overlaps stage');
+      const railLayout=await run("(()=>{const rect=id=>document.querySelector(id).getBoundingClientRect();const head=rect('.left-rail .panel-top'),body=rect('.left-rail .chronicle-body'),button=rect('#battle-toggle'),rail=rect('.right-rail');return {headBottom:head.bottom,bodyTop:body.top,buttonTop:button.top,buttonBottom:button.bottom,rightTop:rail.top,rightBottom:rail.bottom};})()");
+      assert.ok(railLayout.headBottom<=railLayout.bodyTop+1,'left rail heading/body text overlap');
+      assert.ok(railLayout.buttonTop>=railLayout.rightTop,'battle toggle starts above right rail');
+      assert.ok(railLayout.buttonBottom<=railLayout.rightBottom,'battle toggle must be visible without scrolling');
+
       const preview=await run(`(()=>{
         const input=document.querySelector('#seed'); input.value='Sable-777';
         document.querySelector('#preview-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));

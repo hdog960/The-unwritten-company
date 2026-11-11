@@ -74,3 +74,9 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
   .table>.panel{max-height:none;height:auto}
   .stage{min-height:260px}
 }
+
+/* Keep all rail section boxes at natural height: no text may slide underneath previous sections. */
+.rail>*{flex:0 0 auto;min-height:fit-content}
+.rail .panel-top{min-height:auto}
+.rail .chronicle-body{min-height:auto}
+.rail .installation{min-height:auto}
