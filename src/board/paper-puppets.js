@@ -2,6 +2,7 @@
  * These stay below figure art; a real action pose bends the printed shadow,
  * while the pedestal and combat hitbox remain at authoritative coordinates.
  */
+import {attackBeat} from './combat-beats.js';
 export const PUPPET_FOLDS=Object.freeze({
   captain:Object.freeze([[.40,.75],[.56,.69],[.61,.61],[.79,.53],[.84,.57],[.77,.71],[.60,.83]]),
   brunna:Object.freeze([[.32,.75],[.49,.64],[.64,.60],[.80,.64],[.86,.77],[.67,.84],[.47,.83]]),
@@ -16,7 +17,10 @@ export function foldedShadowProfile(id,pose=null){
   if(!outline)return null;
   const t=pose?Math.sin(Math.PI*clamp(pose.progress)):0;
   let lean=0,lift=0;
-  if(pose?.kind==='attack'){lean=.045*t;lift=.018*t;}
+  if(pose?.kind==='attack'){
+    const swing=attackBeat(clamp(pose.progress)).sweep;
+    lean=.045*swing;lift=.018*Math.abs(swing);
+  }
   if(pose?.kind==='recoil'){lean=-.065*t;lift=-.012*t;}
   if(pose?.kind==='stagger'){lean=-.08*t;lift=-.020*t;}
   if(pose?.kind==='move'){lean=.012*t;lift=.03*t;}

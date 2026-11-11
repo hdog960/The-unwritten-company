@@ -3,6 +3,7 @@
  * Never changes movement, collisions, damage, AP, MP or control surfaces.
  * No ambient timers: complete still images at rest save mobile battery.
  */
+import {attackBeat} from './combat-beats.js';
 const ink=Object.freeze({
  captain:Object.freeze({base:'#28505b',lining:'#7baea7',front:'#547d79',trim:'#edcf97',
   anchor:[49,32],flap:[[32,30],[43,26],[61,28],[71,54],[64,75],[50,73],[26,70]],
@@ -37,7 +38,10 @@ export function clothPose(id,pose=null){
  const t=clamp(pose?.progress),raw=Math.sin(Math.PI*t);
  const pulse=Math.abs(raw)<1e-10?0:raw;
  let fold=0,drop=0;
- if(pose?.kind==='attack'){fold=.17*pulse;drop=-.035*pulse;}
+ if(pose?.kind==='attack'){
+  const swing=attackBeat(t).sweep;
+  fold=.17*swing;drop=-.035*Math.abs(swing);
+ }
  if(pose?.kind==='recoil'){fold=-.13*pulse;drop=.018*pulse;}
  if(pose?.kind==='stagger'){fold=-.23*pulse;drop=.04*pulse;}
  if(pose?.kind==='move'){fold=.085*pulse;drop=-.045*pulse;}

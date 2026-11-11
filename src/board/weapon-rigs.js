@@ -3,6 +3,7 @@
  * render INSIDE the existing miniature transform, not over the tactical map.
  * Pure drawing; no damage rolls, clock, randomness or animation timer.
  */
+import {attackBeat} from './combat-beats.js';
 export const WEAPON_RIGS=Object.freeze(['captain','brunna','kess','mirelle','briar','shade']);
 const clamp=t=>Number.isFinite(t)?Math.min(1,Math.max(0,t)):0;
 const pivots=Object.freeze({
@@ -12,7 +13,7 @@ export function rigMotion(id,pose=null){
  if(!WEAPON_RIGS.includes(id))return null;
  const p=clamp(pose?.progress),pulse=Math.sin(Math.PI*p);
  let amount=0;
- if(pose?.kind==='attack')amount=([.49,.18,.62,.18,.34,-.42][WEAPON_RIGS.indexOf(id)])*pulse;
+ if(pose?.kind==='attack')amount=([.49,.18,.62,.18,.34,-.42][WEAPON_RIGS.indexOf(id)])*attackBeat(p).sweep;
  else if(pose?.kind==='ward'&&id==='mirelle')amount=.17*pulse;
  else if(pose?.kind==='recoil')amount=-.09*pulse;
  else if(pose?.kind==='stagger')amount=-.14*pulse;
