@@ -14,7 +14,8 @@ const distance=(a,b)=>Math.abs(a.column-b.column)+Math.abs(a.row-b.row);
 function playRound(state){
   let s=state;
   let guard=0;
-  while(s.battleMode==='active'&&s.ended.length<aliveParty(s).length && guard++<16)s=endBattleTurn(s,board);
+  const previousPhase=state.phaseCount;
+  while(s.battleMode==='active'&&s.phaseCount===previousPhase&&guard++<16)s=endBattleTurn(s,board);
   return s;
 }
 function autoPlay(seed){
@@ -80,6 +81,7 @@ test('each hero ends once per round; an exhausted hero cannot act again',()=>{
   assert.strictEqual(changeActor(s,'captain'),s);
   const refused=chooseAbility(changeActor(s,'kess'),'spark');
   assert.equal(refused.actorId,'kess');
+  s=refused;
   s=endBattleTurn(s,board); // Kess finishes, Brunna & Mirelle still pending
   assert.equal(s.actorId,'brunna');
   s=endBattleTurn(s,board);

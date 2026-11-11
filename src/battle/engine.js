@@ -72,7 +72,7 @@ export function resolveEnemyPhase(state,board){
   for(const def of Object.keys(ENEMY_KITS)){
     const foe=targets[def];
     if(!foe||foe.hp<=0)continue;
-    const working=Object.freeze({...state,targets:Object.freeze(targets),partyHp:Object.freeze(hp)});
+    const working=Object.freeze({...state,targets:Object.freeze({...targets}),partyHp:Object.freeze({...hp})});
     const targetId=nearestHero(foe,working);
     if(!targetId)break;
     const path=enemyRoute(foe,working,board,targetId);
