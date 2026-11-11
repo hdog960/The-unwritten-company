@@ -11,6 +11,7 @@ import {puppetPose} from './choreography.js';
 import {paintMaterialTransitions} from './shoreline.js';
 import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from './illumination.js';
 import {paintWorldRelief} from './relief.js';
+import {paintQuillPreview} from './quill.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -168,6 +169,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   // Only the command engine's *actual legal* cells glow, above floor artwork
   // but beneath the miniatures. Invalid / empty live-battle tiles stay dark.
   paintTargetIndicators(ctx,board,overlay?.targetIndicators);
+  paintQuillPreview(ctx,board,overlay);
   const miniatures=overlay?.positions?
     Object.entries(overlay.positions).map(([id,at])=>({col:at.column,row:at.row,kind:id==='brunna'?'ward':id==='mirelle'?'scribe':id==='kess'?'rogue':'knight',id})):
     [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
@@ -251,24 +253,6 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   if(overlay?.origin && overlay?.positions){
     const marker=cellRect(board,overlay.origin.column,overlay.origin.row);
     if(marker){ctx.beginPath();ctx.arc(marker.x+marker.width/2,marker.y+marker.height/2,marker.width*.32,0,Math.PI*2);ctx.strokeStyle='#d9eeb9';ctx.lineWidth=Math.max(1.5,board.tile*.034);ctx.stroke();}
-  }
-  if(overlay?.command){
-    const originRect=cellRect(board,overlay.origin.column,overlay.origin.row);
-    if(originRect){
-      const s=originRect.width;
-      ctx.beginPath();ctx.arc(originRect.x+s*.5,originRect.y+s*.5,s*.31,0,Math.PI*2);
-      ctx.lineWidth=Math.max(2,s*.038);ctx.strokeStyle='#86e6d3';ctx.stroke();
-    }
-    if(overlay.target){
-      const rect=cellRect(board,overlay.target.column,overlay.target.row);
-      if(rect){
-        ctx.fillStyle=overlay.evaluation?.valid?'#8cf2d93b':'#f27b7845';
-        ctx.fillRect(rect.x+1,rect.y+1,rect.width-2,rect.height-2);
-        ctx.strokeStyle=overlay.evaluation?.valid?'#8dfbe1':'#ff8c80';
-        ctx.lineWidth=Math.max(2,rect.width*.045);
-        ctx.strokeRect(rect.x+3,rect.y+3,rect.width-6,rect.height-6);
-      }
-    }
   }
   if(selection){
     const rect=cellRect(board,selection.column,selection.row);
