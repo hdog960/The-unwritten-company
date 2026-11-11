@@ -2,6 +2,7 @@
  * Source-drawn at a 100-unit scale; never remote image or copyrighted sprites.
  */
 import {paintWeaponRig} from './weapon-rigs.js';
+import {paintArticulatedCloth} from './articulated-cloth.js';
 export const HERO_SILHOUETTES=Object.freeze(['captain','brunna','kess','mirelle']);
 export const FOE_SILHOUETTES=Object.freeze(['briar','shade']);
 const H=100;
@@ -42,12 +43,8 @@ function ornament(ctx,x,y){
   polygon(ctx,[[x,y-4],[x+4,y],[x,y+4],[x-4,y]],'#e7c481','#4c493f',1.2);
   bead(ctx,x,y,1.1,'#fff4c9');
 }
-function cape(ctx,x,y,base,lining){
-  polygon(ctx,[[x-12,y-14],[x+12,y-14],[x+23,y+24],[x+2,y+32],[x-20,y+25]],base,'#1a2a35',3);
-  mark(ctx,[[x-12,y-12],[x-15,y+19],[x-5,y+26]],lining,2);
-}
 function drawCaptain(ctx){
-  cape(ctx,48,43,'#264953','#84b5a5');
+  // Cape silhouette is now the action-posed, character-specific cloth rig.
   // Steel legs and knee-high travel boots.
   polygon(ctx,[[37,61],[47,62],[45,74],[37,75]],'#a69a78','#253341');
   polygon(ctx,[[52,62],[61,61],[65,75],[53,75]],'#778f87','#263540');
@@ -70,7 +67,7 @@ function drawCaptain(ctx){
   // Signature weapon is painted separately by the animated paper-joint rig.
 }
 function drawBrunna(ctx){
-  cape(ctx,49,41,'#703e43','#cc917a');
+  // Cape silhouette is now the action-posed, character-specific cloth rig.
   polygon(ctx,[[29,60],[45,61],[43,74],[26,76]],'#755b58','#2e333b');
   polygon(ctx,[[53,61],[70,59],[73,76],[56,75]],'#8d7564','#2b353b');
   polygon(ctx,[[24,72],[43,71],[42,80],[24,81]],'#40444a');
@@ -94,7 +91,7 @@ function drawBrunna(ctx){
   ornament(ctx,22,60);
 }
 function drawKess(ctx){
-  cape(ctx,50,40,'#294f47','#8fb09a');
+  // Cape silhouette is now the action-posed, character-specific cloth rig.
   // Long, narrow elf silhouette and dark leather.
   polygon(ctx,[[42,59],[52,59],[49,76],[38,77]],'#4a554c');
   polygon(ctx,[[51,59],[59,59],[64,77],[53,78]],'#53685a');
@@ -113,7 +110,7 @@ function drawKess(ctx){
   bead(ctx,50,56,2.5,'#dfc98e');
 }
 function drawMirelle(ctx){
-  cape(ctx,50,42,'#423b66','#aa84a9');
+  // Cape silhouette is now the action-posed, character-specific cloth rig.
   polygon(ctx,[[40,43],[58,41],[70,77],[29,77]],thinGradient(ctx,40,40,'#74668d','#313850'),'#263245',3);
   for(let n=0;n<3;n++)mark(ctx,[[38-n*3,64+n*2],[49,67+n*2],[60+n*2,64+n*2]],'#b4aaa0',1.1);
   polygon(ctx,[[39,34],[60,34],[62,52],[39,52]],'#537a83','#293f54',1.5);
@@ -254,11 +251,13 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(pose?.kind==='stagger')ctx.translate(-5.5*Math.sin(Math.PI*pose.progress),3.9*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='move')ctx.translate(0,-3*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='ward')ctx.translate(0,-2.2*Math.sin(Math.PI*pose.progress));
+  paintArticulatedCloth(ctx,id,pose,'back');
   if(id==='brunna')drawBrunna(ctx);
   else if(id==='kess')drawKess(ctx);
   else if(id==='mirelle')drawMirelle(ctx);
   else drawCaptain(ctx);
   finishHeroInk(ctx,id,pose);
+  paintArticulatedCloth(ctx,id,pose,'front');
   paintWeaponRig(ctx,id,pose);
   if(!fallen)actionBrush(ctx,id,pose);
   ctx.restore();
@@ -314,8 +313,10 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   if(pose?.kind==='attack')ctx.translate(-2.5*Math.sin(Math.PI*pose.progress),-4.4*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='recoil')ctx.translate(4.7*Math.sin(Math.PI*pose.progress),2.1*Math.sin(Math.PI*pose.progress));
   if(pose?.kind==='stagger')ctx.translate(6*Math.sin(Math.PI*pose.progress),4*Math.sin(Math.PI*pose.progress));
+  paintArticulatedCloth(ctx,foe.id,pose,'back');
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
+  paintArticulatedCloth(ctx,foe.id,pose,'front');
   paintWeaponRig(ctx,foe.id,pose);
   actionBrush(ctx,foe.id,pose,true);
   ctx.restore();
