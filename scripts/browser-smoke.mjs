@@ -370,8 +370,7 @@ async function main(){
       const previewCombat=await run("(()=>({valid:document.querySelector('#command-readout').dataset.valid,description:document.querySelector('#command-readout').textContent,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex,readoutScroll:document.querySelector('#command-readout').scrollHeight,readoutHeight:document.querySelector('#command-readout').clientHeight}))()");
       assert.equal(previewCombat.valid,'true','training foe within Spark range must be targetable');
 
-      const targeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,
-        enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
+      const targeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
       assert.ok(targeting.total>=1&&targeting.enemies>=1,'living foe receives legal Spark target art');
 
       assert.match(previewCombat.description,/60% hit.*Guard 12/);
@@ -483,8 +482,7 @@ async function main(){
       // In a real battle, empty ground must not light up as if it could be attacked.
       await run("document.querySelector('[data-member-id=\"kess\"]').click()");
       await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
-      const liveTargeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,
-        enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
+      const liveTargeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
       assert.ok(liveTargeting.total>=1&&liveTargeting.total===liveTargeting.enemies,
         'only actual attackable enemies may receive strong battlefield target rings');
       await run("document.querySelector('#command-cancel').click()");
