@@ -45,3 +45,16 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 .cache-line{font-weight:400;color:#bfb8a8}
 .rail-foot{margin-top:0}
 @media(max-height:380px) and (orientation:landscape){.installation{padding-top:5px}.install-guide summary{min-height:27px;font-size:11px}.network-line,.cache-line{font-size:9px;margin:3px 0 0}}
+
+/* v0.03: truly distinct center-only board surface, no interactive HUD over active grid. */
+[hidden]{display:none!important}
+.story-view{display:flex;flex-direction:column;justify-content:flex-start;align-items:center;min-width:0;width:100%;height:100%;min-height:0}
+.stage.board-mode{display:block;padding:0}
+.stage.board-mode:before{display:none}
+.battle-surface{position:absolute;inset:0;overflow:hidden;background:#181e29}
+#battle-canvas{display:block;width:100%;height:100%;touch-action:manipulation;outline-offset:-5px}
+#battle-canvas:focus-visible{outline:3px solid #ffe4af}
+.board-tool{border-top:1px solid #876d4a;padding-top:9px;margin-top:10px}
+.battle-toggle{width:100%;min-height:44px;display:flex;justify-content:center;text-align:center;background:linear-gradient(#b4c1a5,#738a79);border-color:#d6d9b3;color:#18282c;box-shadow:0 3px 0 #485d52;font-size:11px}
+.board-status{font:11px/1.4 system-ui,-apple-system,sans-serif;color:#d3cdb8;margin:10px 0 0;overflow-wrap:anywhere}
+@media(max-height:380px) and (orientation:landscape){.board-tool{padding-top:6px;margin-top:6px}.battle-toggle{min-height:40px}.board-status{font-size:9px;line-height:1.25;margin-top:5px}}

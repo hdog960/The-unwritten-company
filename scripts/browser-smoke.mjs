@@ -78,11 +78,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.02'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.03'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.02 page did not initialize');
+      throw new Error('v0.03 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -111,6 +111,38 @@ async function main(){
         return document.querySelector('#preview').textContent;
       })()`);
       assert.ok(preview.includes('CONTRACT GLIMPSE')&&preview.includes('The'),'seed interaction failed in Chrome');
+      // Enter the actual canvas view through the right-side command rail.
+      const canvasState=await run("(()=>{document.getElementById('battle-toggle').click();return document.getElementById('battle-surface').hidden;})()");
+      assert.equal(canvasState,false,'battle canvas did not open');
+      for(let n=0;n<30;n++){
+        if(await run("document.querySelector('#battle-canvas').dataset.rendered==='true'"))break;
+        await delay(60);
+      }
+      const boardMetrics=await run("(()=>{const canvas=document.getElementById('battle-canvas');const board=canvas.getBoundingClientRect();const stage=document.querySelector('.stage').getBoundingClientRect();const left=document.querySelector('.left-rail').getBoundingClientRect(),right=document.querySelector('.right-rail').getBoundingClientRect();return {board:{left:board.left,top:board.top,right:board.right,bottom:board.bottom,width:board.width,height:board.height},stage:{left:stage.left,top:stage.top,right:stage.right,bottom:stage.bottom},leftRight:left.right,rightLeft:right.left,cols:+canvas.dataset.columns,rows:+canvas.dataset.rows,tile:+canvas.dataset.tile,x:+canvas.dataset.offsetX,y:+canvas.dataset.offsetY,bufferWidth:canvas.width,bufferHeight:canvas.height,rendered:canvas.dataset.rendered,pixels:(()=>{const ctx=canvas.getContext('2d');const data=ctx.getImageData(Math.floor(canvas.width/2),Math.floor(canvas.height/2),1,1).data;return [...data]})()};})()");
+      assert.equal(boardMetrics.rendered,'true','canvas did not paint');
+      assert.ok(boardMetrics.cols>=4&&boardMetrics.cols<=8,'columns outside supported range');
+      assert.ok(boardMetrics.rows>=3&&boardMetrics.rows<=6,'rows outside supported range');
+      assert.ok(boardMetrics.tile>=38,'tile size is not finger-readable at '+width+'x'+height);
+      assert.ok(boardMetrics.board.left>=boardMetrics.stage.left-1&&boardMetrics.board.right<=boardMetrics.stage.right+1,'canvas escapes stage');
+      assert.ok(boardMetrics.leftRight<=boardMetrics.board.left+1&&boardMetrics.board.right<=boardMetrics.rightLeft+1,'canvas intersects rails');
+      assert.ok(boardMetrics.bufferWidth>=boardMetrics.board.width*1.9,'retina-resolution canvas did not size to device pixel ratio');
+      assert.equal(boardMetrics.pixels[3],255,'canvas center is transparent/unpainted');
+      // CDP real mouse pointer input, not a synthetic DOM-only action.
+      const targetX=boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*.5;
+      const targetY=boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*.5;
+      await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:targetX,y:targetY,button:'left',buttons:1,clickCount:1});
+      await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:targetX,y:targetY,button:'left',buttons:0,clickCount:1});
+      const tapped=await run("(()=>{const c=document.getElementById('battle-canvas');return {c:c.dataset.selectedColumn,r:c.dataset.selectedRow,text:document.getElementById('battle-status').textContent};})()");
+      assert.equal(tapped.c,'0','pointer hit-test column incorrect');
+      assert.equal(tapped.r,'0','pointer hit-test row incorrect');
+      assert.ok(tapped.text.includes('Selected column 1, row 1'),'status not updated from real pointer hit');
+      console.log('Battle PASS',width+'x'+height,'grid='+boardMetrics.cols+'x'+boardMetrics.rows,'cell='+boardMetrics.tile.toFixed(1),'canvas='+boardMetrics.board.width.toFixed(0)+'x'+boardMetrics.board.height.toFixed(0));
+      if(width===844){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const battleImage=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/battle-844x390.png',Buffer.from(battleImage.data,'base64'));
+      }
+      assert.equal(await run("(()=>{document.getElementById('battle-toggle').click();return document.getElementById('battle-surface').hidden&&document.getElementById('story-view').hidden===false;})()"),true,'return-to-landing toggle did not restore story art');
       if(width===844){
         await fsp.mkdir('artifacts',{recursive:true});
         const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
@@ -134,9 +166,13 @@ async function main(){
     await cdp('Page.navigate',{url});
     await ready();
     assert.equal(await run("document.querySelector('#stage-heading')?.textContent"),'Every adventure becomes a legend.');
+    await run("document.getElementById('battle-toggle').click()");
+    for(let n=0;n<25;n++){if(await run("document.querySelector('#battle-canvas').dataset.rendered==='true'"))break;await delay(80)}
+    assert.equal(await run("document.querySelector('#battle-canvas').dataset.rendered"),'true','offline board was missing cached JS modules');
+    console.log('Browser PASS offline tactical art preview renderer');
     console.log('Browser PASS offline cached launch with service worker');
     await cdp('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
-    console.log('Browser smoke complete: 3 iPhone landscape sizes, functional preview, service-worker offline launch');
+    console.log('Browser smoke complete: 3 iPhone landscape sizes, functional preview, tactical geometry/pointer, offline art launch');
   }finally{
     try{ws?.close()}catch{}
     if(chrome && chrome.exitCode===null){

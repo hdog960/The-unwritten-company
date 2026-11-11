@@ -14,7 +14,7 @@ export function buildPreview(seedInput) {
   });
 }
 export function createInitialState() {
-  return Object.freeze({ seed:'Lantern-001',preview:null,version:'0.02',isPlayable:false });
+  return Object.freeze({ seed:'Lantern-001',preview:null,version:'0.03',isPlayable:false });
 }
 export function reduce(state,action) {
   if (action.type === 'SEED_CHANGED') return Object.freeze({ ...state,seed:normalizeSeed(action.seed),preview:null });

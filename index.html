@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="masthead">
       <div class="brand"><span class="mark" aria-hidden="true">✧</span><div><span class="eyebrow">THE ADVENTURERS' GUILD OF BELLWETHER</span><h1>The Unwritten Company</h1></div></div>
-      <div class="build-pill" aria-label="Current development version">v0.02 <span>PWA Foundation • No campaign playable yet</span></div>
+      <div class="build-pill" aria-label="Current development version">v0.03 <span>Tactical board preview • No campaign playable yet</span></div>
     </header>
     <main class="table" id="main">
       <aside class="rail panel left-rail" aria-labelledby="chronicle-heading">
@@ -36,7 +36,8 @@
         </div>
         <div class="rail-foot"><span class="tiny-rune" aria-hidden="true">◇</span>INKFALL HOUSE <span>•</span> BELLWETHER</div>
       </aside>
-      <section class="stage panel" aria-labelledby="stage-heading">
+      <section class="stage panel" aria-label="Visual preview stage">
+        <div class="story-view" id="story-view">
         <div class="stage-crest"><span>✧</span><span>✦</span><span>✧</span></div>
         <h2 id="stage-heading">Every adventure becomes a legend.</h2>
         <p class="stage-subtitle">Most legends are accidents.</p>
@@ -69,6 +70,10 @@
           <g stroke="#cbac70" stroke-width="3" fill="none" opacity=".7"><path d="M135 292Q166 271 194 293M448 303Q493 279 532 300"/></g>
         </svg>
         <p class="stage-caption">Inkfall House • Bellwether, Veyr</p>
+        </div>
+        <div class="battle-surface" id="battle-surface" hidden>
+          <canvas id="battle-canvas" tabindex="0" role="img" aria-label="Illustrated tactical terrain study; use arrow keys to inspect tiles" aria-describedby="battle-status">The tactical preview uses a canvas; your browser does not support it.</canvas>
+        </div>
       </section>
       <aside class="rail panel right-rail" aria-labelledby="contract-heading">
         <p class="eyebrow">GUILD LEDGER · PROTOTYPE</p>
@@ -83,10 +88,14 @@
           <p class="preview-label">Awaiting a seed</p>
           <p class="preview-empty">A thousand possible troubles await your signature.</p>
         </section>
-        <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.02</div>
+        <div class="board-tool">
+          <button type="button" id="battle-toggle" class="battle-toggle" aria-pressed="false" aria-controls="battle-surface">Inspect tactical table</button>
+          <p id="battle-status" class="board-status" aria-live="polite">An original miniature-styled tactical terrain preview; no combat yet.</p>
+        </div>
+        <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.03</div>
       </aside>
     </main>
-    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.02: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
+    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.03: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
   </div>
   <div class="portrait-notice" role="note">Turn your phone sideways to view the adventurer's command table.</div>
 </body>

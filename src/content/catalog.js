@@ -1,5 +1,5 @@
 // Future content concepts are PREVIEW DATA, not currently playable campaigns.
-export const VERSION = '0.02';
+export const VERSION = '0.03';
 export const REGIONS = Object.freeze([
   {id:'foxglove',name:'Foxglove March',tag:'whispering orchards'},
   {id:'brineward',name:'Brineward Coast',tag:'storm-black harbors'},

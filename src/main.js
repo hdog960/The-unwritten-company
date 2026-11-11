@@ -1,6 +1,7 @@
 import { createInitialState, reduce } from './engine/state.js';
 import { VERSION } from './content/catalog.js';
 import { initPwa } from './platform/pwa.js';
+import { createBoardPreview } from './board/scene.js';
 
 const form = document.getElementById('preview-form');
 const input = document.getElementById('seed');
@@ -43,3 +44,12 @@ document.documentElement.dataset.release=VERSION;
 render();
 
 initPwa({online:document.getElementById('network-status'),offline:document.getElementById('offline-status')});
+
+createBoardPreview({
+  stage:document.querySelector('.stage'),
+  story:document.getElementById('story-view'),
+  container:document.getElementById('battle-surface'),
+  canvas:document.getElementById('battle-canvas'),
+  toggle:document.getElementById('battle-toggle'),
+  status:document.getElementById('battle-status')
+});
