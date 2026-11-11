@@ -27,11 +27,14 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
   function overlay(){
     if(!visible||!board)return null;
     const origin=state.positions?.[state.actorId]??studyOrigin(state.actorId,board);
+    const indicators=computeTargetIndicators(state,board);
+    view.dataset.legalTargetCount=String(indicators.length);
+    view.dataset.enemyTargetCount=String(indicators.filter(item=>item.kind==='enemy').length);
     return {
       actorId:state.actorId,positions:state.positions,origin,
       mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
       command:getCommand(state.abilityId),target:state.target,
-      targetIndicators:computeTargetIndicators(state,board),
+      targetIndicators:indicators,
       evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,visualEvent:state.visualEvent,partyHp:state.partyHp,guards:state.guards,intents:enemyIntents(state,board),battleMode:state.battleMode
     };
   }

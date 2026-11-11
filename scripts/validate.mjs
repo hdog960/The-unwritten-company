@@ -52,3 +52,8 @@ assert.match(diorama,/paintJoinedTerrain/);
 assert.match(diorama,/paintGutterFiligree/);
 assert.match(diorama,/paintUnitEmblem/);
 assert.match(diorama,/paintThreatSymbol/);
+
+for(const path of ['src/board/targeting.js','src/board/scenery.js','src/board/motion.js']){
+  const contents=fs.readFileSync(path,'utf8');
+  assert.ok(contents.length>200,'Missing Gate A module '+path);
+}
