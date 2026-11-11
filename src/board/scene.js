@@ -15,6 +15,7 @@ import {paintQuillPreview} from './quill.js';
 import {paintThreatEngravings,paintTravelEngraving,threatGlyphs} from './battle-engraving.js';
 import {paintPressRelics} from './press-ruins.js';
 import {paintPuppetShadow} from './paper-puppets.js';
+import {paintActionSeal} from './action-seals.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -188,6 +189,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const member=PARTY_SLOTS.find(item=>item.id===id);
     const pose=miniaturePose(frame,{column:miniature.col,row:miniature.row});
     paintMiniatureBackdrop(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0,hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp});
+    paintActionSeal(ctx,rect,id,pose,{fallen:overlay?.partyHp?.[id]===0});
     paintPuppetShadow(ctx,rect,id,{pose,fallen:overlay?.partyHp?.[id]===0});
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
@@ -206,6 +208,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     if(rect){
       const pose=miniaturePose(frame,foe.position,true);
       paintMiniatureBackdrop(ctx,rect,foe.id,{fallen:foe.hp<=0,hp:foe.hp,maxHp:foe.maxHp});
+      paintActionSeal(ctx,rect,foe.id,pose,{fallen:foe.hp<=0});
       paintPuppetShadow(ctx,rect,foe.id,{pose,fallen:foe.hp<=0});
       // The ink strike ring is transient. No permanent 'last hit' aura that
       // misleadingly resembles a selected legal target after an action ends.
