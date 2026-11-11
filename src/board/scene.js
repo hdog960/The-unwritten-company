@@ -7,6 +7,7 @@ import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
 import {paintTargetIndicators} from './targeting.js';
 import {paintFloorVignettes} from './scenery.js';
 import {animatedHeroRect} from './motion.js';
+import {puppetPose} from './choreography.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -139,22 +140,9 @@ function drawSelection(ctx,rect){
     line(ctx,[[px+arm*hx,py+arm*hy],[px,py],[px+arm*vx,py+arm*vy]],'#ffe2a5',Math.max(1.5,s*.04));
   }
 }
-/** Battle VFX alter poses only, never deterministic gameplay positions or hit tests. */
+/** Backward-compatible renderer API: timing is owned by one visual-only helper. */
 export function miniaturePose(frame,position,isEnemy=false){
-  const event=frame?.event;
-  if(!event||!position)return null;
-  const same=(a,b)=>a?.column===b?.column&&a?.row===b?.row;
-  const marks=event.kind==='enemy-phase'?event.marks??[]:[event];
-  for(const mark of marks){
-    const q=Math.max(0,Math.min(1,Number(frame.progress)||0));
-    if(mark.kind==='ward'&&same(mark.to,position))return {kind:'ward',progress:q};
-    if(mark.kind==='move'&&same(mark.to,position))return {kind:'move',progress:q};
-    if(mark.kind==='hit'||mark.kind==='critical'||mark.kind==='miss'){
-      if(same(mark.to,position)&&mark.kind!=='miss')return {kind:mark.kind==='critical'?'stagger':'recoil',progress:q};
-      if(same(mark.from,position))return {kind:'attack',progress:q};
-    }
-  }
-  return null;
+  return puppetPose(frame,position);
 }
 export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);
@@ -189,7 +177,14 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
-    if(rect)drawFoe(ctx,rect,foe,overlay?.lastCombat,miniaturePose(frame,foe.position,true));
+    if(rect){
+      // The ink strike ring is transient. No permanent 'last hit' aura that
+      // misleadingly resembles a selected legal target after an action ends.
+      const current=frame?.event;
+      const targeted=current&&['hit','miss','critical'].includes(current.kind)&&
+        current.to?.column===foe.position.column&&current.to?.row===foe.position.row;
+      drawFoe(ctx,rect,foe,targeted?overlay?.lastCombat:null,miniaturePose(frame,foe.position,true));
+    }
   }
 
   // Hatched, world-surface enemy telegraphs; all labels remain in the right rail.

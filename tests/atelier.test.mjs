@@ -54,23 +54,25 @@ test('four original party pedestal tones, threat-low HP and Ward states paint wi
     }
   }
 });
-test('pose lookup supports attack windup, hero recoil, guarding, travel and enemy group events',()=>{
+test('poses wait for windup, correct impact timing and grouped foe sequence',()=>{
   const from=p(1,1),to=p(2,1),third=p(3,1);
-  const attack={event:{kind:'hit',from,to,token:'a'},progress:.35};
-  assert.deepEqual(miniaturePose(attack,from),{kind:'attack',progress:.35});
-  assert.deepEqual(miniaturePose(attack,to),{kind:'recoil',progress:.35});
-  assert.equal(miniaturePose(attack,third),null);
-  const missed={event:{kind:'miss',from,to,token:'miss'},progress:.5};
-  assert.deepEqual(miniaturePose(missed,from),{kind:'attack',progress:.5});
-  assert.equal(miniaturePose(missed,to),null,'a miss must never stagger an untouched target');
-  const critical={event:{kind:'critical',from,to,token:'crit'},progress:.4};
-  assert.deepEqual(miniaturePose(critical,to),{kind:'stagger',progress:.4},'critical impact should be visually distinct');
+  const attack=(kind,progress)=>({event:{kind,from,to,token:kind},progress});
+  assert.equal(miniaturePose(attack('hit',.22),from).kind,'attack');
+  assert.equal(miniaturePose(attack('hit',.22),to),null,'target cannot recoil before projectile arrives');
+  assert.equal(miniaturePose(attack('hit',.72),to).kind,'recoil');
+  assert.equal(miniaturePose(attack('critical',.72),to).kind,'stagger');
+  assert.equal(miniaturePose(attack('miss',.72),to),null,'an untouched target never recoils');
+  assert.equal(miniaturePose(attack('hit',.72),third),null);
+  assert.equal(miniaturePose(attack('hit',1),to),null,'finite visual reactions must end');
   const ward={event:{kind:'ward',from,to:from,token:'b'},progress:.4};
-  assert.deepEqual(miniaturePose(ward,from),{kind:'ward',progress:.4});
+  assert.equal(miniaturePose(ward,from).kind,'ward');
   const travel={event:{kind:'move',from,to,token:'c',path:[from,to]},progress:.7};
   assert.deepEqual(miniaturePose(travel,to),{kind:'move',progress:.7});
-  const phase={event:{kind:'enemy-phase',token:'d',marks:[{kind:'miss',from,to},{kind:'move',from:to,to:third}]},progress:.8};
-  assert.deepEqual(miniaturePose(phase,third),{kind:'move',progress:.8});
+  const phase=(progress)=>({event:{kind:'enemy-phase',token:'d',marks:[
+    {kind:'miss',from,to},{kind:'hit',from:third,to:from}]},progress});
+  assert.equal(miniaturePose(phase(.1),third),null,'second foe cannot act before its cue');
+  assert.equal(miniaturePose(phase(.28),third).kind,'attack','second foe windup is staggered');
+  assert.equal(miniaturePose(phase(.65),from).kind,'recoil','second foe impacts when its projectile arrives');
   assert.equal(miniaturePose(null,from),null);
 });
 test('sculpted figures and source-drawn FX are safe at 38px and 70px with poses',()=>{

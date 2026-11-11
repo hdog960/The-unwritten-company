@@ -312,3 +312,26 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
   .command-confirm:not([disabled]):active,.command-cancel:not([disabled]):active,
   .command-end-turn:not([disabled]):active,.command-move:not([disabled]):active{transform:none}
 }
+
+/* v0.09 Gate A fifth art/control pass: readable *shape* alerts on the portrait
+   edge, not a translucent panel or extra touch layer over the central board. */
+.party-card[data-threatened="true"]:after{
+  content:"!";pointer-events:none;position:absolute;right:3px;top:2px;
+  display:grid;place-items:center;width:15px;height:15px;
+  border:1px solid #f9d1b0;border-radius:3px;line-height:1;
+  font:900 11px/1 system-ui,sans-serif;color:#271f23;
+  background:repeating-linear-gradient(135deg,#ffb68d 0,#ffb68d 4px,#e78f7e 5px,#e78f7e 7px);
+  box-shadow:0 0 3px #ad5f55b8;
+}
+.party-card[data-warded="true"]:before{
+  content:"◇";pointer-events:none;position:absolute;left:2px;top:2px;
+  display:grid;place-items:center;width:13px;height:13px;
+  border:1px solid #ddcdf8;background:#443d5acc;
+  color:#f7e9ff;font:900 11px/1 system-ui,sans-serif;
+}
+.party-card[data-threatened="true"][data-selected="true"]{
+  outline:1px dashed #ffc49f;outline-offset:1px;
+}
+@media(orientation:landscape) and (max-width:740px){
+  .party-card[data-threatened="true"]:after{width:13px;height:13px;right:2px;top:2px;font-size:10px}
+}

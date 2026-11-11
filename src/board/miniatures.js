@@ -213,6 +213,47 @@ function finishFoeInk(ctx,id,pose){
     }
   }
 }
+function actionBrush(ctx,id,pose,foe=false){
+  if(!pose||!['attack','recoil','stagger','ward'].includes(pose.kind))return;
+  const force=Math.sin(Math.PI*Math.max(0,Math.min(1,pose.progress)));
+  if(force<.025)return;
+  ctx.save();ctx.globalAlpha*=Math.min(.88,.24+.64*force);
+  if(pose.kind==='attack'){
+    if(id==='captain'){
+      mark(ctx,[[71,18],[85,11],[90,14]],'#fae2a6',2.8*force+1);
+      mark(ctx,[[17,40],[12,53],[19,64]],'#dcead8',1.7);
+    }else if(id==='brunna'){
+      mark(ctx,[[80,12],[90,8],[94,15],[89,24]],'#f4c58d',2.8*force+1);
+      bead(ctx,89,8,2.1+force*2.1,'#fff3d2');
+    }else if(id==='kess'){
+      mark(ctx,[[24,20],[15,24],[11,33]],'#bfe0bd',2.2);
+      mark(ctx,[[80,22],[88,28],[90,36]],'#d7e6b2',2.2);
+      for(const x of [13,88])bead(ctx,x,28,1.6,'#f2edce');
+    }else if(id==='mirelle'){
+      ctx.beginPath();ctx.arc(77,20,11+force*4,-.9,2.2);
+      ctx.strokeStyle='#a5efdb';ctx.lineWidth=2+force*1.2;ctx.stroke();
+      for(const [x,y]of [[64,19],[85,9],[91,27]])bead(ctx,x,y,1.4+force*1.6,'#fff2c3');
+    }else if(id==='briar'){
+      mark(ctx,[[11,41],[6,26],[13,18]],'#dab985',2.4);
+      mark(ctx,[[88,42],[95,29],[89,22]],'#aecb91',2.4);
+    }else if(id==='shade'){
+      ctx.beginPath();ctx.arc(51,53,24+force*6,.2,2.5);
+      ctx.strokeStyle='#93e4d6';ctx.lineWidth=2.5;ctx.stroke();
+      for(const x of [18,82])bead(ctx,x,46,2.4,'#a5e6df');
+    }
+  }else if(pose.kind==='ward'&&id==='mirelle'){
+    mark(ctx,[[29,33],[22,20],[34,17],[39,27]],'#c9bdf3',2.3);
+    bead(ctx,34,17,3,'#ffefcf');
+  }else{
+    const color=foe?'#e7b89f':id==='mirelle'?'#beb8ed':'#f7d6a1';
+    // Impact ink shards appear only in the target's actual hit window.
+    for(let i=0;i<(pose.kind==='stagger'?6:4);i++){
+      const a=i*2.399,dist=17+force*8,x=50+Math.cos(a)*dist,y=43+Math.sin(a)*dist;
+      mark(ctx,[[x,y],[x+Math.cos(a)*(6+force*3),y+Math.sin(a)*(6+force*3)]],color,2.3);
+    }
+  }
+  ctx.restore();
+}
 export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(!rect)return;const s=rect.width;
   ctx.save();ctx.translate(rect.x,rect.y);ctx.scale(s/H,s/H);
@@ -233,6 +274,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null){
   else if(id==='mirelle')drawMirelle(ctx);
   else drawCaptain(ctx);
   finishHeroInk(ctx,id,pose);
+  if(!fallen)actionBrush(ctx,id,pose);
   ctx.restore();
   if(fallen){mark(ctx,[[25,55],[75,55]],'#dcbfa3',2);mark(ctx,[[49,48],[49,65]],'#dcbfa3',2);}
   ctx.restore();
@@ -288,6 +330,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   if(pose?.kind==='stagger')ctx.translate(6*Math.sin(Math.PI*pose.progress),4*Math.sin(Math.PI*pose.progress));
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
+  actionBrush(ctx,foe.id,pose,true);
   ctx.restore();
   // A real in-world miniature health enamel, not a floating HUD.
   const barX=17,barY=86,barW=66,barH=6.5;
