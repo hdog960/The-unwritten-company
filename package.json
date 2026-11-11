@@ -6,7 +6,8 @@
   "description": "The Unwritten Company — static iPhone-first fantasy roguelike",
   "scripts": {
     "test": "node --test",
-    "check": "node scripts/validate.mjs && npm test"
+    "check": "node scripts/validate.mjs && npm test",
+    "browser:smoke": "node scripts/browser-smoke.mjs"
   },
   "engines": {
     "node": ">=20"

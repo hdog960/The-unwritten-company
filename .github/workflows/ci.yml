@@ -12,6 +12,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Validate and test
+          node-version: '22'
+      - name: Validate sources, PWA and deterministic content
         run: npm run check
+      - name: Browser smoke — landscape viewports, seed preview and offline shell
+        run: npm run browser:smoke
+      - name: Archive browser screenshot on failure or success
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unwritten-company-browser-preview
+          path: artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 3
