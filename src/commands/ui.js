@@ -27,7 +27,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       actorId:state.actorId,positions:state.positions,origin,
       mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
       command:getCommand(state.abilityId),target:state.target,
-      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,visualEvent:state.visualEvent,partyHp:state.partyHp,intents:enemyIntents(state,board),battleMode:state.battleMode
+      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat,visualEvent:state.visualEvent,partyHp:state.partyHp,guards:state.guards,intents:enemyIntents(state,board),battleMode:state.battleMode
     };
   }
   function paint(){

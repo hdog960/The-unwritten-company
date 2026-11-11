@@ -1,5 +1,7 @@
 import {cellRect,getTile,hitTestBoard,logicalPointFromClient,measureBoard} from './geometry.js';
 import {drawHero,drawFoe} from './miniatures.js';
+import {paintAtelierTile,paintBoardLighting,paintUnitStand} from './atelier.js';
+import {PARTY_SLOTS} from '../party/model.js';
 import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
@@ -137,8 +139,11 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);
   for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
     const rect=cellRect(board,col,row);
-    drawTile(ctx,rect,getTile(row,col),row,col);
+    const terrain=getTile(row,col);
+    drawTile(ctx,rect,terrain,row,col);
+    paintAtelierTile(ctx,rect,terrain,row,col);
   }
+  paintBoardLighting(ctx,board);
   if(overlay?.command){
     const origin=overlay.origin;
     for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
@@ -161,7 +166,12 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     [{col:1,row:board.rows-2,kind:'knight'},{col:2,row:board.rows-1,kind:'ward'},{col:board.columns-2,row:1,kind:'rogue'},{col:board.columns-2,row:board.rows-2,kind:'scribe'}];
   for(const miniature of miniatures){
     const rect=cellRect(board,miniature.col,miniature.row);
-    if(rect)drawHero(ctx,rect,miniature.id??({knight:'captain',ward:'brunna',rogue:'kess',scribe:'mirelle'}[miniature.kind]),overlay?.partyHp?.[miniature.id]===0);
+    if(!rect)continue;
+    const id=miniature.id??({knight:'captain',ward:'brunna',rogue:'kess',scribe:'mirelle'}[miniature.kind]);
+    const member=PARTY_SLOTS.find(item=>item.id===id);
+    paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
+      maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
+    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0);
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
