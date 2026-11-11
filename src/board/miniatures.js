@@ -344,7 +344,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
     // the smallest tested tile. They are part of the foe's in-world base.
     for(let i=0;i<3;i++){
       const px=barX+barW*(.16+i*.19);
-      mark(ctx,[[px,barY+1],[px+4,barY+barH-1]],'#fff0d2',1.35);
+      mark(ctx,[[px,barY+1],[px+4,barY+barH-1]],'#fff0d2',2.8);
     }
   }
   ctx.strokeStyle='#e0bd83';ctx.lineWidth=1;ctx.strokeRect(barX,barY,barW,barH);

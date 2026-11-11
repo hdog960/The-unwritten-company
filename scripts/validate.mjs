@@ -72,3 +72,8 @@ const quill=fs.readFileSync('src/board/quill.js','utf8');
 assert.match(quill,/paintQuillPreview/);
 const relief=fs.readFileSync('src/board/relief.js','utf8');
 assert.match(relief,/paintHeroEnamelStatus/);
+
+for(const name of ['relief','quill']){
+ const art=fs.readFileSync('src/board/'+name+'.js','utf8');
+ assert.ok(art.length>900,'Original source art is missing: '+name);
+}
