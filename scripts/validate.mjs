@@ -93,3 +93,7 @@ assert.match(paperPuppets,/paintPuppetShadow/);
 const articulated=fs.readFileSync('src/board/weapon-rigs.js','utf8');
 assert.match(articulated,/paintWeaponRig/);
 assert.match(miniature,/paintWeaponRig/);
+
+const clothSource=fs.readFileSync('src/board/articulated-cloth.js','utf8');
+assert.match(clothSource,/paintArticulatedCloth/);
+assert.match(miniature,/paintArticulatedCloth/);
