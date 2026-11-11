@@ -47,6 +47,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     view.dataset.round=String(state.turn);
     view.dataset.phaseCount=String(state.phaseCount);
     view.dataset.partyHp=JSON.stringify(state.partyHp??{});
+    view.dataset.positions=JSON.stringify(state.positions??{});
     view.dataset.ended=JSON.stringify(state.ended);
     endTurn.textContent=finished?'Replay Skirmish':active?'End Turn':'End Study Turn';
     endTurn.setAttribute('aria-label',finished?'Replay the same seeded skirmish':active?'End this hero turn; enemies act once all living heroes finish':'End demonstration turn');

@@ -80,11 +80,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.07'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.08'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.07 page did not initialize');
+      throw new Error('v0.08 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -395,6 +395,86 @@ async function main(){
         await fsp.writeFile('artifacts/preview-844x390.png',Buffer.from(shot.data,'base64'));
       }
       console.log('Browser PASS',width+'x'+height,'stage='+Math.round(metrics.center.width)+'px','preview=active');
+
+      // v0.08: enter a genuine skirmish from the House UI, not an imported reducer.
+      const starter=await run("(()=>{const a=document.querySelector('#start-skirmish').getBoundingClientRect(),r=document.querySelector('.right-rail').getBoundingClientRect();return{top:a.top,bottom:a.bottom,height:a.height,railTop:r.top,railBottom:r.bottom}})()");
+      assert.ok(starter.height>=44&&starter.top>=starter.railTop-1&&starter.bottom<=starter.railBottom+1,'skirmish starter must be visible and 44px tall');
+      await run("document.querySelector('#start-skirmish').click()");
+      for(let n=0;n<40;n++){if(await run("document.querySelector('#command-view').dataset.battleMode==='active'"))break;await delay(35)}
+      assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','House starter did not enter live battle');
+      assert.equal(await run("document.querySelector('#command-turn').textContent"),'Round 1');
+      assert.equal(await run("document.querySelector('#command-end-turn').textContent"),'End Turn');
+      const originalParty=await run("JSON.parse(document.querySelector('#command-view').dataset.partyHp)");
+      assert.deepEqual(originalParty,{captain:20,brunna:24,kess:16,mirelle:14});
+      const intentions=await run("JSON.parse(document.querySelector('#combat-summary').dataset.intents)");
+      assert.equal(intentions.length,2,'foes must telegraph genuine target selection');
+      assert.ok(intentions.every(x=>x.victimId&&x.detail&&x.position));
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/skirmish-start-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+      }
+      const g=await run("(()=>{const c=document.querySelector('#battle-canvas'),b=c.getBoundingClientRect();return{left:b.left,top:b.top,x:+c.dataset.offsetX,y:+c.dataset.offsetY,tile:+c.dataset.tile}})()");
+      const tapBattleTile=async(column,row)=>tap(g.left+g.x+g.tile*(column+.5),g.top+g.y+g.tile*(row+.5));
+      for(let i=0;i<4;i++)await run("document.querySelector('#command-end-turn').click()");
+      assert.equal(await run("document.querySelector('#command-view').dataset.round"),'2');
+      assert.equal(await run("document.querySelector('#command-view').dataset.phaseCount"),'1','the fourth hero ends with an actual enemy phase');
+      assert.equal(await run("document.querySelector('#command-view').dataset.ended"),'[]');
+      const afterEnemy=await run("JSON.parse(document.querySelector('#command-view').dataset.partyHp)");
+      assert.ok(Object.keys(afterEnemy).every(id=>afterEnemy[id]<=originalParty[id]),'enemy attacks cannot heal the party');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/ROUND 2.*(hits|misses|advances)/);
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/skirmish-enemy-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+      }
+      // Only real command buttons, target clicks and end-turn actions change gameplay.
+      // Pathfinding is read-only planning used by this browser playtester.
+      let count=0,shots=0,moves=0,ends=0;
+      while(count++<225){
+        const battle=await run("(()=>{const v=document.querySelector('#command-view'),c=document.querySelector('#battle-canvas');return{mode:v.dataset.battleMode,actor:v.dataset.actorId,ap:+v.dataset.ap,mp:+document.querySelector('#command-move').dataset.mp,columns:+c.dataset.columns,rows:+c.dataset.rows,positions:JSON.parse(v.dataset.positions),foes:JSON.parse(document.querySelector('#combat-summary').dataset.foes),round:+v.dataset.round}})()");
+        if(battle.mode!=='active')break;
+        const here=battle.positions[battle.actor],foes=battle.foes.filter(x=>x.hp>0);
+        assert.ok(foes.length);
+        const distance=(a,b)=>Math.abs(a.column-b.col)+Math.abs(a.row-b.row);
+        const within=foes.filter(x=>distance(here,x)<=3).sort((a,b)=>a.hp-b.hp||distance(here,a)-distance(here,b));
+        if(battle.ap>0&&within.length){
+          await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+          await tapBattleTile(within[0].col,within[0].row);
+          assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','legal ranged attack rejected');
+          await run("document.querySelector('#command-confirm').click()");
+          shots++;continue;
+        }
+        if(battle.mp>0&&foes.length){
+          const expr="(async()=>{const {previewMovement}=await import('./src/movement/pathfinding.js');const b="+JSON.stringify(battle)+";const board={columns:b.columns,rows:b.rows};const occupied={...b.positions};b.foes.filter(x=>x.hp>0).forEach(x=>occupied['enemy:'+x.id]={column:x.col,row:x.row});const actor=b.actor,here=b.positions[actor],budget=b.mp;const dist=at=>Math.min(...b.foes.filter(x=>x.hp>0).map(x=>Math.abs(at.column-x.col)+Math.abs(at.row-x.row)));const before=dist(here),a=[];for(let row=0;row<board.rows;row++)for(let column=0;column<board.columns;column++){const at={column,row},route=previewMovement(board,occupied,actor,at,budget);if(route.valid&&dist(at)<before)a.push({column,row,cost:route.cost,d:dist(at)});}a.sort((x,y)=>x.d-y.d||x.cost-y.cost||x.row-y.row||x.column-y.column);return a.slice(0,1);})()";
+          const planned=await run(expr,true);
+          if(planned?.length){
+            await run("document.querySelector('#command-move').click()");
+            await tapBattleTile(planned[0].column,planned[0].row);
+            assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','legal path rejected');
+            await run("document.querySelector('#command-confirm').click()");
+            moves++;continue;
+          }
+        }
+        await run("document.querySelector('#command-end-turn').click()");
+        ends++;
+      }
+      const terminal=await run("(()=>{const v=document.querySelector('#command-view');return{mode:v.dataset.battleMode,round:+v.dataset.round,foes:JSON.parse(document.querySelector('#combat-summary').dataset.foes),replay:document.querySelector('#command-end-turn').textContent}})()");
+      assert.equal(terminal.mode,'won','actual UI battle must be winnable');
+      assert.equal(terminal.foes.filter(x=>x.hp>0).length,0);
+      assert.equal(terminal.replay,'Replay Skirmish');
+      assert.ok(shots>=5&&moves>=1&&ends>=1,'real skirmish must require attacks, movement and turn passing');
+      if(width===844||width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/skirmish-victory-'+width+'x'+height+'.png',Buffer.from(image.data,'base64'));
+      }
+      await run("document.querySelector('#command-end-turn').click()");
+      assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','replay must restore active skirmish');
+      assert.equal(await run("document.querySelector('#command-view').dataset.round"),'1');
+      assert.match(await run("document.querySelector('#combat-summary').dataset.foes"),/"hp":13/,'replay must reset enemy HP');
+      console.log('Skirmish PASS',width+'x'+height,'victory, attacks='+shots+', moves='+moves+', ends='+ends+', rounds='+terminal.round);
+
     }
     await cdp('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});
     await cdp('Page.navigate',{url});
@@ -442,6 +522,14 @@ async function main(){
     assert.equal(await run("document.querySelector('#command-readout').dataset.attackIndex"),'1','offline combat roll module did not run');
     assert.match(await run("document.querySelector('#command-readout').textContent"),/HIT|MISS|CRIT/);
     console.log('Browser PASS offline seeded combat resolution');
+    await run("document.querySelector('#battle-toggle').click()");
+    await run("document.querySelector('#start-skirmish').click()");
+    for(let n=0;n<40;n++){if(await run("document.querySelector('#command-view').dataset.battleMode==='active'"))break;await delay(35)}
+    assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','offline skirmish failed to start');
+    for(let i=0;i<4;i++)await run("document.querySelector('#command-end-turn').click()");
+    assert.equal(await run("document.querySelector('#command-view').dataset.phaseCount"),'1','offline enemy AI module did not execute');
+    console.log('Browser PASS offline deterministic enemy turn');
+
 
     console.log('Browser PASS offline movement and cancel');
     console.log('Browser PASS offline command rail and cancel');
