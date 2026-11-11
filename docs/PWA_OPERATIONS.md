@@ -21,3 +21,7 @@ The PWA precache now includes \`./src/board/geometry.js\` and \`./src/board/scen
 
 ## v0.04 extension — party portrait asset updates
 The offline cache now explicitly includes `src/party/model.js`, `src/party/ui.js` and the four authored vector portraits: `art/portraits/captain.svg`, `brunna.svg`, `kess.svg`, `mirelle.svg`. These are decorative illustrative roster previews, not campaign/recruitment data. Updating an SVG must bump the service-worker cache generation alongside game content. Current cache generation: `v0.04`. All art assets are relative to the Pages project root.
+
+
+## v0.05 extension — command study offline cache
+\`service-worker.js\` cache generation \`v0.05\` precaches \`./src/commands/engine.js\` and \`./src/commands/ui.js\` in addition to all previous modules, static illustrations, manifest and icons. Confirmed by a headless Chromium offline reload and execution of the preview's Ward + Cancel controls. Do not conflate cached command previews with a playable offline tactical combat campaign. Bump the cache name when adding new modules or art.
