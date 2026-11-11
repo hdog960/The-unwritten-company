@@ -1,0 +1,22 @@
+# The Unwritten Company — Gate A actual-iPhone review
+
+**Review target:** v0.09, The Illuminated Table. **State:** Awaiting the player's explicit visual AND control approval. v0.10 is blocked. Only this milestone and corrective art/UX fixes may proceed before approval.
+
+**Open on iPhone Safari:** https://hdog960.github.io/The-unwritten-company/
+
+## Test 1 — See the art in motion
+Open the game online, rotate your iPhone to landscape, tap **Begin Skirmish**. Look at the four sculpted party members and the two enemy types. Are they **distinctive, premium and original** at your actual phone size? Look for brass frame/detail, terrain/tile quality, miniature textures, character identities, HP and target legibility. Check that no miniature disappears at grid edges or overlaps another object unnaturally.
+
+## Test 2 — Two-thumb comfort
+Confirm that the four portraits on the left and Strike/Spark/Ward/Sigil, Move, Confirm/Cancel and End Turn on the right are all easily reachable **without covering the center map**, in both landscape rotations. Try taps near the very edges, including notch and Home gesture areas. Press a skill and inspect a far-away illegal target, then a legal target; hit Cancel and confirm no AP is spent. Drag your thumb across the battlefield: it must not accidentally select or attack. Move an ally around rubble and water. Test selecting each party member, including low-health heroes.
+
+## Test 3 — Animated combat
+Attack an enemy, watching for readable short hit/miss/critical world effects; use Ward to see its distinct shield rune. End turns to observe orange hostile intent markings and enemy attacks. Check that target warnings are clear, HP changes are apparent, animations are fluid and do not conceal the battlefield, and text/controls never overlap or clip. Inspect a victory or defeat and the Replay Skirmish button.
+
+## Test 4 — Offline / Home Screen
+After opening online once, use Safari's Share → Add to Home Screen. Try opening while offline, confirm the cached interface and skirmish function, then return online. **Warning:** this is an unsaved skirmish prototype; a page reload or background eviction may reset the battle. There is no cloud/local battle save or final campaign yet. Confirm basic install usability only, not persistent progress.
+
+## Review feedback and acceptance
+Please tell me whether (1) the art looks premium enough, (2) every touch control feels comfortable, (3) animations and targeting are clear, and (4) any screen has clipped panels/artifacts. A screenshot of any problem is especially useful. **If improvements are required**, reply with the problems or choose Continue Development; corrections remain inside v0.09. **If the actual iPhone art AND controls meet your standard**, explicitly reply **Approve Gate A**. Approval cannot be inferred from the code test run, a browser screenshot, or merely opening the link.
+
+This checkpoint does **not** certify a full adventure. The roadmap still schedules vocation kits, recruitment, branching campaign story, game saves and other features well beyond v0.09. Next authorized version after explicit Gate A approval: v0.10.
