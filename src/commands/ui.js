@@ -46,6 +46,9 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       (active?intents.map(i=>i.name+' '+(i.attack?'will attack ':'will approach ')+i.victimId).join('. ')+'. ':'')+
       (foes.length?foes.map(x=>x.fullName+': '+x.hp+' of '+x.maxHp+' health, Guard '+x.guard).join('. '):'Two stationary training foes'));
     combatSummary.dataset.live=String(foes.filter(x=>x.hp>0).length);
+    combatSummary.dataset.attackers=String(intents.filter(i=>i.attack).length);
+    combatSummary.title=active?intents.map(i=>i.name+' '+(i.attack?'attacks ':'approaches ')+shortName(i.victimId)).join('; '):
+      foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join('; ');
     combatSummary.dataset.foes=JSON.stringify(foes.map(x=>({id:x.id,hp:x.hp,col:x.position.column,row:x.position.row})));
     combatSummary.dataset.intents=JSON.stringify(intents);
     view.dataset.battleMode=state.battleMode;

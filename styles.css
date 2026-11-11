@@ -279,3 +279,36 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 .command-readout[data-tone="victory"]{border-color:#b7d19c;color:#e6f2c9}
 .command-readout[data-tone="defeat"]{border-color:#e19a90;color:#ffdbd1}
 .right-rail.command-mode #combat-summary{font-weight:850;letter-spacing:.015em}
+
+/* Gate A revision three — thumb-readable engraved controls. Geometry unchanged. */
+.right-rail.command-mode #combat-summary {
+  font-size:clamp(9px,1.1vw,11px);
+  line-height:1.22;
+  letter-spacing:.009em;
+  text-shadow:0 1px 1px #0b171c;
+}
+.party-name,.skill-name{letter-spacing:.005em;text-shadow:0 1px 0 #0b182540}
+.command-skill{
+  background-image:linear-gradient(150deg,#f7e8c50d,transparent 41%),linear-gradient(180deg,#40534e,#2b3f43);
+  box-shadow:inset 0 1px 0 #f2d5a33b,inset 0 -3px 0 #101e2788,0 1px 0 #080e16;
+}
+.command-skill[data-selected="true"]{
+  background-image:linear-gradient(135deg,#f7dc9a31,transparent 54%),linear-gradient(#57665c,#354b4c);
+  box-shadow:inset 0 0 0 1px #e9c89780,inset 0 2px 7px #ead19b22,0 0 5px #e8c28b55;
+}
+.party-card:not([disabled]):active,.command-skill:not([disabled]):active,
+.command-confirm:not([disabled]):active,.command-cancel:not([disabled]):active,
+.command-end-turn:not([disabled]):active,.command-move:not([disabled]):active{
+  filter:brightness(1.08);
+  transform:translateY(1px);
+}
+.party-card:focus-visible,.command-skill:focus-visible,.command-end-turn:focus-visible,
+.command-confirm:focus-visible,.command-cancel:focus-visible,.command-move:focus-visible{
+  outline:2px solid #f6e2ac;
+  outline-offset:-3px;
+}
+@media(prefers-reduced-motion:reduce){
+  .party-card:not([disabled]):active,.command-skill:not([disabled]):active,
+  .command-confirm:not([disabled]):active,.command-cancel:not([disabled]):active,
+  .command-end-turn:not([disabled]):active,.command-move:not([disabled]):active{transform:none}
+}
