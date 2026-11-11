@@ -201,6 +201,10 @@ async function main(){
       await tap(skillSpot.x,skillSpot.y);
       assert.equal(await run("document.querySelector('#command-readout').dataset.ability"),'sigil','2AP ability did not select');
 
+      const sigilHints=await run("(()=>({all:+document.querySelector('#command-view').dataset.legalTargetCount,enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
+      assert.ok(sigilHints.all>=sigilHints.enemies&&sigilHints.all>=1,'target markers must come from the command engine');
+
+
       // A drag from one tile to another is never a tap/target, even with an armed ability.
       const dragX=boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*.5;
       const dragY=boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*.5;
@@ -308,6 +312,17 @@ async function main(){
 
       assert.equal(await run("document.querySelector('#battle-canvas').dataset.fxKind"),'move','world-native movement trail should trigger');
 
+      const movingPosition=await run("(()=>{const c=document.querySelector('#battle-canvas');return{kind:c.dataset.fxKind,phase:Number(c.dataset.fxPhase)}})()");
+      assert.equal(movingPosition.kind,'move');
+      assert.ok(movingPosition.phase>=0&&movingPosition.phase<=100);
+      if(width===667||width===844){
+        await delay(70);
+        await fsp.mkdir('artifacts',{recursive:true});
+        const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/animated-footsteps-'+width+'x'+height+'.png',Buffer.from(shot.data,'base64'));
+      }
+
+
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','movement must not spend AP');
       assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'double confirmation must be blocked');
       await run("document.querySelector('#command-move').click()");
@@ -354,6 +369,11 @@ async function main(){
       await tapCell(foeC,foeR);
       const previewCombat=await run("(()=>({valid:document.querySelector('#command-readout').dataset.valid,description:document.querySelector('#command-readout').textContent,ap:document.querySelector('#command-ap').dataset.ap,rollIndex:document.querySelector('#command-readout').dataset.attackIndex,readoutScroll:document.querySelector('#command-readout').scrollHeight,readoutHeight:document.querySelector('#command-readout').clientHeight}))()");
       assert.equal(previewCombat.valid,'true','training foe within Spark range must be targetable');
+
+      const targeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,
+        enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
+      assert.ok(targeting.total>=1&&targeting.enemies>=1,'living foe receives legal Spark target art');
+
       assert.match(previewCombat.description,/60% hit.*Guard 12/);
       assert.equal(previewCombat.ap,'2','target preview must not charge AP');
       assert.equal(previewCombat.rollIndex,'0','target preview must not consume an RNG roll');
@@ -459,6 +479,17 @@ async function main(){
       await run("document.querySelector('#start-skirmish').click()");
       for(let n=0;n<40;n++){if(await run("document.querySelector('#command-view').dataset.battleMode==='active'"))break;await delay(35)}
       assert.equal(await run("document.querySelector('#command-view').dataset.battleMode"),'active','House starter did not enter live battle');
+
+      // In a real battle, empty ground must not light up as if it could be attacked.
+      await run("document.querySelector('[data-member-id=\"kess\"]').click()");
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      const liveTargeting=await run("(()=>({total:+document.querySelector('#command-view').dataset.legalTargetCount,
+        enemies:+document.querySelector('#command-view').dataset.enemyTargetCount}))()");
+      assert.ok(liveTargeting.total>=1&&liveTargeting.total===liveTargeting.enemies,
+        'only actual attackable enemies may receive strong battlefield target rings');
+      await run("document.querySelector('#command-cancel').click()");
+      await run("document.querySelector('[data-member-id=\"captain\"]').click()");
+
       assert.match(await run("document.querySelector('#battle-canvas').getAttribute('aria-label')"),/battlefield/,'battlefield accessible label preserved');
       assert.equal(await run("document.querySelector('#command-turn').textContent"),'Round 1');
       assert.equal(await run("document.querySelector('#command-end-turn').textContent"),'End Turn');
