@@ -78,11 +78,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.04'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.05'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.04 page did not initialize');
+      throw new Error('v0.05 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -178,6 +178,63 @@ async function main(){
       assert.equal(await run("document.querySelector('#party-roster').dataset.selectedId"),'mirelle','keyboard End did not select Mirelle');
       console.log('Party PASS',width+'x'+height,'four visible portraits, status, pointer and keyboard selection');
 
+      const controls=await run("(()=>{const names=['#battle-toggle','#command-end-turn','#command-cancel','#command-confirm',...['strike','spark','ward','sigil'].map(id=>'[data-ability-id='+id+']')];const right=document.querySelector('.right-rail').getBoundingClientRect();return{visible:!document.querySelector('#command-view').hidden,storyHidden:document.querySelector('#right-story').hidden,ap:document.querySelector('#command-ap').textContent,rects:names.map(id=>{const r=document.querySelector(id).getBoundingClientRect();return {id,top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};}),right:{top:right.top,bottom:right.bottom,left:right.left,right:right.right}}})()");
+      assert.equal(controls.visible,true,'tactical command panel not visible');
+      assert.equal(controls.storyHidden,true,'story seed input still visible in battle view');
+      assert.equal(controls.ap,'2/2 AP');
+      for(const item of controls.rects){
+        assert.ok(item.height>=44,'command touch target too short: '+item.id);
+        assert.ok(item.left>=controls.right.left-1 && item.right<=controls.right.right+1,'command escapes right rail: '+item.id);
+        assert.ok(item.top>=controls.right.top-1&&item.bottom<=controls.right.bottom+1,'command below right rail fold: '+item.id);
+      }
+      // Press an actual skill button and tap a far-away (invalid) tile.
+      const tap=async (x,y)=>{
+        await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1});
+        await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});
+      };
+      const skillSpot=await run("(()=>{const r=document.querySelector('[data-ability-id=\"sigil\"]').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()");
+      await tap(skillSpot.x,skillSpot.y);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.ability"),'sigil','2AP ability did not select');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','selecting an ability must not spend AP');
+      await tap(boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*.5,boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*.5);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'false','out-of-range target should be invalid');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'invalid target must block confirm');
+      // Selected Mirelle from keyboard End; origin is (columns-2, rows-2).
+      const nearC=boardMetrics.cols-2,nearR=boardMetrics.rows-3;
+      await tap(boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*(nearC+.5),boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*(nearR+.5));
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','nearby legal tile must allow confirmation');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),false);
+      if(width===844){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const commandImage=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/command-844x390.png',Buffer.from(commandImage.data,'base64'));
+      }
+      await run("document.querySelector('#command-confirm').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'0','two-AP sigil should consume exactly 2');
+      assert.equal(await run("document.querySelector('#command-view').dataset.confirmations"),'1','confirm should record one study action');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'a second confirmation must not charge again');
+      assert.equal(await run("document.querySelector('[data-ability-id=\"spark\"]').disabled"),true,'insufficient-AP actions must be disabled');
+      await run("document.querySelector('#command-end-turn').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','end turn should restore demonstrator AP');
+      assert.equal(await run("document.querySelector('#command-turn').textContent"),'Study turn 2');
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      await tap(boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*(nearC+.5),boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*(nearR+.5));
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),false);
+      await run("document.querySelector('#command-cancel').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','cancel must refund nothing because it spends nothing');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),true);
+      await run("document.querySelector('[data-ability-id=\"spark\"]').click()");
+      await tap(boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*(nearC+.5),boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*(nearR+.5));
+      await run("document.querySelector('#command-confirm').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1');
+      assert.equal(await run("document.querySelector('[data-ability-id=\"sigil\"]').disabled"),true,'2 AP ability must be blocked at 1 AP');
+      await run("document.querySelector('[data-member-id=\"brunna\"]').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','another member must retain its own AP');
+      await run("document.querySelector('[data-member-id=\"mirelle\"]').click()");
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','member AP must persist across party switches');
+      console.log('Command PASS',width+'x'+height,'4 abilities, invalid/valid target, cancel, 2AP commit, end-turn and per-member AP');
+
+
       console.log('Battle PASS',width+'x'+height,'grid='+boardMetrics.cols+'x'+boardMetrics.rows,'cell='+boardMetrics.tile.toFixed(1),'canvas='+boardMetrics.board.width.toFixed(0)+'x'+boardMetrics.board.height.toFixed(0));
       if(width===844){
         await fsp.mkdir('artifacts',{recursive:true});
@@ -217,6 +274,15 @@ async function main(){
     assert.equal(await run("document.querySelectorAll('#party-roster .party-card img').length"),4,'offline party portraits missing');
     const offlinePortraits=await run("([...document.querySelectorAll('#party-roster .portrait-image')].map(x=>x.complete&&x.naturalWidth>0))");
     assert.ok(offlinePortraits.every(Boolean),'offline portrait images not cached');
+
+
+    assert.equal(await run("document.querySelector('#command-view').hidden"),false,'offline command rail missing');
+    assert.equal(await run("document.querySelectorAll('#command-skills .command-skill').length"),4,'offline command skills not loaded');
+    await run("document.querySelector('[data-ability-id=\"ward\"]').click()");
+    assert.equal(await run("document.querySelector('#command-readout').dataset.ability"),'ward','offline ability selection broken');
+    await run("document.querySelector('#command-cancel').click()");
+    assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','offline cancel should not spend AP');
+    console.log('Browser PASS offline command rail and cancel');
 
     console.log('Browser PASS offline tactical art preview renderer');
     console.log('Browser PASS offline cached launch with service worker');
