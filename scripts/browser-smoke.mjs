@@ -80,11 +80,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.05'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.06'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.05 page did not initialize');
+      throw new Error('v0.06 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -180,7 +180,7 @@ async function main(){
       assert.equal(await run("document.querySelector('#party-roster').dataset.selectedId"),'mirelle','keyboard End did not select Mirelle');
       console.log('Party PASS',width+'x'+height,'four visible portraits, status, pointer and keyboard selection');
 
-      const controls=await run("(()=>{const names=['#battle-toggle','#command-end-turn','#command-cancel','#command-confirm',...['strike','spark','ward','sigil'].map(id=>'[data-ability-id='+id+']')];const right=document.querySelector('.right-rail').getBoundingClientRect();return{visible:!document.querySelector('#command-view').hidden,storyHidden:document.querySelector('#right-story').hidden,ap:document.querySelector('#command-ap').textContent,rects:names.map(id=>{const r=document.querySelector(id).getBoundingClientRect();return {id,top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};}),right:{top:right.top,bottom:right.bottom,left:right.left,right:right.right}}})()");
+      const controls=await run("(()=>{const names=['#battle-toggle','#command-end-turn','#command-cancel','#command-confirm','#command-move',...['strike','spark','ward','sigil'].map(id=>'[data-ability-id='+id+']')];const right=document.querySelector('.right-rail').getBoundingClientRect();return{visible:!document.querySelector('#command-view').hidden,storyHidden:document.querySelector('#right-story').hidden,ap:document.querySelector('#command-ap').textContent,rects:names.map(id=>{const r=document.querySelector(id).getBoundingClientRect();return {id,top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};}),right:{top:right.top,bottom:right.bottom,left:right.left,right:right.right}}})()");
       assert.equal(controls.visible,true,'tactical command panel not visible');
       assert.equal(controls.storyHidden,true,'story seed input still visible in battle view');
       assert.equal(controls.ap,'2/2 AP');
@@ -245,6 +245,66 @@ async function main(){
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','member AP must persist across party switches');
       console.log('Command PASS',width+'x'+height,'4 abilities, invalid/valid target, cancel, 2AP commit, end-turn and per-member AP');
 
+      // Movement in the same two-rail control scheme. Mirelle currently active
+      // with 1 AP; movement must remain a separate 5 MP budget.
+      const moveButton=await run("(()=>{const r=document.querySelector('#command-move').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()");
+      await tap(moveButton.x,moveButton.y);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.mode"),'movement','Move mode not selected');
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','move selection changed AP');
+      const tapCell=async (column,row)=>tap(
+        boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*(column+.5),
+        boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*(row+.5)
+      );
+      await tapCell(1,2); // authored rubble (impassable)
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'false','rubble should reject movement');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/Rubble blocks/);
+      await tapCell(2,boardMetrics.rows-1); // Brunna is standing here
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'false','occupied destination should reject movement');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/occupies/);
+      const fromCol=boardMetrics.cols-2,fromRow=boardMetrics.rows-2;
+      await tapCell(fromCol,fromRow-1);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','adjacent destination should preview a valid route');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/cost 1 movement/);
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','preview must not spend movement');
+      const activePreview=await run("document.querySelector('#command-readout').textContent");
+      if(width===844){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/movement-844x390.png',Buffer.from(image.data,'base64'));
+      }
+      if(width===667){
+        await fsp.mkdir('artifacts',{recursive:true});
+        const image=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+        await fsp.writeFile('artifacts/movement-667x375.png',Buffer.from(image.data,'base64'));
+      }
+      await run("document.querySelector('#command-cancel').click()");
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','cancel should not spend MP');
+      await run("document.querySelector('#command-move').click()");
+      await tapCell(fromCol,fromRow-1);
+      await run("document.querySelector('#command-confirm').click()");
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'4','moving one flat tile should cost exactly 1 MP');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','movement must not spend AP');
+      assert.equal(await run("document.querySelector('#command-confirm').disabled"),true,'double confirmation must be blocked');
+      await run("document.querySelector('#command-move').click()");
+      await tapCell(0,0);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'false','distant overbudget move must be invalid');
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/Need .* movement/);
+      await run("document.querySelector('#command-cancel').click()");
+      await run("document.querySelector('[data-member-id=\"brunna\"]').click()");
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','Brunna movement should be independent');
+      await run("document.querySelector('[data-member-id=\"mirelle\"]').click()");
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'4','Mirelle movement should persist');
+      await run("document.querySelector('#command-end-turn').click()");
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','end study turn should restore selected movement');
+      assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','end study turn should restore AP too');
+      await run("document.querySelector('[data-ability-id=\"ward\"]').click()");
+      await tapCell(fromCol,fromRow-1);
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true','Ward must follow new actor position');
+      await run("document.querySelector('#command-cancel').click()");
+      console.log('Movement PASS',width+'x'+height,'blocked/occupied, valid path and cost, cancel, commit, per-party MP, end turn');
+
+
 
       console.log('Battle PASS',width+'x'+height,'grid='+boardMetrics.cols+'x'+boardMetrics.rows,'cell='+boardMetrics.tile.toFixed(1),'canvas='+boardMetrics.board.width.toFixed(0)+'x'+boardMetrics.board.height.toFixed(0));
       if(width===844){
@@ -293,6 +353,12 @@ async function main(){
     assert.equal(await run("document.querySelector('#command-readout').dataset.ability"),'ward','offline ability selection broken');
     await run("document.querySelector('#command-cancel').click()");
     assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'2','offline cancel should not spend AP');
+
+    await run("document.querySelector('#command-move').click()");
+    assert.equal(await run("document.querySelector('#command-readout').dataset.mode"),'movement','offline movement module did not load');
+    await run("document.querySelector('#command-cancel').click()");
+    assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5','offline movement cancel should be free');
+    console.log('Browser PASS offline movement and cancel');
     console.log('Browser PASS offline command rail and cancel');
 
     console.log('Browser PASS offline tactical art preview renderer');

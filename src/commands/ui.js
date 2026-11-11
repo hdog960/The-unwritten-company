@@ -45,6 +45,9 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     readout.dataset.valid=state.preview?(state.preview.valid?'true':'false'):'pending';
     view.dataset.actorId=state.actorId;
     view.dataset.ap=String(ap);
+    view.dataset.actorColumn=String(state.positions?.[state.actorId]?.column ?? '');
+    view.dataset.actorRow=String(state.positions?.[state.actorId]?.row ?? '');
+    readout.dataset.cost=state.preview?.cost===null||state.preview?.cost===undefined?'':String(state.preview.cost);
     view.dataset.confirmations=String(state.confirmations);
     for(const [id,button] of buttons){
       const skill=getCommand(id);

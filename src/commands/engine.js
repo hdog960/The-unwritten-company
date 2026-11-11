@@ -53,7 +53,7 @@ export function setMovementBoard(state,board){
 }
 export function changeActor(state,id){
   if(!PARTY_SLOTS.some(member=>member.id===id)||id===state.actorId)return state;
-  return Object.freeze({...state,actorId:id,abilityId:null,moveMode:false,target:null,preview:null,feedback:'Now inspecting '+PARTY_SLOTS.find(member=>member.id===id).name+'. AP remains tied to each character.'});
+  return Object.freeze({...state,actorId:id,abilityId:null,moveMode:false,target:null,preview:null,feedback:'Now inspecting '+PARTY_SLOTS.find(member=>member.id===id).name+'. AP and movement remain tied to each character.'});
 }
 export function chooseAbility(state,id){
   const ability=getCommand(id);

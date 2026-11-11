@@ -252,7 +252,7 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     }
     canvas.dataset.selectedColumn=String(selection.column);
     canvas.dataset.selectedRow=String(selection.row);
-    status.textContent=base+'Selected column '+(selection.column+1)+', row '+(selection.row+1)+': '+getTile(selection.row,selection.column)+'. No actions or movement are implemented.';
+    status.textContent=base+'Selected column '+(selection.column+1)+', row '+(selection.row+1)+': '+getTile(selection.row,selection.column)+'. Movement is previewed in the right rail; no combat yet.';
   };
   const select=(point)=>{
     if(!board)return;
