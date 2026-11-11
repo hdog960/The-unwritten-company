@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {measureBoard,cellRect} from '../src/board/geometry.js';
 import {threatEngravings,paintThreatEngravings,paintTravelEngraving} from '../src/board/battle-engraving.js';
 import {renderBoard} from '../src/board/scene.js';
@@ -16,7 +17,8 @@ const fake=()=>{
  return ctx;
 };
 const balance=ctx=>assert.equal(ctx.calls.filter(x=>x[0]==='save').length,ctx.calls.filter(x=>x[0]==='restore').length);
-const s=setMovementBoard(startBattle(createCommandState(),{columns:8,rows:6}),{columns:8,rows:6});
+const world={columns:8,rows:6};
+const s=startBattle(setMovementBoard(createCommandState(),world),world);
 test('actual enemy intents become deterministic immutable threat marks, not fake attacks',()=>{
  const board=measureBoard(435,286),intents=enemyIntents(s,{columns:8,rows:6});
  const before=JSON.stringify({s,intents,board}),marks=threatEngravings(board,intents,s.positions);
@@ -71,7 +73,6 @@ test('valid travel is dotted with footsteps, invalid is crosscut with no AP or p
  }
 });
 test('engraved underlay composes before figures; threat glyphs remain identifiable',()=>{
- const fs=await import('node:fs');
  const scene=fs.readFileSync('src/board/scene.js','utf8');
  assert.ok(scene.indexOf('paintThreatEngravings(ctx,board,overlay?.intents')<scene.indexOf('drawHero(ctx,rect'));
  assert.ok(scene.indexOf('paintTravelEngraving(ctx,board,overlay)')<scene.indexOf('drawFoe(ctx,rect'));
