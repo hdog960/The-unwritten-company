@@ -4,6 +4,7 @@
  */
 import {cellRect} from './geometry.js';
 import {visibleMarks} from './choreography.js';
+import {paintImpactFragments} from './impact-fragments.js';
 export const EFFECT_KINDS=Object.freeze(['hit','critical','miss','ward','move','enemy-phase']);
 export const EFFECT_DURATION_MS=490;
 export function isValidEffect(event){
@@ -73,6 +74,8 @@ function channel(ctx,board,mark,p){
   if(p>.46){
     ctx.globalAlpha=1-.18*impact;
     flash(ctx,dest.x,dest.y,s,impact,mark.kind);
+    // Tiny physical paper flecks trail the actual impact window, never the windup.
+    if(impact>0)paintImpactFragments(ctx,board,mark,impact);
     if(mark.skillId==='sigil'&&mark.kind!=='miss'){
       glyph(ctx,dest.x,dest.y,s*(.19+.18*impact),'#ecdaa3',4);
       glyph(ctx,dest.x,dest.y,s*(.11+.15*impact),'#b6e5d3',4);

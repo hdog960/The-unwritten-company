@@ -81,3 +81,6 @@ for(const name of ['relief','quill']){
 const engraving=fs.readFileSync('src/board/battle-engraving.js','utf8');
 assert.match(engraving,/paintThreatEngravings/);
 assert.match(engraving,/paintTravelEngraving/);
+
+const fragments=fs.readFileSync('src/board/impact-fragments.js','utf8');
+assert.match(fragments,/paintImpactFragments/);
