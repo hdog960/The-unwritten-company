@@ -29,3 +29,8 @@ The offline cache now explicitly includes `src/party/model.js`, `src/party/ui.js
 
 ## v0.06 — movement module offline cache
 Service worker \`tuc-foundation-v0.06\` now precaches \`./src/movement/pathfinding.js\` alongside its \`src/commands/engine.js\` importer and the rest of the original static app. Headless Chromium successfully ran the command/movement preview while offline after an online cache warmup. Move targets, per-member budget and routes are in-memory **demonstration state**, not persistent saved character advancement. To preserve offline operation, append any later imported module to \`CORE_ASSETS\` and update the cache generation on each release. No claim of real iPhone Safari/Home Screen support verification from Chromium tests.
+
+
+## v0.07 — cached deterministic combat study
+
+`service-worker.js` now uses `tuc-foundation-v0.07` and precaches the new `./src/combat/engine.js` module alongside the existing scene, command, movement, roster, artwork and PWA assets. A headless Chromium browser warmed the cache online and subsequently performed a seeded combat roll with networking disabled. No saved game schema or cloud synchronization exists yet: AP, MP, enemy HP, combat seed and rolls are volatile training state and reset on closing/reopening the page. Do not confuse offline static training interaction with an offline campaign. Any new imported module needs to be added to `CORE_ASSETS`, and the cache generation must be bumped for each release. Real iPhone Safari and installed-Home-Screen lifecycle tests remain unverified.
