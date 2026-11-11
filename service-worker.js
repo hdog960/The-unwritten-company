@@ -1,10 +1,10 @@
 /* Static-project scoped, offline-first asset storage; no runtime AI or paid backend. */
 const CACHE_PREFIX = 'tuc-foundation-';
-const CACHE_NAME = CACHE_PREFIX + 'v0.09-gate-a7-r1';
+const CACHE_NAME = CACHE_PREFIX + 'v0.09-gate-a8-r2';
 const CORE_ASSETS = [
   './','./index.html','./styles.css','./manifest.webmanifest',
   './src/main.js','./src/content/catalog.js','./src/engine/state.js',
-  './src/engine/random.js','./src/board/geometry.js','./src/board/scene.js','./src/board/miniatures.js','./src/board/effects.js','./src/board/atelier.js','./src/board/diorama.js','./src/board/targeting.js','./src/board/scenery.js','./src/board/motion.js','./src/board/choreography.js','./src/board/shoreline.js','./src/board/illumination.js','./src/board/relief.js','./src/board/quill.js',
+  './src/engine/random.js','./src/board/geometry.js','./src/board/scene.js','./src/board/miniatures.js','./src/board/effects.js','./src/board/atelier.js','./src/board/diorama.js','./src/board/targeting.js','./src/board/scenery.js','./src/board/motion.js','./src/board/choreography.js','./src/board/shoreline.js','./src/board/illumination.js','./src/board/relief.js','./src/board/quill.js','./src/board/battle-engraving.js','./src/board/impact-fragments.js',
   './src/party/model.js','./src/party/ui.js',
   './src/commands/engine.js','./src/commands/ui.js','./src/battle/engine.js','./src/movement/pathfinding.js','./src/combat/engine.js',
   './art/portraits/captain.svg','./art/portraits/brunna.svg','./art/portraits/kess.svg','./art/portraits/mirelle.svg','./src/platform/pwa.js','./src/platform/paths.js',
