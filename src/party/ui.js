@@ -9,7 +9,7 @@ function node(tag,cls,text){
 export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}){
   let state=createPartyPreviewState();
   const buttons=[];
-  let currentBattle=null;
+  let currentBattle=null,threatened=new Set();
   for(const member of PARTY_SLOTS){
     const button=node('button','party-card');
     button.type='button';
@@ -51,12 +51,19 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
       const ended=currentBattle?.ended?.includes(member.id)??false;
       const fallen=!!currentBattle?.partyHp&&hp<=0;
       const inactive=currentBattle?.battleMode==='active'&&(fallen||ended);
+      const danger=currentBattle?.battleMode==='active'&&hp>0&&hp/member.maxHp<=.35;
+      button.dataset.lowHp=String(!!danger);
+      button.dataset.threatened=String(threatened.has(member.id)&&!fallen);
+      button.dataset.warded=String((currentBattle?.guards?.[member.id]??0)>0);
       button.disabled=!!inactive;
       button.dataset.fallen=String(fallen);
       button.dataset.ended=String(ended);
       button.querySelector('.party-health-num').textContent=hp+'/'+member.maxHp;
       button.querySelector('.party-health-fill').style.width=(100*hp/member.maxHp)+'%';
-      button.setAttribute('aria-label',member.name+', '+member.role+', '+hp+' of '+member.maxHp+' HP'+(fallen?', fallen':ended?', turn completed':'')+'.');
+      button.setAttribute('aria-label',member.name+', '+member.role+', '+hp+' of '+member.maxHp+' HP'+
+        (fallen?', fallen':ended?', turn completed':'')+
+        (threatened.has(member.id)&&!fallen?', threatened by enemy next turn':'')+
+        ((currentBattle?.guards?.[member.id]??0)>0?', Ward protected':'')+'.');
     });
     const section=party.querySelector('.party-heading-block .eyebrow');
     if(section)section.textContent=currentBattle?.battleMode==='active'?'THE COMPANY · SKIRMISH':currentBattle?.battleMode==='won'?'THE COMPANY · VICTORIOUS':currentBattle?.battleMode==='lost'?'THE COMPANY · FALLEN':'THE COMPANY · STUDY';
@@ -91,8 +98,9 @@ export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}
       document.getElementById('battle-toggle')?.focus({preventScroll:true});
     }
   }
-  function updateBattle(battle){
+  function updateBattle(battle,intents=[]){
     currentBattle=battle;
+    threatened=new Set(intents.filter(i=>i.attack).map(i=>i.victimId));
     if(battle?.actorId)state=selectPartyMember(state,battle.actorId);
     render();
   }

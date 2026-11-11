@@ -66,6 +66,9 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     move.disabled=remainingMove(state)<=0||finished;
     turnValue.textContent=active?'Round '+state.turn:finished?'Battle ended':'Study turn '+state.turn;
     readout.textContent=state.feedback;
+    readout.dataset.tone=state.battleMode==='won'?'victory':state.battleMode==='lost'?'defeat':
+      state.feedback.startsWith('MISS')?'miss':state.feedback.startsWith('CRIT')?'critical':
+      state.feedback.startsWith('HIT')?'hit':state.feedback.startsWith('ROUND')?'enemy':'normal';
     readout.dataset.ability=state.abilityId??'';
     readout.dataset.mode=state.moveMode?'movement':state.abilityId?'ability':'idle';
     readout.dataset.valid=state.preview?(state.preview.valid?'true':'false'):'pending';
@@ -95,7 +98,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     confirm.disabled=!board||!canConfirm(state,board);
     confirm.setAttribute('aria-label',state.moveMode?'Confirm travel destination':state.abilityId?'Confirm '+getCommand(state.abilityId).name+' action':'Confirm selected action');
     cancel.disabled=!state.abilityId&&!state.moveMode;
-    onPartyChange(state);
+    onPartyChange(state,intents);
     onOverlayChange(overlay());
   }
   function setBoard(nextBoard){

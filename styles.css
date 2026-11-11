@@ -267,3 +267,15 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 .right-rail.command-mode #combat-summary{color:#f4d99c}
 #battle-canvas:focus-visible{outline:3px solid #f5df9b;outline-offset:-6px}
 @media(prefers-reduced-motion:reduce){.party-card:active{transform:none}}
+
+/* v0.09 Gate A correction: statuses communicated in pattern AND colour. */
+.party-card[data-low-hp="true"] .party-health-fill{background:repeating-linear-gradient(110deg,#e18875 0,#e18875 5px,#ffba8a 5px,#ffba8a 9px)}
+.party-card[data-low-hp="true"] .party-health-num{color:#ffd7b5}
+.party-card[data-threatened="true"]{box-shadow:inset 0 0 0 1px #f5a58bb5,inset -5px 0 #d7876b60}
+.party-card[data-warded="true"] .portrait-frame{border-color:#cbb6f0;box-shadow:0 0 0 2px #a99bde74}
+.command-readout[data-tone="hit"],.command-readout[data-tone="critical"]{border-color:#d9ad70;color:#ffe5b2}
+.command-readout[data-tone="miss"]{border-color:#789ea8;color:#c5e7df}
+.command-readout[data-tone="enemy"]{border-color:#d09583;color:#f0d3c4}
+.command-readout[data-tone="victory"]{border-color:#b7d19c;color:#e6f2c9}
+.command-readout[data-tone="defeat"]{border-color:#e19a90;color:#ffdbd1}
+.right-rail.command-mode #combat-summary{font-weight:850;letter-spacing:.015em}
