@@ -30,8 +30,8 @@ test('standalone mode covers Safari Home Screen and display-mode query',()=>{
 });
 test('service worker version and offline core match the actual app module graph',()=>{
   assert.match(sw,/tuc-foundation-/);
-  assert.match(sw,/v0\.09/);
-  for(const asset of ['./index.html','./styles.css','./src/main.js','./src/content/catalog.js','./src/engine/state.js','./src/engine/random.js','./src/platform/pwa.js','./src/platform/paths.js','./src/board/geometry.js','./src/board/scene.js','./src/board/miniatures.js','./src/board/effects.js','./src/party/model.js','./src/party/ui.js','./src/commands/engine.js','./src/commands/ui.js','./src/movement/pathfinding.js','./src/combat/engine.js','./src/battle/engine.js','./art/portraits/captain.svg','./art/portraits/brunna.svg','./art/portraits/kess.svg','./art/portraits/mirelle.svg','./manifest.webmanifest','./icons/apple-touch-icon.png']){
+  assert.match(sw,/v0\.09-gate-a2/);
+  for(const asset of ['./index.html','./styles.css','./src/main.js','./src/content/catalog.js','./src/engine/state.js','./src/engine/random.js','./src/platform/pwa.js','./src/platform/paths.js','./src/board/geometry.js','./src/board/scene.js','./src/board/miniatures.js','./src/board/effects.js','./src/board/atelier.js','./src/party/model.js','./src/party/ui.js','./src/commands/engine.js','./src/commands/ui.js','./src/movement/pathfinding.js','./src/combat/engine.js','./src/battle/engine.js','./art/portraits/captain.svg','./art/portraits/brunna.svg','./art/portraits/kess.svg','./art/portraits/mirelle.svg','./manifest.webmanifest','./icons/apple-touch-icon.png']){
     assert.ok(sw.includes("'"+asset+"'"),'offline asset missing: '+asset);
   }
   assert.match(sw,/request\.mode==='navigate'/);

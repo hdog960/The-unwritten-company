@@ -83,7 +83,9 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     readout.dataset.attackIndex=String(state.rollIndex);
     readout.title=state.feedback.startsWith('ROUND ')&&state.lastEnemyPhase?.length?
       state.lastEnemyPhase.join('; '):
-      state.lastCombat?('Roll '+state.lastCombat.face+' + '+state.lastCombat.bonus+' = '+state.lastCombat.total+' versus Guard '+state.lastCombat.guard+'; '+(state.lastCombat.hit?'hit':'miss')+', '+state.lastCombat.damage+' damage.'):state.feedback;
+      (/^(HIT|MISS|CRIT)/.test(state.feedback)&&state.lastCombat)?
+      ('Roll '+state.lastCombat.face+' + '+state.lastCombat.bonus+' = '+state.lastCombat.total+' versus Guard '+state.lastCombat.guard+'; '+(state.lastCombat.hit?'hit':'miss')+', '+state.lastCombat.damage+' damage.'):
+      state.feedback;
     readout.setAttribute('aria-label',readout.title);
     view.dataset.guard=String(state.guards[state.actorId]);
     view.dataset.confirmations=String(state.confirmations);

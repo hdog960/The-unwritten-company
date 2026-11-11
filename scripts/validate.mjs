@@ -40,3 +40,8 @@ assert.match(miniature,/drawBrunna/);
 assert.match(miniature,/drawKess/);
 assert.match(miniature,/drawMirelle/);
 assert.match(effects,/EFFECT_DURATION_MS/);
+
+const atelier=fs.readFileSync('src/board/atelier.js','utf8');
+assert.match(atelier,/paintAtelierTile/);
+assert.match(atelier,/paintBoardLighting/);
+assert.match(atelier,/paintUnitStand/);
