@@ -17,7 +17,9 @@ export function rigMotion(id,pose=null){
  else if(pose?.kind==='recoil')amount=-.09*pulse;
  else if(pose?.kind==='stagger')amount=-.14*pulse;
  else if(pose?.kind==='move')amount=.07*pulse;
- return Object.freeze({angle:amount,secondary:-amount*.72,pulse,resting:amount===0});
+ // Canonicalize signed zero; attack/idle keyframes remain bit-for-bit stable.
+ if(amount===0)amount=0;
+ return Object.freeze({angle:amount,secondary:amount===0?0:-amount*.72,pulse,resting:amount===0});
 }
 const swing=(xy,pivot,angle)=>{
  const x=xy[0]-pivot[0],y=xy[1]-pivot[1],a=Math.cos(angle),b=Math.sin(angle);
