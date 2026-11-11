@@ -59,3 +59,8 @@ The source-only `src/board/atelier.js` module is now explicitly cached in the st
 ## v0.09 Gate A fourth correction — offline illustrated floor and precise targeting
 
 The service worker now caches src/board/targeting.js, src/board/scenery.js, and src/board/motion.js under tuc-foundation-v0.09-gate-a4. On the tested Chrome build, online cache warmup followed by offline board movement, attack rolls and real enemy phases passed. Artwork and target cues are drawn locally with no online assets or hidden service requests. No save format or migration exists yet; reload can reset a battle. Real iPhone Safari and installed Home Screen remain user-inspection items.
+
+
+## v0.09 Gate A quality refinement 5 — local choreographed miniatures and wet-ink edges
+
+Service worker cache generation is now `tuc-foundation-v0.09-gate-a5` with `./src/board/choreography.js` and `./src/board/shoreline.js` explicitly precached. All other actual imported game/PWA modules, relative project-path assets and icons remain present. The latest verified Chromium test warmed the cache, relaunched offline and successfully ran actual seeded combat, movement and an enemy phase. Choreographed attacks and watercolor terrain are local Canvas paths; no remote image or gameplay APIs. Real iPhone Safari/Home Screen lifecycle and battery impact are **not yet measured**. Interrupted fights are not resumable; no persistent skirmish save format exists.
