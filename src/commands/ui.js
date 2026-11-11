@@ -2,11 +2,14 @@ import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarge
 import {enemyIntents,aliveParty,aliveFoes} from '../battle/engine.js';
 import {previewMovement,MAX_MOVEMENT} from '../movement/pathfinding.js';
 import {livingOccupants} from '../combat/engine.js';
+import {PARTY_SLOTS} from '../party/model.js';
+import {BASE_GUARD} from '../battle/engine.js';
 
 export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,combatSummary,onOverlayChange,onPartyChange=()=>{}}){
   let state=createCommandState();
   let board=null,visible=false;
   const buttons=new Map();
+  const shortName=id=>({captain:'Capt',brunna:'Brunna',kess:'Kess',mirelle:'Mirelle'})[id]??id;
   for(const skill of COMMANDS){
     const button=document.createElement('button');
     button.type='button';button.className='command-skill';button.dataset.abilityId=skill.id;
@@ -37,7 +40,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     const active=state.battleMode==='active',finished=state.battleMode==='won'||state.battleMode==='lost';
     const intents=active?enemyIntents(state,board):[];
     combatSummary.textContent=finished?(state.battleMode==='won'?'VICTORY · BOTH FOES DOWN':'DEFEAT · COMPANY FALLEN'):
-      active?(intents.length?intents.map(i=>i.name+'→'+i.victimId).join(' · '):'SKIRMISH · HOLD'):
+      active?(intents.length?intents.map(i=>(i.foeId==='briar'?'BRIAR':'SHADE')+'›'+shortName(i.victimId)).join('  ·  '):'SKIRMISH · HOLD'):
       foes.length?foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join(' · '):'TWO TRAINING FOES';
     combatSummary.setAttribute('aria-label',
       (active?intents.map(i=>i.name+' '+(i.attack?'will attack ':'will approach ')+i.victimId).join('. ')+'. ':'')+
@@ -83,12 +86,14 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     view.dataset.confirmations=String(state.confirmations);
     for(const [id,button] of buttons){
       const skill=getCommand(id);
+      button.setAttribute('aria-label',skill.name+', '+skill.ap+' action point'+(skill.ap===1?'':'s')+'. '+skill.description+(active?'. Real skirmish ability.':'. Training table preview.'));
       const selected=state.abilityId===id;
       button.disabled=skill.ap>ap||finished;
       button.dataset.selected=String(selected);
       button.setAttribute('aria-pressed',String(selected));
     }
     confirm.disabled=!board||!canConfirm(state,board);
+    confirm.setAttribute('aria-label',state.moveMode?'Confirm travel destination':state.abilityId?'Confirm '+getCommand(state.abilityId).name+' action':'Confirm selected action');
     cancel.disabled=!state.abilityId&&!state.moveMode;
     onPartyChange(state);
     onOverlayChange(overlay());
@@ -123,9 +128,29 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
   function selectActor(id){state=changeActor(state,id);paint();}
   function cancelPending(){state=cancelPreview(state);paint();}
   function targetCell(cell,nextBoard){
-    if(!visible||(!state.abilityId&&!state.moveMode))return;
+    if(!visible)return;
     if(nextBoard)board=nextBoard;
-    state=chooseTarget(state,cell,board);paint();
+    if(state.abilityId||state.moveMode){
+      state=chooseTarget(state,cell,board);paint();return;
+    }
+    // Inspect a miniature on the same board that controls the fight. This
+    // does not spend AP/MP, select an ability, trigger RNG or change HP.
+    const memberId=Object.entries(state.positions??{}).find(([,where])=>where.column===cell.column&&where.row===cell.row)?.[0];
+    if(memberId){
+      const next=changeActor(state,memberId);
+      const member=PARTY_SLOTS.find(person=>person.id===memberId);
+      if(next===state&&memberId!==state.actorId)return;
+      state=Object.freeze({...next,feedback:member.name+' · HP '+(state.partyHp?.[memberId]??member.maxHp)+'/'+member.maxHp+
+        ' · Guard '+(BASE_GUARD[memberId]+(state.guards?.[memberId]??0))+
+        (state.battleMode==='active'?' · Ready to command.':' · Study miniature.')});
+      paint();return;
+    }
+    const foe=Object.values(state.targets??{}).find(x=>x.position.column===cell.column&&x.position.row===cell.row);
+    if(foe){
+      state=Object.freeze({...state,feedback:foe.fullName+' · '+foe.hp+'/'+foe.maxHp+' HP · Guard '+foe.guard+
+        (foe.hp<=0?' · Defeated.':foe.id==='briar'?' · Thorn melee threat.':' · Ranged spectral threat.')});
+      paint();
+    }
   }
   move.addEventListener('click',()=>{state=chooseMove(state);paint();});
   confirm.addEventListener('click',()=>{state=confirmPreview(state,board);paint();});
