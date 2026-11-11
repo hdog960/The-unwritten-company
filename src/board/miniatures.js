@@ -144,12 +144,19 @@ function drawMirelle(ctx){
   polygon(ctx,[[25,44],[33,38],[37,55],[28,58]],'#9d8796','#353a48');
   bead(ctx,26,57,2,'#e9c98d');
 }
-export function drawHero(ctx,rect,id,fallen=false){
+export function drawHero(ctx,rect,id,fallen=false,pose=null){
   if(!rect)return;const s=rect.width;
   ctx.save();ctx.translate(rect.x,rect.y);ctx.scale(s/H,s/H);
   const tone=id==='brunna'?'#956d60':id==='kess'?'#608677':id==='mirelle'?'#7a658d':'#6c8d84';
   podium(ctx,tone,fallen);
-  ctx.save();if(fallen)ctx.globalAlpha=.28;
+  ctx.save();
+  if(fallen)ctx.globalAlpha=.28;
+  // Animation translates painted paper pieces independently of their fixed
+  // pedestals, like a tabletop puppet; no effect on hitboxes or tile geometry.
+  if(pose?.kind==='attack')ctx.translate(2.4*Math.sin(Math.PI*pose.progress),-4.8*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='recoil')ctx.translate(-3.8*Math.sin(Math.PI*pose.progress),2.6*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='move')ctx.translate(0,-3*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='ward')ctx.translate(0,-2.2*Math.sin(Math.PI*pose.progress));
   if(id==='brunna')drawBrunna(ctx);
   else if(id==='kess')drawKess(ctx);
   else if(id==='mirelle')drawMirelle(ctx);
@@ -194,7 +201,7 @@ function shade(ctx){
     polygon(ctx,[[x,y-6],[x+4,y],[x,y+6],[x-4,y]],'#76b6b6','#304e62',1);
   }
 }
-export function drawFoe(ctx,rect,foe,lastCombat){
+export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   if(!rect||!foe)return;const s=rect.width;
   ctx.save();ctx.translate(rect.x,rect.y);ctx.scale(s/100,s/100);
   podium(ctx,foe.id==='briar'?'#7d6848':'#566c79',foe.hp===0);
@@ -203,7 +210,11 @@ export function drawFoe(ctx,rect,foe,lastCombat){
     mark(ctx,[[41,61],[57,68],[65,61]],'#a3a392',2);
     ctx.restore();return;
   }
+  ctx.save();
+  if(pose?.kind==='attack')ctx.translate(-2.5*Math.sin(Math.PI*pose.progress),-4.4*Math.sin(Math.PI*pose.progress));
+  if(pose?.kind==='recoil')ctx.translate(4.7*Math.sin(Math.PI*pose.progress),2.1*Math.sin(Math.PI*pose.progress));
   if(foe.id==='briar')briar(ctx);else shade(ctx);
+  ctx.restore();
   // A real in-world miniature health enamel, not a floating HUD.
   const barX=17,barY=86,barW=66,barH=6.5;
   ctx.fillStyle='#0d1b25';ctx.fillRect(barX-2,barY-2,barW+4,barH+4);

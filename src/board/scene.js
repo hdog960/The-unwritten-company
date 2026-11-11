@@ -135,6 +135,23 @@ function drawSelection(ctx,rect){
     line(ctx,[[px+arm*hx,py+arm*hy],[px,py],[px+arm*vx,py+arm*vy]],'#ffe2a5',Math.max(1.5,s*.04));
   }
 }
+/** Battle VFX alter poses only, never deterministic gameplay positions or hit tests. */
+export function miniaturePose(frame,position,isEnemy=false){
+  const event=frame?.event;
+  if(!event||!position)return null;
+  const same=(a,b)=>a?.column===b?.column&&a?.row===b?.row;
+  const marks=event.kind==='enemy-phase'?event.marks??[]:[event];
+  for(const mark of marks){
+    const q=Math.max(0,Math.min(1,Number(frame.progress)||0));
+    if(mark.kind==='ward'&&same(mark.to,position))return {kind:'ward',progress:q};
+    if(mark.kind==='move'&&same(mark.to,position))return {kind:'move',progress:q};
+    if(mark.kind==='hit'||mark.kind==='critical'||mark.kind==='miss'){
+      if(same(mark.to,position))return {kind:mark.kind==='miss'?'recoil':'recoil',progress:q};
+      if(same(mark.from,position))return {kind:'attack',progress:q};
+    }
+  }
+  return null;
+}
 export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);
   for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
@@ -171,11 +188,11 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const member=PARTY_SLOTS.find(item=>item.id===id);
     paintUnitStand(ctx,rect,id,{active:overlay?.actorId===id,hp:overlay?.partyHp?.[id]??null,
       maxHp:member?.maxHp??null,ward:(overlay?.guards?.[id]??0)>0});
-    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0);
+    drawHero(ctx,rect,id,overlay?.partyHp?.[id]===0,miniaturePose(frame,{column:miniature.col,row:miniature.row}));
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const rect=cellRect(board,foe.position.column,foe.position.row);
-    if(rect)drawFoe(ctx,rect,foe,overlay?.lastCombat);
+    if(rect)drawFoe(ctx,rect,foe,overlay?.lastCombat,miniaturePose(frame,foe.position,true));
   }
 
   // Hatched, world-surface enemy telegraphs; all labels remain in the right rail.
