@@ -44,3 +44,8 @@ Service-worker cache generation is now \`tuc-foundation-v0.08\` and \`./src/batt
 ## v0.09 — original source-drawn artwork and VFX offline graph
 
 Service-worker generation `tuc-foundation-v0.09` precaches `./src/board/miniatures.js` and `./src/board/effects.js` because `src/board/scene.js` imports both. All previous art, icons, story preview, party and skirmish logic remain cached. The real Chromium automation warmed the offline cache and ran combat and a deterministic enemy phase while offline after those modules were added. `prefers-reduced-motion` suppresses the temporary animation while preserving announcements in controls. No persistence or migration format exists yet; the game is not a recoverable offline campaign and cannot resume an interrupted battle. Real iPhone Safari/Home Screen and device-specific rendering remain user Gate A inspection items. Bump cache generation and precache future module imports, never force-update an active run without explicit migration planning.
+
+
+## v0.09 Gate A correction 2 — offline illustrated terrain
+
+The source-only `src/board/atelier.js` module is now explicitly cached in the static PWA core alongside `src/board/miniatures.js`, `src/board/effects.js` and `src/board/scene.js`. Cache generation changed to `tuc-foundation-v0.09-gate-a2` without advancing the roadmap milestone. Chromium actually reloaded an offline-cached game and executed real skirmish combat after this change. Continuous texture and puppet motion use deterministic/offline Canvas paths, not remote resources. No campaign or skirmish save persistence has been added; physical iPhone Safari/Home Screen lifecycle remains unverified.
