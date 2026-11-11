@@ -162,6 +162,47 @@ export function renderBoard(ctx,board,selection=null,overlay=null){
     const rect=cellRect(board,miniature.col,miniature.row);
     if(rect)drawMiniature(ctx,rect,miniature.kind);
   }
+  for(const foe of Object.values(overlay?.targets??{})){
+    const rect=cellRect(board,foe.position.column,foe.position.row);
+    if(rect)drawTrainingFoe(ctx,rect,foe,overlay?.lastCombat);
+  }
+
+function drawTrainingFoe(ctx,rect,target,lastCombat){
+  const {x,y,width:s}=rect;
+  const cx=x+s*.5,cy=y+s*.51,alive=target.hp>0;
+  if(!alive){
+    ellipse(ctx,cx,cy+s*.26,s*.3,s*.095,'#1a2531bb');
+    disk(ctx,cx,cy+s*.1,s*.15,'#5e5666','#ad946d',Math.max(1,s*.018));
+    line(ctx,[[cx-s*.12,cy+s*.1],[cx+s*.12,cy+s*.1]],'#ddc397',Math.max(1,s*.026));
+    return;
+  }
+  ellipse(ctx,cx,cy+s*.28,s*.29,s*.09,'#0d1826c9');
+  if(target.id==='briar'){
+    // Spined carved guardian with original willow-wood helmet and iron chest.
+    poly(ctx,[[cx-s*.22,cy+s*.24],[cx-s*.18,cy-s*.13],[cx-s*.03,cy-s*.22],[cx+s*.17,cy-s*.13],[cx+s*.2,cy+s*.2]],'#574b39','#232b2d',Math.max(1,s*.028));
+    poly(ctx,[[cx-s*.2,cy-s*.13],[cx-s*.28,cy-s*.29],[cx-s*.07,cy-s*.23],[cx,cy-s*.43],[cx+s*.1,cy-s*.24],[cx+s*.27,cy-s*.31],[cx+s*.17,cy-s*.13]],'#526e4c','#273b36',Math.max(1,s*.022));
+    disk(ctx,cx,cy-s*.08,s*.13,'#80654d','#d0b57e',Math.max(1,s*.02));
+    disk(ctx,cx-s*.045,cy-s*.085,s*.018,'#f8c987');
+    disk(ctx,cx+s*.045,cy-s*.085,s*.018,'#f8c987');
+    line(ctx,[[cx-s*.08,cy+s*.04],[cx+s*.08,cy+s*.04]],'#d2ad6a',Math.max(1,s*.022));
+  }else{
+    // Hollow bell-like shadow with distinctive turquoise spectral core.
+    poly(ctx,[[cx-s*.24,cy+s*.23],[cx-s*.17,cy-s*.16],[cx,cy-s*.4],[cx+s*.17,cy-s*.16],[cx+s*.25,cy+s*.23]],'#3b435b','#111c32',Math.max(1.5,s*.04));
+    poly(ctx,[[cx-s*.15,cy-s*.16],[cx,cy-s*.33],[cx+s*.16,cy-s*.16],[cx+s*.1,cy+s*.12],[cx-s*.1,cy+s*.12]],'#172b40','#7ca8aa',Math.max(1,s*.025));
+    line(ctx,[[cx-s*.075,cy-s*.13],[cx-s*.02,cy-s*.11],[cx+s*.035,cy-s*.16]],'#a6f0d9',Math.max(1.4,s*.04));
+    disk(ctx,cx,cy+s*.06,s*.058,'#6db2b4','#b9f2da',Math.max(.8,s*.018));
+  }
+  const barX=x+s*.18,barY=y+s*.78,barW=s*.64,barH=Math.max(3.4,s*.065);
+  ctx.fillStyle='#111e29';ctx.fillRect(barX-1,barY-1,barW+2,barH+2);
+  ctx.fillStyle='#6c363c';ctx.fillRect(barX,barY,barW,barH);
+  ctx.fillStyle='#ed9b75';ctx.fillRect(barX,barY,barW*(target.hp/target.maxHp),barH);
+  if(lastCombat?.id===target.id){
+    const hit=lastCombat.hit;
+    ctx.beginPath();ctx.arc(cx,cy-s*.08,s*.35,0,Math.PI*2);
+    ctx.strokeStyle=hit?'#ffe1a2':'#91d8e2';ctx.lineWidth=Math.max(1.5,s*.048);
+    ctx.stroke();
+  }
+}
   // World-native movement path: dotted route and tiles, never a floating HUD.
   if(overlay?.mode==='movement' && overlay?.evaluation?.path?.length>1){
     const route=overlay.evaluation.path;

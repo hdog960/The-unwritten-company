@@ -46,7 +46,7 @@ export function shortestPath(board,from,to,positions={},movingId='captain'){
   if(!isOnBoard(board,from)||!isOnBoard(board,to))return Object.freeze({found:false,path:Object.freeze([]),cost:null,reason:'Tile is outside the map.'});
   if(!isWalkable(board,to))return Object.freeze({found:false,path:Object.freeze([]),cost:null,reason:'Rubble blocks this tile.'});
   const occupants=new Set(Object.entries(positions).filter(([id])=>id!==movingId).map(([,p])=>tileKey(p)));
-  if(occupants.has(tileKey(to)))return Object.freeze({found:false,path:Object.freeze([]),cost:null,reason:'Another company member occupies that tile.'});
+  if(occupants.has(tileKey(to)))return Object.freeze({found:false,path:Object.freeze([]),cost:null,reason:'Another unit occupies that tile.'});
   if(same(from,to))return Object.freeze({found:false,path:Object.freeze([]),cost:0,reason:'Already standing here.'});
   const dist=new Map([[tileKey(from),0]]);
   const previous=new Map(),pending=[{p:from,cost:0}],settled=new Set();

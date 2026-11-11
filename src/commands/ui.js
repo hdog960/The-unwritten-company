@@ -1,7 +1,8 @@
-import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarget,cancelPreview,confirmPreview,endStudyTurn,changeActor,getCommand,studyOrigin,targetResult,canConfirm,chooseMove,remainingMove,setMovementBoard} from './engine.js';
+import {COMMANDS,MAX_AP,createCommandState,remainingAp,chooseAbility,chooseTarget,cancelPreview,confirmPreview,endStudyTurn,changeActor,getCommand,studyOrigin,targetResult,canConfirm,chooseMove,remainingMove,setMovementBoard,setCombatSeed,abilityPreview} from './engine.js';
 import {previewMovement,MAX_MOVEMENT} from '../movement/pathfinding.js';
+import {livingOccupants} from '../combat/engine.js';
 
-export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,onOverlayChange}){
+export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skillGrid,readout,confirm,cancel,endTurn,move,combatSummary,onOverlayChange}){
   let state=createCommandState();
   let board=null,visible=false;
   const buttons=new Map();
@@ -9,7 +10,7 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     const button=document.createElement('button');
     button.type='button';button.className='command-skill';button.dataset.abilityId=skill.id;
     button.title=skill.description;
-    button.setAttribute('aria-label',skill.name+', '+skill.ap+' action point'+(skill.ap===1?'':'s')+'. '+skill.description+'. Demonstration only.');
+    button.setAttribute('aria-label',skill.name+', '+skill.ap+' action point'+(skill.ap===1?'':'s')+'. '+skill.description+'. Training preview; foes do not act.');
     const symbol=document.createElement('span');symbol.className='skill-symbol';symbol.textContent=skill.symbol;symbol.setAttribute('aria-hidden','true');
     const name=document.createElement('span');name.className='skill-name';name.textContent=skill.name;
     const cost=document.createElement('span');cost.className='skill-cost';cost.textContent=skill.ap+' AP';
@@ -25,12 +26,16 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
       actorId:state.actorId,positions:state.positions,origin,
       mode:state.moveMode?'movement':state.abilityId?'ability':'idle',
       command:getCommand(state.abilityId),target:state.target,
-      evaluation:state.preview
+      evaluation:state.preview,targets:state.targets,lastCombat:state.lastCombat
     };
   }
   function paint(){
     const ap=remainingAp(state);
     apValue.textContent=ap+'/'+MAX_AP+' AP';
+    const foes=Object.values(state.targets??{});
+    combatSummary.textContent=foes.length?foes.map(x=>x.name+' '+x.hp+'/'+x.maxHp).join(' · '):'TWO TRAINING FOES';
+    combatSummary.setAttribute('aria-label',foes.length?foes.map(x=>x.fullName+': '+x.hp+' of '+x.maxHp+' health, Guard '+x.guard).join('. '):'Two stationary training foes');
+    combatSummary.dataset.live=String(foes.filter(x=>x.hp>0).length);
     apValue.dataset.ap=String(ap);
     move.textContent='Move '+remainingMove(state)+'/'+MAX_MOVEMENT;
     move.setAttribute('aria-label','Movement: '+remainingMove(state)+' of '+MAX_MOVEMENT+' points available. Preview a path. Does not spend action points.');
@@ -48,6 +53,11 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     view.dataset.actorColumn=String(state.positions?.[state.actorId]?.column ?? '');
     view.dataset.actorRow=String(state.positions?.[state.actorId]?.row ?? '');
     readout.dataset.cost=state.preview?.cost===null||state.preview?.cost===undefined?'':String(state.preview.cost);
+    readout.dataset.hit=state.lastCombat?String(state.lastCombat.hit):'';
+    readout.dataset.roll=state.lastCombat?String(state.lastCombat.face):'';
+    readout.dataset.targetHp=state.lastCombat?String(state.lastCombat.healthAfter):'';
+    readout.dataset.attackIndex=String(state.rollIndex);
+    view.dataset.guard=String(state.guards[state.actorId]);
     view.dataset.confirmations=String(state.confirmations);
     for(const [id,button] of buttons){
       const skill=getCommand(id);
@@ -65,8 +75,8 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     state=setMovementBoard(state,board);
     if(state.target&&(state.abilityId||state.moveMode)){
       const reevaluated=state.moveMode?
-        previewMovement(board,state.positions,state.actorId,state.target,remainingMove(state)):
-        targetResult(getCommand(state.abilityId),state.actorId,state.target,board,state.positions);
+        previewMovement(board,livingOccupants(state.positions,state.targets),state.actorId,state.target,remainingMove(state)):
+        abilityPreview(state,board);
       state=Object.freeze({...state,preview:reevaluated,feedback:reevaluated.reason});
     }
     paint();
@@ -80,6 +90,13 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
     if(!isBoard)state=cancelPreview(state);
     paint();
   }
+  function setSeed(seed){
+    const next=setCombatSeed(state,seed);
+    if(next!==state){
+      state=board?setMovementBoard(next,board):next;
+      paint();
+    }
+  }
   function selectActor(id){state=changeActor(state,id);paint();}
   function targetCell(cell,nextBoard){
     if(!visible||(!state.abilityId&&!state.moveMode))return;
@@ -91,5 +108,5 @@ export function createCommandRail({rail,story,view,toggle,apValue,turnValue,skil
   cancel.addEventListener('click',()=>{state=cancelPreview(state);paint();});
   endTurn.addEventListener('click',()=>{state=endStudyTurn(state);paint();});
   paint();
-  return Object.freeze({setMode,setBoard,selectActor,targetCell,getState:()=>state});
+  return Object.freeze({setMode,setBoard,setSeed,selectActor,targetCell,getState:()=>state});
 }

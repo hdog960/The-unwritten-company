@@ -207,3 +207,9 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 @media (orientation:landscape) and (min-width:741px) and (max-width:900px) and (max-height:460px){
   .right-rail.command-mode .command-readout{height:32px;flex-basis:32px;min-height:32px}
 }
+
+/* v0.07: concise HP/Guard summary stays outside the battlefield and above action buttons. */
+.right-rail.command-mode #combat-summary{
+  color:#f2c995;white-space:nowrap;text-align:center;font:800 8px/1.2 system-ui,sans-serif;
+  letter-spacing:0;overflow:hidden;text-overflow:ellipsis;max-width:100%;min-height:10px
+}

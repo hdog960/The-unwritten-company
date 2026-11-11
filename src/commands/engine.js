@@ -1,14 +1,15 @@
-/** v0.05 — command study state, intentionally without combat resolution. */
+/** v0.07 — command, movement, and deterministic training-combat state. */
 import {PARTY_SLOTS} from '../party/model.js';
 import {getTile} from '../board/geometry.js';
 import {MAX_MOVEMENT,placeParty,previewMovement,moveActor} from '../movement/pathfinding.js';
+import {positionTargets,livingOccupants,livingTargetAt,previewStrike,rollAttack,applyAttack,combatFeedback} from '../combat/engine.js';
 
 export const MAX_AP = 2;
 export const COMMANDS = Object.freeze([
-  Object.freeze({id:'strike',name:'Strike',symbol:'⚔',ap:1,range:1,target:'near',description:'Adjacent tile · melee study'}),
-  Object.freeze({id:'spark',name:'Spark',symbol:'✧',ap:1,range:3,target:'away',description:'Up to 3 tiles · arcane study'}),
-  Object.freeze({id:'ward',name:'Ward',symbol:'◇',ap:1,range:0,target:'self',description:'Your origin tile · defensive study'}),
-  Object.freeze({id:'sigil',name:'Sigil',symbol:'✦',ap:2,range:2,target:'away',description:'Up to 2 tiles · glyph study'})
+  Object.freeze({id:'strike',name:'Strike',symbol:'⚔',ap:1,range:1,target:'near',description:'Adjacent target · melee'}),
+  Object.freeze({id:'spark',name:'Spark',symbol:'✧',ap:1,range:3,target:'away',description:'Up to 3 tiles · arcane bolt'}),
+  Object.freeze({id:'ward',name:'Ward',symbol:'◇',ap:1,range:0,target:'self',description:'Self-target · +2 guard this turn'}),
+  Object.freeze({id:'sigil',name:'Sigil',symbol:'✦',ap:2,range:2,target:'away',description:'Up to 2 tiles · powerful sigil'})
 ]);
 const COST_BY_ID = new Map(COMMANDS.map(command=>[command.id,command]));
 export function getCommand(id){return COST_BY_ID.get(id) ?? null;}
@@ -42,14 +43,31 @@ export function targetResult(command,actorId,target,board,positions=null){
 export function createCommandState(){
   const ap=Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,MAX_AP]));
   const mp=Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,MAX_MOVEMENT]));
-  return Object.freeze({actorId:'captain',ap:Object.freeze(ap),mp:Object.freeze(mp),positions:null,turn:1,abilityId:null,moveMode:false,target:null,preview:null,confirmations:0,feedback:'Select Move or an ability. No combat damage is implemented.'});
+  const guards=Object.freeze(Object.fromEntries(PARTY_SLOTS.map(m=>[m.id,0])));
+  return Object.freeze({actorId:'captain',ap:Object.freeze(ap),mp:Object.freeze(mp),guards,positions:null,targets:null,seed:'Lantern-001',rollIndex:0,lastCombat:null,turn:1,abilityId:null,moveMode:false,target:null,preview:null,confirmations:0,feedback:'Choose Move or an ability. Two stationary training foes await.'});
 }
 export function remainingAp(state){return state.ap[state.actorId];}
 export function remainingMove(state){return state.mp[state.actorId];}
 export function setMovementBoard(state,board){
   const placed=placeParty(board,state.positions);
+  const targets=positionTargets(board,placed,state.targets);
   const changed=!state.positions || PARTY_SLOTS.some(x=>state.positions[x.id].column!==placed[x.id].column||state.positions[x.id].row!==placed[x.id].row);
-  return changed?Object.freeze({...state,positions:placed,target:null,preview:null}):state;
+  const shifted=!state.targets || Object.keys(targets).some(id=>state.targets[id].position.column!==targets[id].position.column||state.targets[id].position.row!==targets[id].position.row);
+  return changed||shifted?Object.freeze({...state,positions:placed,targets,target:null,preview:null}):state;
+}
+export function setCombatSeed(state,seed){
+  const clean=String(seed??'Lantern-001').trim().replace(/[^A-Za-z0-9 _-]/g,'').slice(0,32)||'Lantern-001';
+  if(clean===state.seed)return state;
+  const fresh=createCommandState();
+  return Object.freeze({...fresh,seed:clean,positions:state.positions,targets:null,feedback:'New training seed '+clean+'. Open the board to reset targets.'});
+}
+export function abilityPreview(state,board){
+  const skill=getCommand(state.abilityId);
+  if(!skill||!state.target)return null;
+  const legality=targetResult(skill,state.actorId,state.target,board,state.positions);
+  if(!legality.valid||skill.target==='self')return legality;
+  const enemy=livingTargetAt(state.targets,state.target);
+  return enemy?previewStrike(state.actorId,skill.id,enemy):Object.freeze({...legality,reason:'Empty tile · practice only. No damage.'});
 }
 export function changeActor(state,id){
   if(!PARTY_SLOTS.some(member=>member.id===id)||id===state.actorId)return state;
@@ -67,23 +85,24 @@ export function chooseMove(state){
 export function chooseTarget(state,target,board){
   if(!state.abilityId&&!state.moveMode)return state;
   if(!isInside(board,target))return state;
-  const preview=state.moveMode?previewMovement(board,state.positions,state.actorId,target,remainingMove(state)):
-    targetResult(getCommand(state.abilityId),state.actorId,target,board,state.positions);
-  return Object.freeze({...state,target:Object.freeze({...target}),preview,feedback:preview.reason});
+  const candidate=Object.freeze({...state,target:Object.freeze({...target})});
+  const preview=state.moveMode?previewMovement(board,livingOccupants(state.positions,state.targets),state.actorId,target,remainingMove(state)):
+    abilityPreview(candidate,board);
+  return Object.freeze({...candidate,preview,feedback:preview.reason});
 }
 export function cancelPreview(state){
   if(!state.abilityId && !state.moveMode && !state.target)return state;
   return Object.freeze({...state,abilityId:null,moveMode:false,target:null,preview:null,feedback:'Targeting canceled. No AP or movement spent.'});
 }
 export function canConfirm(state,board){
-  if(state.moveMode)return !!state.target && !!state.positions && previewMovement(board,state.positions,state.actorId,state.target,remainingMove(state)).valid;
+  if(state.moveMode)return !!state.target && !!state.positions && previewMovement(board,livingOccupants(state.positions,state.targets),state.actorId,state.target,remainingMove(state)).valid;
   const command=getCommand(state.abilityId);
-  return !!command && !!state.target && remainingAp(state)>=command.ap && targetResult(command,state.actorId,state.target,board,state.positions).valid;
+  return !!command && !!state.target && remainingAp(state)>=command.ap && abilityPreview(state,board)?.valid===true;
 }
 export function confirmPreview(state,board){
   if(!canConfirm(state,board))return state;
   if(state.moveMode){
-    const route=previewMovement(board,state.positions,state.actorId,state.target,remainingMove(state));
+    const route=previewMovement(board,livingOccupants(state.positions,state.targets),state.actorId,state.target,remainingMove(state));
     if(!route.valid)return state;
     const nextMp=Object.freeze({...state.mp,[state.actorId]:remainingMove(state)-route.cost});
     const nextPositions=moveActor(state.positions,state.actorId,state.target);
@@ -92,12 +111,25 @@ export function confirmPreview(state,board){
   }
   const command=getCommand(state.abilityId);
   const next=Object.freeze({...state.ap,[state.actorId]:remainingAp(state)-command.ap});
+  const opponent=command.target==='self'?null:livingTargetAt(state.targets,state.target);
+  if(opponent){
+    const outcome=rollAttack(state.seed,state.rollIndex,state.actorId,command.id,opponent);
+    return Object.freeze({...state,ap:next,targets:applyAttack(state.targets,outcome),rollIndex:state.rollIndex+1,lastCombat:Object.freeze({...outcome,position:opponent.position}),
+      abilityId:null,moveMode:false,target:null,preview:null,confirmations:state.confirmations+1,
+      feedback:combatFeedback(outcome,opponent.name)});
+  }
+  if(command.id==='ward'){
+    const guards=Object.freeze({...state.guards,[state.actorId]:2});
+    return Object.freeze({...state,ap:next,guards,abilityId:null,moveMode:false,target:null,preview:null,confirmations:state.confirmations+1,
+      feedback:'Ward ready · Guard +2. No enemy actions yet.'});
+  }
   const message=command.name+' study confirmed at column '+(state.target.column+1)+', row '+(state.target.row+1)+'. '+command.ap+' AP used; no damage or effects applied.';
   return Object.freeze({...state,ap:next,moveMode:false,abilityId:null,target:null,preview:null,confirmations:state.confirmations+1,feedback:message});
 }
 export function endStudyTurn(state){
   const next=Object.freeze({...state.ap,[state.actorId]:MAX_AP});
   const nextMp=Object.freeze({...state.mp,[state.actorId]:MAX_MOVEMENT});
-  return Object.freeze({...state,ap:next,mp:nextMp,turn:state.turn+1,abilityId:null,moveMode:false,target:null,preview:null,
+  const guards=Object.freeze({...state.guards,[state.actorId]:0});
+  return Object.freeze({...state,ap:next,mp:nextMp,guards,turn:state.turn+1,abilityId:null,moveMode:false,target:null,preview:null,
     feedback:'Demonstration turn '+(state.turn+1)+'. '+MAX_AP+' AP and '+MAX_MOVEMENT+' movement restored for '+PARTY_SLOTS.find(x=>x.id===state.actorId).name+'. No enemy turn.'});
 }

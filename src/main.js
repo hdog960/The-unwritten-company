@@ -65,6 +65,7 @@ const boardPreview=createBoardPreview({
   status:document.getElementById('battle-status'),
   onModeChange:isBoard=>{
     partyRail.setMode(isBoard);
+    if(isBoard)commandRail?.setSeed(document.getElementById('seed')?.value);
     commandRail?.setMode(isBoard);
   },
   onCellSelect:(cell,board)=>commandRail?.targetCell(cell,board),
@@ -79,6 +80,7 @@ commandRail=createCommandRail({
   toggle:document.getElementById('battle-toggle'),
   apValue:document.getElementById('command-ap'),
   turnValue:document.getElementById('command-turn'),
+  combatSummary:document.getElementById('combat-summary'),
   skillGrid:document.getElementById('command-skills'),
   readout:document.getElementById('command-readout'),
   confirm:document.getElementById('command-confirm'),
