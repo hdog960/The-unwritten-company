@@ -13,3 +13,7 @@ Service-worker behavior:
 Install guidance in left non-combat rail; iOS Share → Add to Home Screen; standalone detection supports navigator.standalone and CSS display-mode. Connection labels are informational only. Real iPhone Safari and installed-PWA checks remain a future player gate.
 
 Any future newly imported module or asset must be added to CORE_ASSETS and the cache version must be bumped alongside the app version; test package scans these files. Do not claim in-browser offline behavior based only on CI tests.
+
+
+## v0.03 extension
+The PWA precache now includes \`./src/board/geometry.js\` and \`./src/board/scene.js\`; bump \`CACHE_NAME\` whenever imported modules or art change. The board study is available on the cached foundation and can be toggled offline. This remains a **visual study**, not an offline-playable tactical battle or a valid saved run. A real iPhone Safari/Home Screen lifecycle test remains outstanding. The expected URL preserves repository casing: \`/The-unwritten-company/\`.
