@@ -3,6 +3,7 @@
  * No time-based damage, gameplay RNG, network assets or overlaid UI text.
  */
 import {cellRect} from './geometry.js';
+import {visibleMarks} from './choreography.js';
 export const EFFECT_KINDS=Object.freeze(['hit','critical','miss','ward','move','enemy-phase']);
 export const EFFECT_DURATION_MS=490;
 export function isValidEffect(event){
@@ -113,18 +114,17 @@ function movement(ctx,board,mark,p){
 }
 export function drawWorldEffect(ctx,board,frame){
   if(!ctx||!board||!isValidEffect(frame?.event))return false;
-  const progress=clamp(frame.progress);
   ctx.save();ctx.beginPath();ctx.rect(board.x,board.y,board.mapWidth,board.mapHeight);ctx.clip();
-  const marks=frame.event.kind==='enemy-phase'?frame.event.marks??[]:[frame.event];
-  // Foe gestures sequence rather than obscuring every defender at once.
-  marks.forEach((mark,i)=>{
-    const local=frame.event.kind==='enemy-phase'?
-      clamp((progress-i*.2)/(1-.2*Math.max(0,marks.length-1))):progress;
+  // The exact same mark timing drives physical miniature anticipation AND
+  // its world-native projectile/impact: no phantom shots from the second foe
+  // at frame zero or lingering completed enemy effects.
+  for(const {mark,progress:local,visible} of visibleMarks(frame)){
+    if(!visible)continue;
     ctx.save();ctx.globalAlpha=.98*(1-.1*local);
     if(mark.kind==='ward')ward(ctx,board,mark,local);
     else if(mark.kind==='move')movement(ctx,board,mark,local);
-    else channel(ctx,board,mark,local);
+    else if(['hit','critical','miss'].includes(mark.kind))channel(ctx,board,mark,local);
     ctx.restore();
-  });
+  }
   ctx.restore();return true;
 }

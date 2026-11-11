@@ -84,3 +84,18 @@ test('actual AP and enemy state remain deterministic when visual events are atta
   assert.equal(next.visualEvent.kind,'enemy-phase');
   assert.equal(next.visualEvent.marks.length,2);
 });
+
+test('enemy event brush marks are hidden until their own scheduled phase begins',()=>{
+  const first={kind:'move',from:null,to:null}; // deliberately invisible mark
+  const second={kind:'critical',from:p(3,1),to:p(4,1)};
+  const event={kind:'enemy-phase',token:'stage-check',marks:[first,second]};
+  const early=mockCanvas();
+  assert.equal(drawWorldEffect(early,board,{event,progress:.12}),true);
+  assert.ok(!early.calls.includes('arc'),'second enemy must not shoot before its .2 phase offset');
+  const later=mockCanvas();
+  assert.equal(drawWorldEffect(later,board,{event,progress:.7}),true);
+  assert.ok(later.calls.includes('arc'),'second enemy shot arrives after its scheduled windup');
+  const finished=mockCanvas();
+  assert.equal(drawWorldEffect(finished,board,{event,progress:1}),true);
+  assert.equal(finished.calls.filter(c=>c==='save').length,finished.calls.filter(c=>c==='restore').length);
+});
