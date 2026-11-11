@@ -33,8 +33,8 @@ for (const file of ['README_START_HERE.md','DESIGN_BIBLE.md','UI_CONTROLS_AND_AR
 }
 console.log('Foundation/PWA validation: 100 milestones, docs, icons, asset paths, responsive CSS — OK');
 
-const miniature=readFile('src/board/miniatures.js');
-const effects=readFile('src/board/effects.js');
+const miniature=fs.readFileSync('src/board/miniatures.js','utf8');
+const effects=fs.readFileSync('src/board/effects.js','utf8');
 assert.match(miniature,/drawCaptain/);
 assert.match(miniature,/drawBrunna/);
 assert.match(miniature,/drawKess/);

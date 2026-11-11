@@ -20,10 +20,11 @@ test('six original source-authored miniature silhouettes remain distinct',()=>{
   assert.deepEqual(HERO_SILHOUETTES,['captain','brunna','kess','mirelle']);
   assert.deepEqual(FOE_SILHOUETTES,['briar','shade']);
   const source=fs.readFileSync('src/board/miniatures.js','utf8');
-  for(const label of ['Captain','Brunna','Kess','Mirelle'])assert.match(source,new RegExp('function draw'+label+'\\\\('));
-  assert.match(source,/function briar\\(/);
-  assert.match(source,/function shade\\(/);
-  assert.doesNotMatch(source,/fetch\\(|https:\\/\\//);
+  for(const label of ['Captain','Brunna','Kess','Mirelle'])assert.ok(source.includes('function draw'+label+'('),'missing '+label+' artwork');
+  assert.ok(source.includes('function briar('));
+  assert.ok(source.includes('function shade('));
+  assert.ok(!source.includes('fetch(')&&!source.includes('https://'));
+
 });
 test('real art renderer paints all six figure variants at minimum 38px tile',()=>{
   for(const s of [38,44,58,68]){

@@ -354,6 +354,7 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     setCommandOverlay(next){
       commandOverlay=next;
       const event=next?.visualEvent;
+      if(!event)lastFxToken=null;
       if(visible&&board&&isValidEffect(event)&&event.token!==lastFxToken){
         lastFxToken=event.token;
         cancelAnimationFrame(fxRequest);fx=null;
