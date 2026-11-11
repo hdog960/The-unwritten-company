@@ -92,6 +92,11 @@ commandRail=createCommandRail({
 });
 
 document.getElementById('start-skirmish').addEventListener('click',()=>{
-  if(document.getElementById('battle-surface').hidden)document.getElementById('battle-toggle').click();
-  commandRail?.beginSkirmish(document.getElementById('seed').value);
+  const seed=document.getElementById('seed').value;
+  if(document.getElementById('battle-surface').hidden){
+    document.getElementById('battle-toggle').click();
+    // Opening the board measures its live rectangle on the next animation frame.
+    // The skirmish must start only after that measurement has finished.
+    requestAnimationFrame(()=>commandRail?.beginSkirmish(seed));
+  }else commandRail?.beginSkirmish(seed);
 });
