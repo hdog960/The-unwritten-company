@@ -42,7 +42,8 @@ export function clothPose(id,pose=null){
  if(pose?.kind==='stagger'){fold=-.23*pulse;drop=.04*pulse;}
  if(pose?.kind==='move'){fold=.085*pulse;drop=-.045*pulse;}
  if(pose?.kind==='ward'){fold=-.07*pulse;drop=-.032*pulse;}
- return Object.freeze({fold:fold*item.direction,drop});
+ // Match the fully still frame exactly; negative zero is not a distinct pose.
+ return Object.freeze({fold:fold===0?0:fold*item.direction,drop:drop===0?0:drop});
 }
 export function clothShape(id,pose=null,layer='back'){
  const item=ink[id];if(!item||!['back','front','seam'].includes(layer))return null;
