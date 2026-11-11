@@ -10,7 +10,7 @@ assert.match(html,/No campaign playable yet/);
 assert.match(html,/viewport-fit=cover/);
 assert.match(html,/rel="manifest" href="\.\/manifest\.webmanifest"/);
 assert.match(html,/apple-touch-icon/);
-assert.match(html,/v0\.08/);
+assert.match(html,/v0\.09/);
 assert.match(html,/id="start-skirmish"/);
 assert.match(html,/id="combat-summary"/);
 assert.match(html,/id="command-move"/);
@@ -32,3 +32,11 @@ for (const file of ['README_START_HERE.md','DESIGN_BIBLE.md','UI_CONTROLS_AND_AR
   assert.ok(fs.statSync('docs/'+file).size>500,file+' must have meaningful content');
 }
 console.log('Foundation/PWA validation: 100 milestones, docs, icons, asset paths, responsive CSS — OK');
+
+const miniature=readFile('src/board/miniatures.js');
+const effects=readFile('src/board/effects.js');
+assert.match(miniature,/drawCaptain/);
+assert.match(miniature,/drawBrunna/);
+assert.match(miniature,/drawKess/);
+assert.match(miniature,/drawMirelle/);
+assert.match(effects,/EFFECT_DURATION_MS/);

@@ -227,3 +227,43 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
 
 /* v0.09 — touch gestures select a world tile only on stationary pointer release. */
 #battle-canvas{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+/* v0.09 GATE A: worn brass, stitched leather, etched enamel and four kit signatures.
+   No extra layout boxes, no controls inside the live battlefield. */
+.panel{
+  background:
+    radial-gradient(ellipse at 38% -22%,#74806a28 0,transparent 58%),
+    repeating-linear-gradient(32deg,transparent 0px,transparent 7px,#baa17807 8px,#070f1d08 10px),
+    linear-gradient(150deg,#343b43,#202c37 57%,#1b2632);
+  border-color:#a5865d;
+  box-shadow:inset 0 0 0 3px #dfc18f15,inset 0 0 18px #080d16a1,0 9px 24px #020b16a8;
+}
+.panel:before{border-color:#bda57354}
+.rail{background-image:linear-gradient(90deg,#080f1833,transparent 9%,transparent 90%,#080e1e3e)}
+.party-card{
+  background:linear-gradient(110deg,#4d514d,#293640 64%,#202d39);
+  border-left:3px solid #93744f;
+  box-shadow:inset 0 1px #f3d6a230,inset 0 -2px #0a18284d;
+}
+.party-card[data-member-id="captain"]{border-left-color:#78bcb5}
+.party-card[data-member-id="brunna"]{border-left-color:#d08b73}
+.party-card[data-member-id="kess"]{border-left-color:#91a578}
+.party-card[data-member-id="mirelle"]{border-left-color:#a89acb}
+.party-card[data-selected="true"]{
+  border-color:#f4d395;
+  background:linear-gradient(105deg,#716447,#3d4d49 62%,#2c3b47);
+  box-shadow:inset 0 0 0 1px #fff0b14f,0 0 0 1px #a08154,0 0 9px #e9c37a4a;
+}
+.portrait-frame{box-shadow:inset 0 0 0 1px #f5d59b44,0 2px 3px #07121fd4}
+.command-skill{border-left:3px solid #9e8058;box-shadow:inset 0 1px #f7e2b32f,inset 0 -2px #111c2873}
+.command-skill[data-ability-id="strike"]{border-left-color:#e7ac79}
+.command-skill[data-ability-id="spark"]{border-left-color:#9bd5d2}
+.command-skill[data-ability-id="ward"]{border-left-color:#c5b8e9}
+.command-skill[data-ability-id="sigil"]{border-left-color:#e8ca8d}
+.command-skill[data-selected="true"]{border-color:#f5d99d}
+.command-confirm{background:linear-gradient(#f1d69a,#b18c51);border-color:#ffdf9f}
+.command-cancel{border-color:#b2aaa0}
+.command-end-turn{background:linear-gradient(#9f6466,#713e49)}
+.right-rail.command-mode #combat-summary{color:#f4d99c}
+#battle-canvas:focus-visible{outline:3px solid #f5df9b;outline-offset:-6px}
+@media(prefers-reduced-motion:reduce){.party-card:active{transform:none}}
