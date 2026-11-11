@@ -151,3 +151,34 @@ button:hover{filter:brightness(1.09)}button:active{transform:translateY(1px);box
   .party-readout{font-size:9px;line-height:1.22;min-height:24px;padding:3px 4px}
   .party-disclaimer{display:none}
 }
+
+/* v0.05 — right-rail actionable command study. This rail is never over the map. */
+.right-rail.command-mode{padding:5px 7px 5px;gap:0;overflow-y:auto}
+.right-rail.command-mode .board-tool{display:flex;flex-direction:row;gap:5px;align-items:center;margin:0;padding:0;border-top:0;min-height:44px}
+.right-rail.command-mode .battle-toggle{flex:0 0 62px;width:62px;padding:3px;font:800 10px/1.12 system-ui,sans-serif;min-height:44px;height:44px;white-space:normal}
+.right-rail.command-mode .board-status{display:none}
+.right-rail.command-mode .ap-banner{display:flex!important;min-width:0;flex:1;flex-direction:column;justify-content:center;align-items:center;color:#f5ddb0;background:#263d3d;border:1px solid #ac9468;border-radius:5px;min-height:42px}
+.ap-value{font:800 14px/1.15 system-ui,sans-serif;color:#fbe4b5;white-space:nowrap}
+.turn-value{font:700 8px/1.25 system-ui,sans-serif;color:#a7d1c0;white-space:nowrap}
+.command-view{display:flex;flex-direction:column;gap:3px;min-height:0;flex:0 0 auto}
+.command-caption{margin:2px 0 0;font:800 8px/1 system-ui,sans-serif;letter-spacing:.07em;color:#c4ab84;text-align:center}
+.command-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
+.command-skill{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-width:0;width:100%;min-height:44px;height:44px;border:1px solid #7e886e;border-radius:5px;padding:2px 5px;background:linear-gradient(115deg,#46594d,#303e42);color:#f6e5c5;box-shadow:inset 0 1px #d8d9b020;line-height:1;touch-action:manipulation}
+.command-skill[data-selected="true"]{background:linear-gradient(115deg,#80683c,#444b3e);border:2px solid #f5d99d;padding:1px 4px}
+.command-skill:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.6)}
+.skill-symbol{position:absolute;top:4px;right:5px;font:700 14px/1 Georgia,serif;color:#e9ca86}
+.skill-name{display:block;font:700 11px/1.1 Georgia,serif;white-space:nowrap;max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis}
+.skill-cost{display:block;font:700 8px/1.15 system-ui,sans-serif;letter-spacing:.03em;color:#b9d9b7;margin-top:3px}
+.command-readout{height:28px;flex:0 0 28px;margin:0;padding:3px 4px;overflow-y:auto;border:1px solid #826b4a;border-radius:4px;background:#1b2933;color:#ede1c5;font:600 9px/1.12 system-ui,sans-serif}
+.command-decision{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.command-decision button,.command-end-turn{min-height:44px;height:44px;box-shadow:0 2px 0 #2d2530;border-radius:5px;padding:3px 4px;justify-content:center;font:800 11px/1 system-ui,sans-serif;touch-action:manipulation}
+.command-cancel{background:#3a4851;border:1px solid #b9b0a2;color:#f1e1ca}
+.command-confirm{background:linear-gradient(#dac18a,#9d8351);color:#1d2a30;border:1px solid #ecd2a0}
+.command-end-turn{background:linear-gradient(#8f5258,#6a3b46);border:1px solid #d8a09b;color:#f7e9da}
+.command-decision button:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+@media (orientation:landscape) and (max-height:460px){
+  .right-rail.command-mode{padding:4px 6px 4px}
+  .command-view{gap:2px}
+  .command-caption{margin:0}
+  .command-readout{height:27px;flex-basis:27px}
+}

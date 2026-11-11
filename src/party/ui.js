@@ -6,7 +6,7 @@ function node(tag,cls,text){
   if(text!==undefined)item.textContent=text;
   return item;
 }
-export function createPartyRail({chronicle,party,roster,readout}){
+export function createPartyRail({chronicle,party,roster,readout,onSelect=()=>{}}){
   let state=createPartyPreviewState();
   const buttons=[];
   for(const member of PARTY_SLOTS){
@@ -52,6 +52,7 @@ export function createPartyRail({chronicle,party,roster,readout}){
   function setSelected(id,focus=false){
     state=selectPartyMember(state,id);
     render();
+    onSelect(state.selectedId);
     if(focus)buttons.find(button=>button.dataset.memberId===state.selectedId)?.focus();
   }
   roster.addEventListener('keydown',event=>{

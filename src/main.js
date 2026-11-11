@@ -3,6 +3,7 @@ import { VERSION } from './content/catalog.js';
 import { initPwa } from './platform/pwa.js';
 import { createBoardPreview } from './board/scene.js';
 import { createPartyRail } from './party/ui.js';
+import { createCommandRail } from './commands/ui.js';
 
 const form = document.getElementById('preview-form');
 const input = document.getElementById('seed');
@@ -46,19 +47,42 @@ render();
 
 initPwa({online:document.getElementById('network-status'),offline:document.getElementById('offline-status')});
 
+let commandRail;
 const partyRail=createPartyRail({
   chronicle:document.getElementById('chronicle-view'),
   party:document.getElementById('party-view'),
   roster:document.getElementById('party-roster'),
-  readout:document.getElementById('party-readout')
+  readout:document.getElementById('party-readout'),
+  onSelect:id=>commandRail?.selectActor(id)
 });
 
-createBoardPreview({
+const boardPreview=createBoardPreview({
   stage:document.querySelector('.stage'),
   story:document.getElementById('story-view'),
   container:document.getElementById('battle-surface'),
   canvas:document.getElementById('battle-canvas'),
   toggle:document.getElementById('battle-toggle'),
   status:document.getElementById('battle-status'),
-  onModeChange:partyRail.setMode
+  onModeChange:isBoard=>{
+    partyRail.setMode(isBoard);
+    commandRail?.setMode(isBoard);
+  },
+  onCellSelect:(cell,board)=>commandRail?.targetCell(cell,board),
+  onBoardReady:board=>commandRail?.setBoard(board)
+});
+
+
+commandRail=createCommandRail({
+  rail:document.querySelector('.right-rail'),
+  story:document.getElementById('right-story'),
+  view:document.getElementById('command-view'),
+  toggle:document.getElementById('battle-toggle'),
+  apValue:document.getElementById('command-ap'),
+  turnValue:document.getElementById('command-turn'),
+  skillGrid:document.getElementById('command-skills'),
+  readout:document.getElementById('command-readout'),
+  confirm:document.getElementById('command-confirm'),
+  cancel:document.getElementById('command-cancel'),
+  endTurn:document.getElementById('command-end-turn'),
+  onOverlayChange:preview=>boardPreview?.setCommandOverlay(preview)
 });

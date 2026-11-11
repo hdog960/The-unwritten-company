@@ -129,11 +129,28 @@ function drawMiniature(ctx,rect,kind){
     line(ctx,[[cx+s*.14,cy+s*.02],[cx+s*.26,cy-s*.22]],'#d9d8bc',Math.max(1.5,s*.035));
   }
 }
-export function renderBoard(ctx,board,selection=null){
+export function renderBoard(ctx,board,selection=null,overlay=null){
   paintBackdrop(ctx,board);
   for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
     const rect=cellRect(board,col,row);
     drawTile(ctx,rect,getTile(row,col),row,col);
+  }
+  if(overlay?.command){
+    const origin=overlay.origin;
+    for(let row=0;row<board.rows;row++)for(let col=0;col<board.columns;col++){
+      const target={column:col,row};
+      const distance=Math.abs(origin.column-col)+Math.abs(origin.row-row);
+      const possible=overlay.command.target==='self'?distance===0:
+        distance>0&&distance<=overlay.command.range &&
+        !(overlay.command.id==='sigil'&&getTile(row,col)==='rubble');
+      if(!possible)continue;
+      const cell=cellRect(board,col,row);
+      const cx=cell.x+cell.width/2,cy=cell.y+cell.height/2;
+      ctx.fillStyle='#f9df9954';
+      ctx.beginPath();ctx.arc(cx,cy,Math.max(3,cell.width*.18),0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#f8e2a4aa';ctx.lineWidth=Math.max(1,cell.width*.018);
+      ctx.stroke();
+    }
   }
   const samples=[
     {col:Math.min(1,board.columns-1),row:board.rows-2,kind:'knight'},
@@ -141,13 +158,31 @@ export function renderBoard(ctx,board,selection=null){
     {col:board.columns-2,row:Math.min(1,board.rows-1),kind:'ward'}
   ];
   for(const sample of samples)drawMiniature(ctx,cellRect(board,sample.col,sample.row),sample.kind);
+  if(overlay?.command){
+    const originRect=cellRect(board,overlay.origin.column,overlay.origin.row);
+    if(originRect){
+      const s=originRect.width;
+      ctx.beginPath();ctx.arc(originRect.x+s*.5,originRect.y+s*.5,s*.31,0,Math.PI*2);
+      ctx.lineWidth=Math.max(2,s*.038);ctx.strokeStyle='#86e6d3';ctx.stroke();
+    }
+    if(overlay.target){
+      const rect=cellRect(board,overlay.target.column,overlay.target.row);
+      if(rect){
+        ctx.fillStyle=overlay.evaluation?.valid?'#8cf2d93b':'#f27b7845';
+        ctx.fillRect(rect.x+1,rect.y+1,rect.width-2,rect.height-2);
+        ctx.strokeStyle=overlay.evaluation?.valid?'#8dfbe1':'#ff8c80';
+        ctx.lineWidth=Math.max(2,rect.width*.045);
+        ctx.strokeRect(rect.x+3,rect.y+3,rect.width-6,rect.height-6);
+      }
+    }
+  }
   if(selection){
     const rect=cellRect(board,selection.column,selection.row);
     if(rect)drawSelection(ctx,rect);
   }
 }
-export function createBoardPreview({stage,story,container,canvas,toggle,status,onModeChange=()=>{}}){
-  let board=null,visible=false,selection=null;
+export function createBoardPreview({stage,story,container,canvas,toggle,status,onModeChange=()=>{},onCellSelect=()=>{},onBoardReady=()=>{}}){
+  let board=null,visible=false,selection=null,commandOverlay=null;
   const context=canvas.getContext('2d',{alpha:false});
   if(!context){status.textContent='Canvas preview unavailable on this device.';toggle.disabled=true;return;}
   const redraw=()=>{
@@ -160,7 +195,8 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     context.setTransform(canvas.width/bounds.width,0,0,canvas.height/bounds.height,0,0);
     board=measureBoard(bounds.width,bounds.height);
     if(selection&&(selection.column>=board.columns||selection.row>=board.rows))selection=null;
-    renderBoard(context,board,selection);
+    renderBoard(context,board,selection,commandOverlay);
+    onBoardReady(board);
     for(const [key,value] of Object.entries({columns:board.columns,rows:board.rows,tile:board.tile,offsetX:board.x,offsetY:board.y}))canvas.dataset[key]=String(value);
     canvas.dataset.rendered='true';
     updateStatus();
@@ -183,7 +219,8 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
     const candidate=hitTestBoard(board,point.x,point.y);
     if(!candidate)return;
     selection=candidate;
-    renderBoard(context,board,selection);
+    renderBoard(context,board,selection,commandOverlay);
+    onCellSelect(candidate,board);
     updateStatus();
   };
   const onPointer=event=>{
@@ -194,14 +231,14 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
   canvas.addEventListener('pointerdown',onPointer);
   canvas.addEventListener('keydown',event=>{
     if(!visible||!board)return;
-    if(event.key==='Escape'){event.preventDefault();selection=null;renderBoard(context,board,null);updateStatus();return;}
+    if(event.key==='Escape'){event.preventDefault();selection=null;renderBoard(context,board,null,commandOverlay);updateStatus();return;}
     const moves={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
     if(!moves[event.key]&&event.key!=='Enter'&&event.key!==' ')return;
     event.preventDefault();
     const [dx,dy]=moves[event.key]||[0,0];
     const current=selection||{column:Math.floor(board.columns/2),row:Math.floor(board.rows/2)};
     selection={column:Math.max(0,Math.min(board.columns-1,current.column+dx)),row:Math.max(0,Math.min(board.rows-1,current.row+dy))};
-    renderBoard(context,board,selection);updateStatus();
+    renderBoard(context,board,selection,commandOverlay);onCellSelect(selection,board);updateStatus();
   });
   toggle.addEventListener('click',()=>{
     visible=!visible;
@@ -217,4 +254,11 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status,o
   const observer=typeof ResizeObserver==='function'?new ResizeObserver(redraw):null;
   observer?.observe(stage);
   window.addEventListener('resize',redraw,{passive:true});
+  return Object.freeze({
+    getBoard:()=>board,
+    setCommandOverlay(next){
+      commandOverlay=next;
+      if(visible&&board)renderBoard(context,board,selection,commandOverlay);
+    }
+  });
 }

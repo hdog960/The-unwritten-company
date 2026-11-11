@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="masthead">
       <div class="brand"><span class="mark" aria-hidden="true">✧</span><div><span class="eyebrow">THE ADVENTURERS' GUILD OF BELLWETHER</span><h1>The Unwritten Company</h1></div></div>
-      <div class="build-pill" aria-label="Current development version">v0.04 <span>Party portrait study • No campaign playable yet</span></div>
+      <div class="build-pill" aria-label="Current development version">v0.05 <span>Tactical command study • No campaign playable yet</span></div>
     </header>
     <main class="table" id="main">
       <aside class="rail panel left-rail" aria-labelledby="chronicle-heading">
@@ -86,28 +86,43 @@
           <canvas id="battle-canvas" tabindex="0" role="img" aria-label="Illustrated tactical terrain study; use arrow keys to inspect tiles" aria-describedby="battle-status">The tactical preview uses a canvas; your browser does not support it.</canvas>
         </div>
       </section>
-      <aside class="rail panel right-rail" aria-labelledby="contract-heading">
-        <p class="eyebrow">GUILD LEDGER · PROTOTYPE</p>
-        <h2 id="contract-heading">A story seed</h2>
+      <aside class="rail panel right-rail" aria-label="Guild ledger and tactical command rail">
         <div class="board-tool">
           <button type="button" id="battle-toggle" class="battle-toggle" aria-pressed="false" aria-controls="battle-surface">Inspect tactical table</button>
           <p id="battle-status" class="board-status" aria-live="polite">An original miniature-styled tactical terrain preview; no combat yet.</p>
+          <div class="ap-banner" aria-label="Remaining demonstration action points" hidden>
+            <strong id="command-ap" class="ap-value">2/2 AP</strong>
+            <span id="command-turn" class="turn-value">Study turn 1</span>
+          </div>
         </div>
-        <p class="small-copy">Try a deterministic glimpse of the campaign generator's future inputs. <strong>This is a design preview, not a playable campaign.</strong></p>
-        <form id="preview-form">
-          <label for="seed">Chronicle seed</label>
-          <input id="seed" name="seed" maxlength="32" value="Lantern-001" autocomplete="off" spellcheck="false">
-          <button type="submit" id="roll">Preview a contract <span aria-hidden="true">↗</span></button>
-        </form>
-        <section id="preview" class="preview" aria-live="polite" aria-atomic="true">
-          <p class="preview-label">Awaiting a seed</p>
-          <p class="preview-empty">A thousand possible troubles await your signature.</p>
+        <section id="right-story" class="right-story">
+          <p class="eyebrow">GUILD LEDGER · PROTOTYPE</p>
+          <h2 id="contract-heading">A story seed</h2>
+          <p class="small-copy">Try a deterministic glimpse of the campaign generator's future inputs. <strong>This is a design preview, not a playable campaign.</strong></p>
+          <form id="preview-form">
+            <label for="seed">Chronicle seed</label>
+            <input id="seed" name="seed" maxlength="32" value="Lantern-001" autocomplete="off" spellcheck="false">
+            <button type="submit" id="roll">Preview a contract <span aria-hidden="true">↗</span></button>
+          </form>
+          <section id="preview" class="preview" aria-live="polite" aria-atomic="true">
+            <p class="preview-label">Awaiting a seed</p>
+            <p class="preview-empty">A thousand possible troubles await your signature.</p>
+          </section>
+          <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.05</div>
         </section>
-        
-        <div class="rail-foot right-foot">FOUNDATION ONLY <span>✧</span> v0.04</div>
+        <section id="command-view" class="command-view" aria-label="Two-action-point tactical preview controls" hidden>
+          <p class="command-caption">COMMAND STUDY · NO DAMAGE</p>
+          <div class="command-grid" id="command-skills" role="group" aria-label="Four preview abilities"></div>
+          <p id="command-readout" class="command-readout" aria-live="polite" aria-atomic="true">Select an ability to preview a tile.</p>
+          <div class="command-decision">
+            <button type="button" id="command-cancel" class="command-cancel" disabled>Cancel</button>
+            <button type="button" id="command-confirm" class="command-confirm" disabled>Confirm</button>
+          </div>
+          <button type="button" id="command-end-turn" class="command-end-turn">End Study Turn</button>
+        </section>
       </aside>
     </main>
-    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.04: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
+    <footer class="footer"><span>AN ORIGINAL STORYBOOK TACTICAL ROGUELIKE</span><span>v0.05: ARCHITECTURE / STORY SEED PREVIEW</span></footer>
   </div>
   <div class="portrait-notice" role="note">Turn your phone sideways to view the adventurer's command table.</div>
 </body>
