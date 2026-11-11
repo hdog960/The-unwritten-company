@@ -1,10 +1,12 @@
 /* Static-project scoped, offline-first asset storage; no runtime AI or paid backend. */
 const CACHE_PREFIX = 'tuc-foundation-';
-const CACHE_NAME = CACHE_PREFIX + 'v0.03';
+const CACHE_NAME = CACHE_PREFIX + 'v0.04';
 const CORE_ASSETS = [
   './','./index.html','./styles.css','./manifest.webmanifest',
   './src/main.js','./src/content/catalog.js','./src/engine/state.js',
-  './src/engine/random.js','./src/board/geometry.js','./src/board/scene.js','./src/platform/pwa.js','./src/platform/paths.js',
+  './src/engine/random.js','./src/board/geometry.js','./src/board/scene.js',
+  './src/party/model.js','./src/party/ui.js',
+  './art/portraits/captain.svg','./art/portraits/brunna.svg','./art/portraits/kess.svg','./art/portraits/mirelle.svg','./src/platform/pwa.js','./src/platform/paths.js',
   './icons/company-mark-192.png','./icons/company-mark-512.png','./icons/apple-touch-icon.png'
 ];
 

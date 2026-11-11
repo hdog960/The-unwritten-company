@@ -146,7 +146,7 @@ export function renderBoard(ctx,board,selection=null){
     if(rect)drawSelection(ctx,rect);
   }
 }
-export function createBoardPreview({stage,story,container,canvas,toggle,status}){
+export function createBoardPreview({stage,story,container,canvas,toggle,status,onModeChange=()=>{}}){
   let board=null,visible=false,selection=null;
   const context=canvas.getContext('2d',{alpha:false});
   if(!context){status.textContent='Canvas preview unavailable on this device.';toggle.disabled=true;return;}
@@ -210,6 +210,7 @@ export function createBoardPreview({stage,story,container,canvas,toggle,status})
     container.hidden=!visible;
     toggle.textContent=visible?'Return to Inkfall House':'Inspect tactical table';
     toggle.setAttribute('aria-pressed',String(visible));
+    onModeChange(visible);
     if(visible)requestAnimationFrame(redraw);
     else status.textContent='An original miniature-styled tactical terrain preview; no combat yet.';
   });

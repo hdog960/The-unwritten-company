@@ -78,11 +78,11 @@ async function main(){
     };
     const ready=async ()=>{
       for(let attempt=0;attempt<100;attempt++){
-        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.03'");
+        const state=await run("document.readyState==='complete' && document.documentElement.dataset.release==='0.04'");
         if(state)return;
         await delay(100);
       }
-      throw new Error('v0.03 page did not initialize');
+      throw new Error('v0.04 page did not initialize');
     };
     await cdp('Runtime.enable');
     await cdp('Page.enable');
@@ -146,6 +146,37 @@ async function main(){
       assert.equal(tapped.c,'0','pointer hit-test column incorrect');
       assert.equal(tapped.r,'0','pointer hit-test row incorrect');
       assert.ok(tapped.text.includes('Selected column 1, row 1'),'status not updated from real pointer hit');
+
+      const partyInfo=await run("(()=>{const cards=[...document.querySelectorAll('#party-roster .party-card')],rail=document.querySelector('.left-rail').getBoundingClientRect(),roster=document.querySelector('#party-roster').getBoundingClientRect();return {count:cards.length,ids:cards.map(x=>x.dataset.memberId),pressed:cards.filter(x=>x.getAttribute('aria-pressed')==='true').map(x=>x.dataset.memberId),hidden:document.getElementById('party-view').hidden,chronicleHidden:document.getElementById('chronicle-view').hidden,buttons:cards.map(x=>{const r=x.getBoundingClientRect();return {width:r.width,height:r.height,bottom:r.bottom,top:r.top,visible:r.bottom<=rail.bottom+1 && r.top>=rail.top-1,portraitLoaded:x.querySelector('img')?.complete&&x.querySelector('img')?.naturalWidth>0}}),railBottom:rail.bottom,rosterBottom:roster.bottom};})()");
+      assert.equal(partyInfo.count,4,'four party slots required');
+      assert.deepEqual(partyInfo.ids,['captain','brunna','kess','mirelle']);
+      assert.deepEqual(partyInfo.pressed,['captain'],'custom hero initially active');
+      assert.equal(partyInfo.hidden,false,'party rail did not appear in battle');
+      assert.equal(partyInfo.chronicleHidden,true,'chronicle should be hidden while party rail is active');
+      for(const b of partyInfo.buttons){
+        assert.ok(b.width>=90,'party button too narrow for touch');
+        assert.ok(b.height>=44,'party button below touch target size');
+        assert.ok(b.visible,'party button not visible in left rail without scroll');
+        assert.ok(b.portraitLoaded,'party artwork failed to load');
+      }
+      assert.ok(partyInfo.rosterBottom<=partyInfo.railBottom+1,'party list exceeds visible left rail');
+      // CDP pointer input on the actual rendered party button, not element.click().
+      const brunna=await run("(()=>{const r=document.querySelector('[data-member-id=\"brunna\"]').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()");
+      await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:brunna.x,y:brunna.y,button:'left',buttons:1,clickCount:1});
+      await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:brunna.x,y:brunna.y,button:'left',buttons:0,clickCount:1});
+      const activeBrunna=await run("(()=>({id:document.querySelector('#party-roster').dataset.selectedId,pressed:[...document.querySelectorAll('#party-roster .party-card')].filter(x=>x.getAttribute('aria-pressed')==='true').map(x=>x.dataset.memberId),readout:document.querySelector('#party-readout').textContent}))()");
+      assert.equal(activeBrunna.id,'brunna','pointer selection did not activate Brunna');
+      assert.deepEqual(activeBrunna.pressed,['brunna'],'only Brunna may be selected');
+      assert.match(activeBrunna.readout,/Brunna.*24\/24 HP.*Study only/);
+      await run("document.querySelector('[data-member-id=\"brunna\"]').focus()");
+      await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
+      await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
+      assert.equal(await run("document.querySelector('#party-roster').dataset.selectedId"),'kess','keyboard navigation did not select Kess');
+      await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'End',code:'End',windowsVirtualKeyCode:35});
+      await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'End',code:'End',windowsVirtualKeyCode:35});
+      assert.equal(await run("document.querySelector('#party-roster').dataset.selectedId"),'mirelle','keyboard End did not select Mirelle');
+      console.log('Party PASS',width+'x'+height,'four visible portraits, status, pointer and keyboard selection');
+
       console.log('Battle PASS',width+'x'+height,'grid='+boardMetrics.cols+'x'+boardMetrics.rows,'cell='+boardMetrics.tile.toFixed(1),'canvas='+boardMetrics.board.width.toFixed(0)+'x'+boardMetrics.board.height.toFixed(0));
       if(width===844){
         await fsp.mkdir('artifacts',{recursive:true});
@@ -153,6 +184,9 @@ async function main(){
         await fsp.writeFile('artifacts/battle-844x390.png',Buffer.from(battleImage.data,'base64'));
       }
       assert.equal(await run("(()=>{document.getElementById('battle-toggle').click();return document.getElementById('battle-surface').hidden&&document.getElementById('story-view').hidden===false;})()"),true,'return-to-landing toggle did not restore story art');
+      assert.equal(await run("document.getElementById('chronicle-view').hidden && !document.getElementById('party-view').hidden"),false,'party rail should hide when returning to chronicle');
+      assert.equal(await run("document.getElementById('party-view').hidden && !document.getElementById('chronicle-view').hidden"),true,'chronicle was not restored');
+
       if(width===844){
         await fsp.mkdir('artifacts',{recursive:true});
         const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
@@ -179,6 +213,10 @@ async function main(){
     await run("document.getElementById('battle-toggle').click()");
     for(let n=0;n<25;n++){if(await run("document.querySelector('#battle-canvas').dataset.rendered==='true'"))break;await delay(80)}
     assert.equal(await run("document.querySelector('#battle-canvas').dataset.rendered"),'true','offline board was missing cached JS modules');
+    assert.equal(await run("document.querySelectorAll('#party-roster .party-card img').length"),4,'offline party portraits missing');
+    const offlinePortraits=await run("([...document.querySelectorAll('#party-roster .portrait-image')].map(x=>x.complete&&x.naturalWidth>0))");
+    assert.ok(offlinePortraits.every(Boolean),'offline portrait images not cached');
+
     console.log('Browser PASS offline tactical art preview renderer');
     console.log('Browser PASS offline cached launch with service worker');
     await cdp('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
