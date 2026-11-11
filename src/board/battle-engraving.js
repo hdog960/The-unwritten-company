@@ -100,7 +100,7 @@ export function paintTravelEngraving(ctx,board,overlay){
   if(!ctx||!board||overlay?.mode!=='movement')return false;
   const destination=tileCenter(board,overlay.target);
   const route=Array.isArray(overlay.evaluation?.path)?
-    overlay.evaluation.path.map(p=>tileCenter(board,p)):[];
+    overlay.evaluation.path.map(p=>tileCenter(board,p)).filter(Boolean):[];
   if(!destination&&!route.length)return false;
   const valid=overlay.evaluation?.valid===true,color=valid?COLORS.travel:COLORS.blocked;
   const s=board.tile;
