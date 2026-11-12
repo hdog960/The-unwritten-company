@@ -42,7 +42,7 @@ const dot=(ctx,x,y,r,color)=>{
 export function combatScriptGeometry(mark,progress=.5,phase='flight'){
  const style=combatScriptStyle(mark);
  if(!style||!['flight','impact'].includes(phase))return null;
- const t=clamp(progress),scale=phase==='flight'?.76:.98;
+ const t=clamp(progress),scale=phase==='flight'?.76:.52;
  const q=pts=>Object.freeze(pts.map(([x,y])=>Object.freeze([x*scale,y*scale])));
  let strokes,shapes;
  if(style==='strike'){
@@ -97,8 +97,11 @@ export function paintCombatScript(ctx,focal,mark,progress,phase='flight'){
  const {x,y,s}=focal,p=clamp(progress),colors=PALETTES[geometry.style];
  ctx.save();
  ctx.beginPath();ctx.rect(x-s*.4,y-s*.4,s*.8,s*.8);ctx.clip();
- ctx.translate(x,y);ctx.scale(s/100,s/100);
- ctx.globalAlpha=phase==='flight'?.92:.77*(1-.48*p);
+ // The impact witness remains in the LOWER-RIGHT margin of the tile rather
+ // than drawing over the target miniature's head/face/eye expressions.
+ ctx.translate(x+(phase==='impact'?s*.16:0),y+(phase==='impact'?s*.18:0));
+ ctx.scale(s/100,s/100);
+ ctx.globalAlpha=phase==='flight'?.92:.68*(1-.48*p);
  if(geometry.kind==='miss')ctx.globalAlpha*=.7;
  for(const stroke of geometry.strokes){
   // Two inks produce true raised letterpress structure and contrast against

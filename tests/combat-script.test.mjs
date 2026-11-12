@@ -63,6 +63,26 @@ test('a true miss paints broken light ink and never an impact seal or critical s
   assert.notDeepEqual(missed,hit);
  }
 });
+test('impact manuscript seal is small and confined below the target face, with no false HUD square',()=>{
+ for(const style of COMBAT_SCRIPT_STYLES){
+  const markSource=mark(style,'critical'),geometry=combatScriptGeometry(markSource,.65,'impact');
+  for(const size of [38,44,51,70]){
+   const center={x:100,y:120,s:size},ctx=ink();
+   assert.equal(paintCombatScript(ctx,center,markSource,.65,'impact'),true);
+   const move=ctx.calls.find(x=>x[0]==='translate');
+   assert.ok(move);
+   assert.equal(move[1],center.x+size*.16);
+   assert.equal(move[2],center.y+size*.18);
+   for(const piece of [...geometry.strokes,...geometry.shapes])for(const [x,y] of piece){
+    const worldX=move[1]+x*size/100,worldY=move[2]+y*size/100;
+    assert.ok(worldX>=center.x-.02*size&&worldX<=center.x+.4*size);
+    assert.ok(worldY>=center.y-.02*size&&worldY<=center.y+.4*size,
+     'no original impact ink should paint through the face above tile center');
+   }
+   balanced(ctx);
+  }
+ }
+});
 test('four skill materials draw deterministic local Canvas art at every phone tile size',()=>{
  for(const size of [38,44,51,70]){
   for(const style of COMBAT_SCRIPT_STYLES){
