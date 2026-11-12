@@ -15,6 +15,8 @@ function ink(){
  'rect','clip','fill','stroke','fillRect','strokeRect','strokeRect','translate','scale',
  'setLineDash','quadraticCurveTo','bezierCurveTo'])
   ctx[method]=(...args)=>calls.push([method,...args]);
+ // Capture actual ink weight and color so a real painted flash is measured.
+ ctx.stroke=()=>calls.push(['stroke',ctx.lineWidth,ctx.strokeStyle]);
  ctx.createRadialGradient=()=>({addColorStop(){}});
  ctx.createLinearGradient=()=>({addColorStop(){}});
  return ctx;
