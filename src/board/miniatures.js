@@ -7,6 +7,7 @@ import {figureBeat} from './combat-beats.js';
 import {paintGestureJoints} from './pose-gestures.js';
 import {paintFigureCondition} from './figure-condition.js';
 import {paintFigureRelief} from './figure-relief.js';
+import {paintFigureEdgeInk} from './figure-edge-ink.js';
 import {paintVisage} from './visages.js';
 export const HERO_SILHOUETTES=Object.freeze(['captain','brunna','kess','mirelle']);
 export const FOE_SILHOUETTES=Object.freeze(['briar','shade']);
@@ -275,6 +276,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null,condition={}){
   paintVisage(ctx,id,pose,{...condition,fallen});
   paintArticulatedCloth(ctx,id,pose,'front');
   paintFigureRelief(ctx,id,pose,'finish',fallen);
+  paintFigureEdgeInk(ctx,id,pose,{fallen});
   paintFigureCondition(ctx,id,{...condition,fallen,pose});
   paintGestureJoints(ctx,id,pose);
   paintWeaponRig(ctx,id,pose);
@@ -338,6 +340,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   paintVisage(ctx,foe.id,pose,{hp:foe.hp,maxHp:foe.maxHp});
   paintArticulatedCloth(ctx,foe.id,pose,'front');
   paintFigureRelief(ctx,foe.id,pose,'finish');
+  paintFigureEdgeInk(ctx,foe.id,pose,{fallen:foe.hp<=0});
   paintFigureCondition(ctx,foe.id,{hp:foe.hp,maxHp:foe.maxHp,pose});
   paintGestureJoints(ctx,foe.id,pose);
   paintWeaponRig(ctx,foe.id,pose);
