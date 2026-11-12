@@ -560,6 +560,17 @@ async function main(){
       assert.ok(intentions.every(i=>symbols.text.includes(i.attack?'!':'→')),'attack and movement use distinguishable non-color symbols');
       const artSource=await run("performance.getEntriesByType('resource').filter(x=>x.name.includes('/src/board/diorama.js')).length");
       assert.ok(artSource>=1,'the new world-art module must actually load in the browser, not just in a unit test');
+      const enemyWitnessLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/intent-witnesses.js'))");
+      assert.equal(enemyWitnessLoaded,true,'two actual foe signature plates must load on real Chromium page');
+      const enemyWitnessMarks=await run("(async()=>{const {intentWitnessPlan}=await import('./src/board/intent-witnesses.js');const {measureBoard}=await import('./src/board/geometry.js');const c=document.querySelector('#battle-canvas'),b=c.getBoundingClientRect(),board=measureBoard(b.width,b.height),view=document.querySelector('#command-view'),summary=document.querySelector('#combat-summary');const intents=JSON.parse(summary.dataset.intents),foes=JSON.parse(summary.dataset.foes),targets=Object.fromEntries(foes.map(f=>[f.id,{id:f.id,hp:f.hp,position:{column:f.col,row:f.row}}]));return intentWitnessPlan(board,intents,JSON.parse(view.dataset.positions),targets,JSON.parse(view.dataset.partyHp)).map(x=>({id:x.foeId,attack:x.attack,kind:x.kind,row:x.row,column:x.column}));})()",true);
+      assert.equal(enemyWitnessMarks.length,2,'both genuine living enemy stamps must be present');
+      assert.deepEqual(new Set(enemyWitnessMarks.map(x=>x.id)),new Set(['briar','shade']));
+      assert.equal(enemyWitnessMarks.find(x=>x.id==='briar')?.kind,'thorn-press');
+      assert.equal(enemyWitnessMarks.find(x=>x.id==='shade')?.kind,'fractured-bell');
+      assert.ok(enemyWitnessMarks.every(x=>intentions.some(y=>y.foeId===x.id&&y.attack===x.attack&&y.from.row===x.row&&y.from.column===x.column)),
+        'signature and attack status must match the real enemy intent provenance');
+      console.log('Intent witness PASS',width+'x'+height,'two living sourced enemy identities, actual attack status and distinct Canvas art');
+
       const quillModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/quill.js'))");
       assert.equal(quillModuleLoaded,true,'world-space target quill must be loaded on the actual iPhone-sized page');
 
