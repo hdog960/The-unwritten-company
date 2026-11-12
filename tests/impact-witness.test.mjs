@@ -111,7 +111,7 @@ test('new actor-specific hit feedback has no browser APIs or independent timelin
   'addEventListener', 'localStorage', 'document.', 'window.', 'AudioContext'])
   assert.ok(!src.includes(forbidden),'unexpected input dependency: '+forbidden);
  const sw=fs.readFileSync('service-worker.js','utf8');
- assert.ok(sw.includes('v0.09-gate-a29-r1'));
+ assert.ok(sw.includes('v0.09-gate-a30-r1'));
  assert.equal(sw.split("'./src/board/impact-witness.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
 });

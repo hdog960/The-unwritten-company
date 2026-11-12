@@ -178,3 +178,8 @@ const glyphFolioSource=fs.readFileSync('src/board/glyph-folios.js','utf8');
 assert.match(glyphFolioSource,/glyphFolioPlan/);
 assert.match(glyphFolioSource,/paintGlyphFolios/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintGlyphFolios\(ctx,board,getTile\)/);
+
+const threatStitchSource=fs.readFileSync('src/board/threat-threadwork.js','utf8');
+assert.match(threatStitchSource,/threatThreadPlan/);
+assert.match(threatStitchSource,/paintThreatThreadwork/);
+assert.match(fs.readFileSync('src/board/battle-engraving.js','utf8'),/paintThreatThreadwork\(ctx,board,marks,positions\)/);
