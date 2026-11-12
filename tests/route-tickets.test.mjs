@@ -104,7 +104,7 @@ test('painting never depends on true random timing, DOM, extra controls, fetch o
  const source=fs.readFileSync('src/board/route-tickets.js','utf8');
  for(const x of ['Math.random','fetch(','window.','document.','setTimeout','setInterval','requestAnimationFrame','localStorage','AudioContext','addEventListener'])assert.ok(!source.includes(x),x);
  const worker=fs.readFileSync('service-worker.js','utf8');
- assert.ok(worker.includes('v0.09-gate-a27-r1'));
+ assert.ok(worker.includes('v0.09-gate-a28-r1'));
  assert.equal(worker.split("'./src/board/route-tickets.js'").length-1,1);
  assert.ok(!worker.includes('skipWaiting('));
 });
