@@ -111,3 +111,10 @@ assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintActionSeal/);
 const conditionArt=fs.readFileSync('src/board/figure-condition.js','utf8');
 assert.match(conditionArt,/paintFigureCondition/);
 assert.match(miniature,/paintFigureCondition/);
+
+const sculpturalInk=fs.readFileSync('src/board/figure-relief.js','utf8');
+const tileBevelInk=fs.readFileSync('src/board/tile-relief.js','utf8');
+assert.match(sculpturalInk,/paintFigureRelief/);
+assert.match(tileBevelInk,/paintTileRelief/);
+assert.match(miniature,/paintFigureRelief/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintTileRelief/);
