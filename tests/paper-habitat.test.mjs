@@ -111,7 +111,7 @@ test('real battle scene preserves game state and draws habitat before target/uni
  assert.ok(habitat<scene.indexOf('paintTargetIndicators(ctx,board'));
  assert.ok(habitat<scene.indexOf('drawHero(ctx,rect,id'));
  assert.ok(habitat<scene.indexOf('drawFoe(ctx,rect,foe'));
- assert.match(scene,/Object\.values\(overlay\?\.positions\?\?\{\}\)/);
+ assert.match(scene,/physicalHabitatCells\(\s*board,overlay\?\.positions,overlay\?\.targets,frame\)/,'scene must supply actual actor positions, living foes and the committed animation frame');
 });
 test('new habitat art has no networking, interaction or independent animation clock',()=>{
  const source=fs.readFileSync('src/board/paper-habitat.js','utf8');
