@@ -143,7 +143,7 @@ test('all four assets are offline pure drawing with no timers, random, network, 
   'requestAnimationFrame','localStorage','AudioContext','addEventListener'])assert.ok(!source.includes(s),s);
  assert.ok(!source.includes('strokeRect('));
  assert.ok(!source.includes('targetIndicators'));
- assert.ok(sw.includes('v0.09-gate-a28-r1'));
+ assert.ok(sw.includes('v0.09-gate-a29-r1'));
  assert.equal(sw.split("'./src/board/scenery.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
 });
