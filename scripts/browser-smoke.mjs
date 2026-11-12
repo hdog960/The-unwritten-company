@@ -144,6 +144,13 @@ async function main(){
       }
       const boardMetrics=await run("(()=>{const canvas=document.getElementById('battle-canvas');const board=canvas.getBoundingClientRect();const stage=document.querySelector('.stage').getBoundingClientRect();const left=document.querySelector('.left-rail').getBoundingClientRect(),right=document.querySelector('.right-rail').getBoundingClientRect();return {board:{left:board.left,top:board.top,right:board.right,bottom:board.bottom,width:board.width,height:board.height},stage:{left:stage.left,top:stage.top,right:stage.right,bottom:stage.bottom},leftRight:left.right,rightLeft:right.left,cols:+canvas.dataset.columns,rows:+canvas.dataset.rows,tile:+canvas.dataset.tile,x:+canvas.dataset.offsetX,y:+canvas.dataset.offsetY,bufferWidth:canvas.width,bufferHeight:canvas.height,rendered:canvas.dataset.rendered,pixels:(()=>{const ctx=canvas.getContext('2d');const data=ctx.getImageData(Math.floor(canvas.width/2),Math.floor(canvas.height/2),1,1).data;return [...data]})()};})()");
       assert.equal(boardMetrics.rendered,'true','canvas did not paint');
+      // Inspect the exact module that the real Canvas imports, at every
+      // native landscape size. This is a browser source-and-material check,
+      // not a claim of physical Safari approval.
+      const stoneInk=await run("(async()=>{const m=await import('./src/board/stone-strata.js');const p=m.stoneStrataPlan({x:0,y:0,width:44,height:44},0,0);return {count:m.STONE_STRATA_STYLES.length,type:p.style,strokes:p.seam.length}})()",true);
+      assert.equal(stoneInk.count,4,'original multi-style stone module must run in Chromium');
+      assert.ok(stoneInk.type&&stoneInk.strokes===5,'physical stone cut is absent in browser');
+
       assert.ok(boardMetrics.cols>=4&&boardMetrics.cols<=8,'columns outside supported range');
       assert.ok(boardMetrics.rows>=3&&boardMetrics.rows<=6,'rows outside supported range');
       assert.ok(boardMetrics.tile>=38,'tile size is not finger-readable at '+width+'x'+height);
