@@ -19,10 +19,17 @@ export function foldedShadowProfile(id,pose=null){
   let lean=0,lift=0;
   if(pose?.kind==='attack'){
     const swing=attackBeat(clamp(pose.progress)).sweep;
-    lean=.045*swing;lift=.018*Math.abs(swing);
+    lean=.045*swing*(pose?.bearing?.role==='attack'&&pose.bearing.x<0?-1:1);
+    lift=.018*Math.abs(swing);
   }
-  if(pose?.kind==='recoil'){lean=-.065*t;lift=-.012*t;}
-  if(pose?.kind==='stagger'){lean=-.08*t;lift=-.020*t;}
+  if(pose?.kind==='recoil'){
+    lean=pose?.bearing?.role==='impact'?.065*pose.bearing.x*t:-.065*t;
+    lift=-.012*t;
+  }
+  if(pose?.kind==='stagger'){
+    lean=pose?.bearing?.role==='impact'?.08*pose.bearing.x*t:-.08*t;
+    lift=-.020*t;
+  }
   if(pose?.kind==='move'){lean=.012*t;lift=.03*t;}
   if(pose?.kind==='ward'){lean=0;lift=.018*t;}
   return Object.freeze(outline.map(([x,y],i)=>Object.freeze([
