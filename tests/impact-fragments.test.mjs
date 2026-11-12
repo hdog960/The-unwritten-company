@@ -6,7 +6,7 @@ import {drawWorldEffect,EFFECT_DURATION_MS} from '../src/board/effects.js';
 const ink=()=>{
  const calls=[],ctx={calls,globalAlpha:1};
  for(const key of ['save','restore','beginPath','closePath','moveTo','lineTo','quadraticCurveTo',
-  'bezierCurveTo','arc','ellipse','rect','clip','fill','stroke','setLineDash'])
+  'bezierCurveTo','arc','ellipse','rect','clip','fill','stroke','translate','scale','setLineDash'])
   ctx[key]=(...args)=>calls.push([key,...args]);
  return ctx;
 };

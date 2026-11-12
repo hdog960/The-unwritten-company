@@ -19,6 +19,7 @@ import {paintPuppetShadow} from './paper-puppets.js';
 import {paintActionSeal} from './action-seals.js';
 import {paintTileRelief} from './tile-relief.js';
 import {paintPaperHabitat} from './paper-habitat.js';
+import {paintMiniatureMatte} from './miniature-matte.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -184,6 +185,18 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   const vignetteOccupants={...(overlay?.positions??{})};
   for(const [id,foe] of Object.entries(overlay?.targets??{}))if(foe.hp>0)vignetteOccupants['foe:'+id]=foe.position;
   paintFloorVignettes(ctx,board,vignetteOccupants);
+  // Hand-cut paper pockets isolate tiny miniature silhouettes from busy water
+  // and ivy. They stay under ALL true target/intent marks and native figures.
+  for(const [id,point] of Object.entries(overlay?.positions??{})){
+    const rect=cellRect(board,point.column,point.row);
+    if(rect)paintMiniatureMatte(ctx,rect,id,getTile(point.row,point.column),
+      {fallen:(overlay?.partyHp?.[id]??1)<=0});
+  }
+  for(const foe of Object.values(overlay?.targets??{})){
+    const point=foe.position,rect=cellRect(board,point.column,point.row);
+    if(rect)paintMiniatureMatte(ctx,rect,foe.id,getTile(point.row,point.column),
+      {fallen:foe.hp<=0});
+  }
   // Only the command engine's *actual legal* cells glow, above floor artwork
   // but beneath the miniatures. Invalid / empty live-battle tiles stay dark.
   paintTargetIndicators(ctx,board,overlay?.targetIndicators);

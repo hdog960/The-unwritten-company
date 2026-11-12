@@ -5,6 +5,7 @@
 import {cellRect} from './geometry.js';
 import {visibleMarks} from './choreography.js';
 import {paintImpactFragments} from './impact-fragments.js';
+import {paintCombatScript} from './combat-script.js';
 export const EFFECT_KINDS=Object.freeze(['hit','critical','miss','ward','move','enemy-phase']);
 export const EFFECT_DURATION_MS=490;
 export function isValidEffect(event){
@@ -70,10 +71,14 @@ function channel(ctx,board,mark,p){
     ctx.lineCap='round';ctx.stroke();
     ctx.beginPath();ctx.arc(tx,ty,s*(.045+head*.035),0,Math.PI*2);
     ctx.fillStyle='#fff3d1';ctx.fill();
+    // Original four-way spell paper cutouts travel with the actual projectile.
+    paintCombatScript(ctx,{x:tx,y:ty,s},mark,travel,'flight');
   }
   if(p>.46){
     ctx.globalAlpha=1-.18*impact;
     flash(ctx,dest.x,dest.y,s,impact,mark.kind);
+    // Real impact provenance only; a miss shows a broken, non-contact nib.
+    paintCombatScript(ctx,{x:dest.x,y:dest.y,s},mark,impact,'impact');
     // Tiny physical paper flecks trail the actual impact window, never the windup.
     if(impact>0)paintImpactFragments(ctx,board,mark,impact);
     if(mark.skillId==='sigil'&&mark.kind!=='miss'){
