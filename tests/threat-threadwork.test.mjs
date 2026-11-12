@@ -149,7 +149,7 @@ test('pure local source and strict PWA cache prevent network, clock, DOM and sta
  for(const banned of ['Math.random','fetch(','window.','document.','setInterval','setTimeout',
  'requestAnimationFrame','localStorage','AudioContext','addEventListener'])
   assert.ok(!source.includes(banned),banned);
- assert.ok(sw.includes('v0.09-gate-a30-r1'));
+ assert.ok(sw.includes('v0.09-gate-a31-r1'));
  assert.equal(sw.split("'./src/board/threat-threadwork.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
 });
