@@ -134,3 +134,10 @@ assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintPaperHabitat/);
 const figureEdgeSource=fs.readFileSync('src/board/figure-edge-ink.js','utf8');
 assert.match(figureEdgeSource,/paintFigureEdgeInk/);
 assert.match(miniature,/paintFigureEdgeInk/);
+
+const skillScript=fs.readFileSync('src/board/combat-script.js','utf8');
+const paperMatte=fs.readFileSync('src/board/miniature-matte.js','utf8');
+assert.match(skillScript,/paintCombatScript/);
+assert.match(paperMatte,/paintMiniatureMatte/);
+assert.match(fs.readFileSync('src/board/effects.js','utf8'),/paintCombatScript/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintMiniatureMatte/);
