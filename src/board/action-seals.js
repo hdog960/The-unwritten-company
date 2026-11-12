@@ -70,10 +70,11 @@ export function paintActionSeal(ctx,rect,id,pose,{fallen=false}={}){
  // pointing right when an attack is actually aimed left/up/down.
  if(pose?.kind==='attack'&&pose?.bearing?.role==='attack'){
   const {x:dx,y:dy}=pose.bearing,px=-dy,py=dx;
-  const root=p(0,.11),tip=p(dx*.19,dy*.15+.11);
-  const wingA=p(dx*.145+px*.038,dy*.115+py*.038+.11);
-  const wingB=p(dx*.145-px*.038,dy*.115-py*.038+.11);
-  stroke(ctx,[root,p(dx*.115,dy*.08+.11),tip],c,w*1.15);
+  // Keep tip and wings below 96% of tile height even when pointing down.
+  const root=p(0,.03),tip=p(dx*.19,dy*.15+.03);
+  const wingA=p(dx*.145+px*.038,dy*.115+py*.038+.03);
+  const wingB=p(dx*.145-px*.038,dy*.115-py*.038+.03);
+  stroke(ctx,[root,p(dx*.115,dy*.08+.03),tip],c,w*1.15);
   stroke(ctx,[wingA,tip,wingB],c,w*.85);
  }else{
   stroke(ctx,[p(z*.19,.08),p(z*.21,.13)],c,w*.8);
