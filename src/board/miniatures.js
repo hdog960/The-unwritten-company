@@ -6,6 +6,7 @@ import {paintArticulatedCloth} from './articulated-cloth.js';
 import {figureBeat} from './combat-beats.js';
 import {paintGestureJoints} from './pose-gestures.js';
 import {paintFigureCondition} from './figure-condition.js';
+import {paintFigureRelief} from './figure-relief.js';
 export const HERO_SILHOUETTES=Object.freeze(['captain','brunna','kess','mirelle']);
 export const FOE_SILHOUETTES=Object.freeze(['briar','shade']);
 const H=100;
@@ -250,6 +251,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null,condition={}){
   // pedestals, like a tabletop puppet; no effect on hitboxes or tile geometry.
   const posture=figureBeat(id,pose);
   if(posture)ctx.translate(posture.x,posture.y);
+  paintFigureRelief(ctx,id,pose,'rear',fallen);
   paintArticulatedCloth(ctx,id,pose,'back');
   if(id==='brunna')drawBrunna(ctx);
   else if(id==='kess')drawKess(ctx);
@@ -257,6 +259,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null,condition={}){
   else drawCaptain(ctx);
   finishHeroInk(ctx,id,pose);
   paintArticulatedCloth(ctx,id,pose,'front');
+  paintFigureRelief(ctx,id,pose,'finish',fallen);
   paintFigureCondition(ctx,id,{...condition,fallen,pose});
   paintGestureJoints(ctx,id,pose);
   paintWeaponRig(ctx,id,pose);
@@ -313,10 +316,12 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   ctx.save();
   const posture=figureBeat(foe.id,pose);
   if(posture)ctx.translate(posture.x,posture.y);
+  paintFigureRelief(ctx,foe.id,pose,'rear');
   paintArticulatedCloth(ctx,foe.id,pose,'back');
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
   paintArticulatedCloth(ctx,foe.id,pose,'front');
+  paintFigureRelief(ctx,foe.id,pose,'finish');
   paintFigureCondition(ctx,foe.id,{hp:foe.hp,maxHp:foe.maxHp,pose});
   paintGestureJoints(ctx,foe.id,pose);
   paintWeaponRig(ctx,foe.id,pose);

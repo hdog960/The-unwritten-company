@@ -16,6 +16,7 @@ import {paintThreatEngravings,paintTravelEngraving,threatGlyphs} from './battle-
 import {paintPressRelics} from './press-ruins.js';
 import {paintPuppetShadow} from './paper-puppets.js';
 import {paintActionSeal} from './action-seals.js';
+import {paintTileRelief} from './tile-relief.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -160,6 +161,8 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const terrain=getTile(row,col);
     drawTile(ctx,rect,terrain,row,col);
     paintAtelierTile(ctx,rect,terrain,row,col);
+    // Raised cut-card bevels remain within real terrain cells, beneath units.
+    paintTileRelief(ctx,rect,terrain,row,col);
   }
   paintWorldRelief(ctx,board,getTile);
   // Broken bookbinder equipment is authored ONLY on existing blocked rubble.
