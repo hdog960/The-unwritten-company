@@ -4,6 +4,7 @@
  */
 import {cellRect} from './geometry.js';
 import {paintRouteTickets} from './route-tickets.js';
+import {paintThreatThreadwork} from './threat-threadwork.js';
 
 const COLORS=Object.freeze({
   attack:'#f5af96', approach:'#d8c898', travel:'#9be0cb', blocked:'#ee967d'
@@ -80,20 +81,24 @@ export function paintThreatEngravings(ctx,board,intents,positions){
   }
   const seen=new Set();
   ctx.save();clipBoard(ctx,board);
+  // Source-authored physical threat fibers: Briar thorns and Shade split
+  // bell fragments printed at true links, never inside actual hero bodies.
+  paintThreatThreadwork(ctx,board,marks,positions);
   for(const mark of marks){
     const {source,victim,start,end,attack,victimId}=mark;
     const color=SOURCE_THREADS[mark.foeId]?.[attack?'attack':'approach']??
       (attack?COLORS.attack:COLORS.approach),s=source.s;
     const dx=end.x-start.x,dy=end.y-start.y,dist=Math.hypot(dx,dy)||1;
     const nx=-dy/dist,ny=dx/dist;
-    // Small serpentine stitch engraved on the table, ending short of each pawn.
-    const bend=Math.min(s*.14,dist*.09)*(source.x<=victim.x?1:-1);
-    ctx.save();ctx.globalAlpha=attack?.76:.57;
-    ctx.setLineDash(attack?[s*.12,s*.07]:[s*.035,s*.15]);
+    // Faint recessed press-score only. Three-dimensional source-specific
+    // ink stitches supply the readable path; this no longer resembles Move.
+    const bend=Math.min(s*.11,dist*.07)*(source.x<=victim.x?1:-1);
+    ctx.save();ctx.globalAlpha=attack?.14:.09;
+    ctx.setLineDash(attack?[s*.06,s*.20]:[s*.03,s*.25]);
     ctx.beginPath();ctx.moveTo(start.x,start.y);
     ctx.bezierCurveTo(start.x+dx*.35+nx*bend,start.y+dy*.35+ny*bend,
       start.x+dx*.65+nx*bend,start.y+dy*.65+ny*bend,end.x,end.y);
-    ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,s*.025);ctx.stroke();
+    ctx.strokeStyle=color;ctx.lineWidth=Math.max(.65,s*.014);ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
     // Source chisel mark; different direction and geometry for closing/attacking.
@@ -105,15 +110,24 @@ export function paintThreatEngravings(ctx,board,intents,positions){
       stroke(ctx,[[start.x-nx*s*.045,start.y-ny*s*.045],[tipX,tipY]],
         '#c9d6a6',Math.max(.9,s*.02));
     }
-    // One outlined rim per threatened tile, even when two enemies target it.
+    // One interrupted lower-foot paper witness per threatened tile, never
+    // a whole bright selection/target ring, even with two hostile sources.
     if(seen.has(victimId))continue;
     seen.add(victimId);
     const x=victim.x,y=victim.y,r=victim.s*.395,urgent=strongest.get(victimId)===true;
     const rimColor=urgent?COLORS.attack:COLORS.approach;
-    ctx.save();ctx.globalAlpha=urgent?.85:.58;
-    ctx.strokeStyle=rimColor;ctx.lineWidth=Math.max(1.4,s*.037);
-    ctx.setLineDash(urgent?[s*.12,s*.065]:[s*.22,s*.115]);
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    ctx.save();ctx.globalAlpha=urgent?.72:.48;
+    ctx.strokeStyle=rimColor;ctx.lineWidth=Math.max(1.15,s*.028);
+    ctx.setLineDash(urgent?[s*.09,s*.06]:[s*.18,s*.12]);
+    // An open bottom 70-degree arc, well under the painted hero face,
+    // instead of a closed 360-degree attackable-target bullseye.
+    ctx.beginPath();ctx.arc(x,y,r,Math.PI*.29,Math.PI*.71);ctx.stroke();ctx.setLineDash([]);
+    // Separate short paper corners, not a closed target outline.
+    const foot=y+r*.88;
+    stroke(ctx,[[x-r*.80,foot-s*.035],[x-r*.8,foot],[x-r*.52,foot]],
+      rimColor,Math.max(1,s*.02));
+    stroke(ctx,[[x+r*.8,foot-s*.035],[x+r*.8,foot],[x+r*.52,foot]],
+      rimColor,Math.max(1,s*.02));
     // Notched wax corner at the tile edge signals actual danger without a HUD.
     for(let i=0;i<Math.min(3,totals.get(victimId));i++){
       const px=x-r+i*s*.083,py=y+r*.91;
