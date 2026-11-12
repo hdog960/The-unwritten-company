@@ -571,6 +571,18 @@ async function main(){
         'signature and attack status must match the real enemy intent provenance');
       console.log('Intent witness PASS',width+'x'+height,'two living sourced enemy identities, actual attack status and distinct Canvas art');
 
+      // Gate A 29: authored non-target floor art must be present in the
+      // ACTUAL live Chromium scene at each of the three landscape dimensions.
+      // Three legal glyph tiles (all movement-cost 1) now carry three
+      // different physical vellum fragments, not golden target-like rings.
+      const glyphModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/glyph-folios.js'))");
+      assert.equal(glyphModuleLoaded,true,'glyph art must load in genuine browser network graph');
+      const actualGlyphSites=await run("(async()=>{const {glyphFolioPlan}=await import('./src/board/glyph-folios.js');const {getTile,measureBoard}=await import('./src/board/geometry.js');const canvas=document.querySelector('#battle-canvas'),bounds=canvas.getBoundingClientRect(),board=measureBoard(bounds.width,bounds.height);return glyphFolioPlan(board,getTile).map(x=>({row:x.row,column:x.column,style:x.style,cost:x.cost}));})()",true);
+      assert.deepEqual(actualGlyphSites.map(x=>x.style),['broken-astral-register','binder-tally','root-cipher'],'actual source-painted glyphs must be genuinely different');
+      assert.deepEqual(actualGlyphSites.map(x=>[x.row,x.column]),[[0,3],[3,6],[5,0]],'real stage floor relics must never create extra tactical tiles');
+      assert.ok(actualGlyphSites.every(x=>x.cost===1),'none of the historical glyph art may falsely alter MP');
+      console.log('Glyph folio PASS',width+'x'+height,'three original non-target materials, genuine DOM scene and terrain origins');
+
       const quillModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/quill.js'))");
       assert.equal(quillModuleLoaded,true,'world-space target quill must be loaded on the actual iPhone-sized page');
 
