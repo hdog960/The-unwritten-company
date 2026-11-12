@@ -8,6 +8,7 @@ import {paintTargetIndicators} from './targeting.js';
 import {paintFloorVignettes} from './scenery.js';
 import {animatedHeroRect} from './motion.js';
 import {puppetPose} from './choreography.js';
+import {bearingPose} from './bearings.js';
 import {paintMaterialTransitions} from './shoreline.js';
 import {paintLanternPools,paintMiniatureBackdrop,paintMiniatureFootlights} from './illumination.js';
 import {paintWorldRelief,paintHeroEnamelStatus} from './relief.js';
@@ -151,7 +152,7 @@ function drawSelection(ctx,rect){
 }
 /** Backward-compatible renderer API: timing is owned by one visual-only helper. */
 export function miniaturePose(frame,position,isEnemy=false){
-  return puppetPose(frame,position);
+  return bearingPose(frame,position,puppetPose(frame,position));
 }
 export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);

@@ -28,19 +28,39 @@ export function figureBeat(id,pose=null){
  const progress=clamp(pose?.progress),arc=pose?.kind==='attack'?attackBeat(progress):null;
  const pulse=Math.sin(Math.PI*progress);
  let x=0,y=0,turn=0;
+ const bearing=pose?.bearing;
+ const attackFacing=bearing?.role==='attack'&&[-1,0,1].includes(bearing.x)&&[-1,0,1].includes(bearing.y);
+ const impactFacing=bearing?.role==='impact'&&[-1,0,1].includes(bearing.x)&&[-1,0,1].includes(bearing.y);
+ const facingSign=attackFacing&&bearing.x<0?-1:1;
  if(arc){
-  x=character.dir*character.step*arc.sweep;
-  y=-character.lift*Math.max(0,arc.sweep)+1.5*Math.max(0,-arc.sweep);
-  turn=character.turn*arc.sweep;
+  if(attackFacing){
+   // Wind up opposite the *real* foe, lunge toward it, then settle.
+   // Both axes are bounded by authored body limits at 38px tile size.
+   x=bearing.x*character.step*arc.sweep;
+   y=(bearing.y*character.lift*.74-1.0)*arc.sweep-
+     .55*Math.max(0,arc.sweep);
+   turn=character.turn*facingSign*arc.sweep;
+  }else{
+   // Backward-compatible individual study poses without a battle target.
+   x=character.dir*character.step*arc.sweep;
+   y=-character.lift*Math.max(0,arc.sweep)+1.5*Math.max(0,-arc.sweep);
+   turn=character.turn*arc.sweep;
+  }
  }else if(pose?.kind==='recoil'){
-  x=-character.dir*3.1*pulse;y=2.2*pulse;turn=-character.turn*.5*pulse;
+  if(impactFacing){
+   x=bearing.x*3.1*pulse;y=(1.3+bearing.y*1.8)*pulse;
+   turn=bearing.x*character.turn*.5*pulse;
+  }else{x=-character.dir*3.1*pulse;y=2.2*pulse;turn=-character.turn*.5*pulse;}
  }else if(pose?.kind==='stagger'){
-  x=-character.dir*4.5*pulse;y=3.3*pulse;turn=-character.turn*.8*pulse;
+  if(impactFacing){
+   x=bearing.x*4.5*pulse;y=(2+bearing.y*2)*pulse;
+   turn=bearing.x*character.turn*.8*pulse;
+  }else{x=-character.dir*4.5*pulse;y=3.3*pulse;turn=-character.turn*.8*pulse;}
  }else if(pose?.kind==='move'){
   x=character.dir*.65*pulse;y=-2.6*pulse;turn=character.turn*.16*pulse;
  }else if(pose?.kind==='ward'){
   y=-1.9*pulse;turn=character.turn*.2*pulse;
  }
  return Object.freeze({x:clean(x),y:clean(y),turn:clean(turn),
-  sweep:arc?.sweep??0,phase:arc?.phase??(pose?.kind??'rest')});
+  sweep:arc?(arc.sweep===0?0:arc.sweep*facingSign):0,phase:arc?.phase??(pose?.kind??'rest')});
 }

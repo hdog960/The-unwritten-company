@@ -40,7 +40,8 @@ export function clothPose(id,pose=null){
  let fold=0,drop=0;
  if(pose?.kind==='attack'){
   const swing=attackBeat(t).sweep;
-  fold=.17*swing;drop=-.035*Math.abs(swing);
+  fold=.17*swing*(pose?.bearing?.role==='attack'&&pose.bearing.x<0?-1:1);
+  drop=-.035*Math.abs(swing);
  }
  if(pose?.kind==='recoil'){fold=-.13*pulse;drop=.018*pulse;}
  if(pose?.kind==='stagger'){fold=-.23*pulse;drop=.04*pulse;}

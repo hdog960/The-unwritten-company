@@ -122,3 +122,7 @@ assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintTileRelief/);
 const visageSource=fs.readFileSync('src/board/visages.js','utf8');
 assert.match(visageSource,/paintVisage/);
 assert.match(miniature,/paintVisage/);
+
+const bearingInk=fs.readFileSync('src/board/bearings.js','utf8');
+assert.match(bearingInk,/combatBearing/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/bearingPose/);

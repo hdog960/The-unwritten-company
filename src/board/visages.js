@@ -25,7 +25,7 @@ export function visageExpression(id,pose=null,{hp=null,maxHp=null,fallen=false}=
  if(pose?.kind==='attack'){
   const arc=attackBeat(clamp(pose.progress));
   mood=arc.phase==='anticipation'?'focused':arc.phase==='rest'?'steady':'fierce';
-  look=arc.sweep<0?-1.1:1.2;
+  look=pose?.bearing?.role==='attack'?pose.bearing.x*1.2:arc.sweep<0?-1.1:1.2;
   eyeHeight=arc.phase==='anticipation'?1.6:2.1;
   mouth=mood==='fierce'?-1:0;
  }else if(pose?.kind==='recoil'||pose?.kind==='stagger'){
@@ -57,6 +57,8 @@ export function paintVisage(ctx,id,pose=null,condition={}){
  if(!ctx||!config||!state||state.mood==='fallen')return false;
  const [x,y]=config.center,g=config.gap,e=state.eyeHeight,wince=e<=.7;
  const eyes=[x-g,x+g];
+ const gazeY=pose?.kind==='attack'&&pose?.bearing?.role==='attack'?
+  pose.bearing.y*.85:0;
  ctx.save();ctx.lineCap='round';
  if(id==='captain'){
   // Under-visor paired eyebrows and a strong, asymmetrical officer's chin.
@@ -99,7 +101,7 @@ export function paintVisage(ctx,id,pose=null,condition={}){
   polygon(ctx,[[x-13,y-10],[x+4,y-14],[x+13,y-4],[x+11,y+9],
    [x+1,y+13],[x-10,y+6]],'#142d43','#93c9cb',1.45);
   for(const xx of eyes){
-   line(ctx,[[xx-2,y-1.8],[xx+1+state.look*.35,y+e*.65],
+   line(ctx,[[xx-2,y-1.8],[xx+1+state.look*.35,y+e*.65+gazeY],
      [xx+2.6,y+2.4]],config.light,1.85);
   }
   line(ctx,[[x-4,y+8],[x+2,y+9],[x+6,y+6]],'#7bdbd2',1.3);
@@ -109,7 +111,7 @@ export function paintVisage(ctx,id,pose=null,condition={}){
    line(ctx,[[xx-2.6,y],[xx+.2,y-1.2],[xx+2.7,y+.7]],config.ink,2.1);
   }else{
    line(ctx,[[xx-2.7,y-.8],[xx,y+e*.45],[xx+2.8,y-.8]],config.ink,2.0);
-   dot(ctx,xx+state.look*.3,y+.5,Math.max(.65,e*.45),config.ink);
+   dot(ctx,xx+state.look*.3,y+.5+gazeY,Math.max(.65,e*.45),config.ink);
    dot(ctx,xx-1,y-.65,.65,config.light);
   }
  }
