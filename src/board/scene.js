@@ -21,6 +21,7 @@ import {paintTileRelief} from './tile-relief.js';
 import {paintPaperHabitat} from './paper-habitat.js';
 import {paintMiniatureMatte} from './miniature-matte.js';
 import {paintRealFootfalls} from './paper-footfalls.js';
+import {paintTerrainContact} from './terrain-contact.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -207,6 +208,23 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const point=foe.position,rect=cellRect(board,point.column,point.row);
     if(rect)paintMiniatureMatte(ctx,rect,foe.id,getTile(point.row,point.column),
       {fallen:foe.hp<=0});
+  }
+  // Original stone/moss/water/glyph impressions follow the actual physical
+  // figure rectangle (including interpolated travel), never a future reducer
+  // destination or inactive preview. Draw below legality and all miniatures.
+  for(const [id,point] of Object.entries(overlay?.positions??{})){
+    const rect=animatedHeroRect(board,point,id,frame);
+    if(rect)paintTerrainContact(ctx,board,rect,id,{
+      pose:miniaturePose(frame,point,false,board),
+      fallen:(overlay?.partyHp?.[id]??1)<=0
+    });
+  }
+  for(const foe of Object.values(overlay?.targets??{})){
+    const rect=cellRect(board,foe.position.column,foe.position.row);
+    if(rect)paintTerrainContact(ctx,board,rect,foe.id,{
+      pose:miniaturePose(frame,foe.position,true),
+      fallen:foe.hp<=0
+    });
   }
   // Only the command engine's *actual legal* cells glow, above floor artwork
   // but beneath the miniatures. Invalid / empty live-battle tiles stay dark.
