@@ -126,3 +126,7 @@ assert.match(miniature,/paintVisage/);
 const bearingInk=fs.readFileSync('src/board/bearings.js','utf8');
 assert.match(bearingInk,/combatBearing/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/bearingPose/);
+
+const habitatInk=fs.readFileSync('src/board/paper-habitat.js','utf8');
+assert.match(habitatInk,/paintPaperHabitat/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintPaperHabitat/);
