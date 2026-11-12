@@ -82,30 +82,36 @@ export function paintThreatThreadwork(ctx,board,marks,partyPositions={}){
  for(const mark of plan){
   const c=THREAD_MATERIALS[mark.foeId],s=mark.s;
   ctx.save();
-  ctx.translate(mark.x,mark.y);
-  ctx.rotate(Math.atan2(mark.tangent.y,mark.tangent.x));
+  // Transform each pen point analytically, so even reduced Canvas mocks
+  // and narrow mobile software renderers need no rotate() capability.
+  const orient=points=>points.map(([u,v])=>[
+    mark.x+u*mark.tangent.x-v*mark.tangent.y,
+    mark.y+u*mark.tangent.y+v*mark.tangent.x
+  ]);
+  const press=(points,fill,edge,w)=>cut(ctx,orient(points),fill,edge,w);
+  const stitch=(points,color,w)=>score(ctx,orient(points),color,w);
   ctx.globalAlpha=mark.attack?.89:.58;
   // Hand-cut physical shadow and colored upper paper, <=18% of the cell.
   if(mark.foeId==='briar'){
-   cut(ctx,[[-s*.083,s*.017],[-s*.033,-s*.055],[s*.008,-s*.035],
+   press([[-s*.083,s*.017],[-s*.033,-s*.055],[s*.008,-s*.035],
      [s*.08,s*.018],[s*.03,s*.048]],c.back,c.cut,Math.max(.6,s*.015));
-   cut(ctx,[[-s*.074,s*.003],[-s*.025,-s*.06],[s*.064,s*.013],
+   press([[-s*.074,s*.003],[-s*.025,-s*.06],[s*.064,s*.013],
      [s*.018,s*.031]],c.fiber,c.back,Math.max(.7,s*.014));
-   score(ctx,[[-s*.061,s*.008],[-s*.011,-s*.009],[s*.034,s*.012]],
+   stitch([[-s*.061,s*.008],[-s*.011,-s*.009],[s*.034,s*.012]],
      c.light,Math.max(.65,s*.013));
   }else{
-   cut(ctx,[[-s*.075,-s*.032],[-s*.014,-s*.052],[s*.075,s*.004],
+   press([[-s*.075,-s*.032],[-s*.014,-s*.052],[s*.075,s*.004],
      [s*.017,s*.051],[-s*.043,s*.032]],c.back,c.cut,Math.max(.7,s*.014));
-   cut(ctx,[[-s*.064,-s*.037],[s*.016,-s*.038],[s*.057,s*.009],
+   press([[-s*.064,-s*.037],[s*.016,-s*.038],[s*.057,s*.009],
      [s*.007,s*.037]],c.fiber,c.back,Math.max(.7,s*.015));
-   score(ctx,[[-s*.034,s*.025],[s*.018,-s*.008],[s*.041,s*.013]],
+   stitch([[-s*.034,s*.025],[s*.018,-s*.008],[s*.041,s*.013]],
      c.light,Math.max(.65,s*.014));
   }
   // Attack/approach are distinguishable by the actual number of hard
   // transverse score cuts, independent of hue, animation and alpha.
   for(let i=0;i<mark.notches;i++){
    const u=mark.notches===1?0:(i-1)*s*.027;
-   score(ctx,[[u-s*.004,-s*.041],[u+s*.013,s*.029]],
+   stitch([[u-s*.004,-s*.041],[u+s*.013,s*.029]],
     mark.attack?c.light:c.cut,Math.max(.75,s*.018));
   }
   ctx.restore();
