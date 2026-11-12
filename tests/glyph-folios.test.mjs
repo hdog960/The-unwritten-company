@@ -162,7 +162,7 @@ test('safe offline cache includes the new pure file exactly once; no new clocks,
  for(const banned of ['Math.random','setTimeout','setInterval','fetch(','requestAnimationFrame',
   'document.','window.','localStorage','AudioContext','addEventListener'])
   assert.ok(!source.includes(banned),banned);
- assert.ok(sw.includes('v0.09-gate-a29-r1'));
+ assert.ok(sw.includes('v0.09-gate-a30-r1'));
  assert.equal(sw.split("'./src/board/glyph-folios.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
 });
