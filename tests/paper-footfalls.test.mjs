@@ -130,7 +130,10 @@ test('full state gameplay, unchanged movement cost and canvas stack, no external
   partyHp:s.partyHp,guards:s.guards,ended:s.ended,intents:[]},move(.52,'kess'));
  balanced(paint);
  assert.equal(JSON.stringify(s),old);
- assert.ok(paint.calls.some(x=>x[0]==='rotate'),'physical footfalls are orientated to route');
+ const footsteps=ctx();
+ assert.ok(paintRealFootfalls(footsteps,board,move(.52),{kess:actual})>0);
+ assert.ok(footsteps.calls.some(x=>x[0]==='rotate'),'physical footfalls are orientated to real route');
+ balanced(footsteps);
  const source=fs.readFileSync('src/board/paper-footfalls.js','utf8');
  assert.doesNotMatch(source,/\bfetch\(|Math\.random|setInterval|setTimeout|requestAnimationFrame|window\.|document\.|addEventListener|localStorage/);
  const sw=fs.readFileSync('service-worker.js','utf8');
