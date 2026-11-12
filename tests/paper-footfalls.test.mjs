@@ -137,6 +137,6 @@ test('full state gameplay, unchanged movement cost and canvas stack, no external
  const source=fs.readFileSync('src/board/paper-footfalls.js','utf8');
  assert.doesNotMatch(source,/\bfetch\(|Math\.random|setInterval|setTimeout|requestAnimationFrame|window\.|document\.|addEventListener|localStorage/);
  const sw=fs.readFileSync('service-worker.js','utf8');
- assert.match(sw,/v0\.09-gate-a21-r1/);
+ assert.match(sw,/v0\\.09-gate-a22-r1/);
  assert.equal(sw.split("'./src/board/paper-footfalls.js'").length-1,1);
 });
