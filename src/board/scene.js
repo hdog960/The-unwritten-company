@@ -183,10 +183,10 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintPaperHabitat(ctx,board,getTile,occupiedHabitat);
   paintBoardLighting(ctx,board);
   paintLanternPools(ctx,board,getTile);
-  // Four old guild-site floor inlays sit beneath the battle's unit layer.
-  const vignetteOccupants={...(overlay?.positions??{})};
-  for(const [id,foe] of Object.entries(overlay?.targets??{}))if(foe.hp>0)vignetteOccupants['foe:'+id]=foe.position;
-  paintFloorVignettes(ctx,board,vignetteOccupants);
+  // Original paper artifacts physically part beneath the CURRENT moving
+  // miniature body (including both real squares at a border crossing), never
+  // the reducer's already-committed future destination or a preview.
+  paintFloorVignettes(ctx,board,occupiedHabitat);
   // Genuine committed footsteps belong to the walked route, never a preview.
   paintRealFootfalls(ctx,board,frame,overlay?.positions);
   // Hand-cut paper pockets isolate tiny miniature silhouettes from busy water
