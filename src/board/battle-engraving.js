@@ -8,6 +8,10 @@ import {paintRouteTickets} from './route-tickets.js';
 const COLORS=Object.freeze({
   attack:'#f5af96', approach:'#d8c898', travel:'#9be0cb', blocked:'#ee967d'
 });
+export const SOURCE_THREADS=Object.freeze({
+  briar:Object.freeze({attack:'#ffc094',approach:'#d4b26d'}),
+  shade:Object.freeze({attack:'#d1baff',approach:'#a1d1d4'})
+});
 const tileCenter=(board,point)=>{
   const tile=point&&cellRect(board,point.column,point.row);
   return tile?Object.freeze({x:tile.x+tile.width*.5,y:tile.y+tile.height*.5,s:tile.width}):null;
@@ -78,7 +82,8 @@ export function paintThreatEngravings(ctx,board,intents,positions){
   ctx.save();clipBoard(ctx,board);
   for(const mark of marks){
     const {source,victim,start,end,attack,victimId}=mark;
-    const color=attack?COLORS.attack:COLORS.approach,s=source.s;
+    const color=SOURCE_THREADS[mark.foeId]?.[attack?'attack':'approach']??
+      (attack?COLORS.attack:COLORS.approach),s=source.s;
     const dx=end.x-start.x,dy=end.y-start.y,dist=Math.hypot(dx,dy)||1;
     const nx=-dy/dist,ny=dx/dist;
     // Small serpentine stitch engraved on the table, ending short of each pawn.

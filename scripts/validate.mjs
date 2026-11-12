@@ -162,3 +162,9 @@ const ticketSource=fs.readFileSync('src/board/route-tickets.js','utf8');
 assert.match(ticketSource,/routeTicketPlan/);
 assert.match(ticketSource,/paintRouteTickets/);
 assert.match(fs.readFileSync('src/board/battle-engraving.js','utf8'),/paintRouteTickets/);
+
+const newThreatSource=fs.readFileSync('src/board/intent-witnesses.js','utf8');
+assert.match(newThreatSource,/intentWitnessPlan/);
+assert.match(newThreatSource,/paintIntentWitnesses/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintIntentWitnesses/);
+assert.match(fs.readFileSync('src/board/battle-engraving.js','utf8'),/SOURCE_THREADS/);

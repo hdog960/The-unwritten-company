@@ -22,6 +22,7 @@ import {paintPaperHabitat,physicalHabitatCells} from './paper-habitat.js';
 import {paintMiniatureMatte} from './miniature-matte.js';
 import {paintRealFootfalls} from './paper-footfalls.js';
 import {paintTerrainContact} from './terrain-contact.js';
+import {paintIntentWitnesses} from './intent-witnesses.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -231,6 +232,9 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintQuillPreview(ctx,board,overlay);
   // Floor engraving is drawn before figures; enemy vectors can never cross faces.
   paintThreatEngravings(ctx,board,overlay?.intents,overlay?.positions);
+  // Living enemy-source witness plates follow actual projected AI intent.
+  paintIntentWitnesses(ctx,board,overlay?.intents,overlay?.positions,
+    overlay?.targets,overlay?.partyHp);
   paintTravelEngraving(ctx,board,overlay);
   const miniatures=overlay?.positions?
     Object.entries(overlay.positions).map(([id,at])=>({col:at.column,row:at.row,kind:id==='brunna'?'ward':id==='mirelle'?'scribe':id==='kess'?'rogue':'knight',id})):
