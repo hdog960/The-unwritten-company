@@ -125,7 +125,7 @@ test('art remains in the Canvas, with no independent input, sound, storage, time
   assert.doesNotMatch(src,/fetch\(|document\.|window\.|Math\.random\(|requestAnimationFrame|setInterval|localStorage|addEventListener|AudioContext/);
  }
  const sw=fs.readFileSync('service-worker.js','utf8');
- assert.ok(sw.includes('v0.09-gate-a27-r1'));
+ assert.ok(sw.includes('v0.09-gate-a28-r1'));
  assert.ok(sw.includes("'./src/board/visages.js'"),'character face art must be offline');
  assert.ok(sw.includes("'./src/board/figure-relief.js'"));
  assert.ok(sw.includes("'./src/board/tile-relief.js'"));
