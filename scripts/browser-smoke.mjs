@@ -289,7 +289,7 @@ async function main(){
       // Kess beside it (6,1); use the actually adjacent water cell in each.
       // Deliberately CANCEL, preserving the entire existing study/skirmish
       // sequence and every AP/MP assertion below.
-      await run("document.querySelector('[data-member-id=\\\"kess\\\"]').click()");
+      await run("document.querySelector('[data-member-id=\"kess\"]').click()");
       await run("document.querySelector('#command-move').click()");
       const doubleCostWaterColumn=5;
       const doubleCostWaterRow=boardMetrics.cols===7?2:1;
@@ -309,7 +309,7 @@ async function main(){
       const waterCostShot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
       await fsp.writeFile('artifacts/route-water-'+width+'x'+height+'.png',Buffer.from(waterCostShot.data,'base64'));
       await run("document.querySelector('#command-cancel').click()");
-      await run("document.querySelector('[data-member-id=\\\"mirelle\\\"]').click()");
+      await run("document.querySelector('[data-member-id=\"mirelle\"]').click()");
       assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5');
       console.log('Route-ticket PASS',width+'x'+height,
         'real water=2 MP preview, native art loaded, cancellation free, screenshots captured');
