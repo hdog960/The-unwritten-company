@@ -183,7 +183,7 @@ test('new original renderers preserve worker-safe offline graph, zero input and 
   assert.doesNotMatch(source,/\bfetch\(|Math\.random|setInterval\(|setTimeout\(|requestAnimationFrame|localStorage|window\.|document\.|addEventListener|<img|new Audio/);
  }
  const sw=fs.readFileSync('service-worker.js','utf8');
- assert.ok(sw.includes('v0.09-gate-a22-r1'));
+ assert.ok(sw.includes('v0.09-gate-a23-r1'));
  for(const url of ['./src/board/combat-script.js','./src/board/miniature-matte.js']){
   assert.equal(sw.split("'"+url+"'").length-1,1);
  }

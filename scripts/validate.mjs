@@ -137,9 +137,12 @@ assert.match(miniature,/paintFigureEdgeInk/);
 
 const skillScript=fs.readFileSync('src/board/combat-script.js','utf8');
 const paperMatte=fs.readFileSync('src/board/miniature-matte.js','utf8');
+const impactWitness=fs.readFileSync('src/board/impact-witness.js','utf8');
 assert.match(skillScript,/paintCombatScript/);
+assert.match(impactWitness,/paintImpactWitness/);
 assert.match(paperMatte,/paintMiniatureMatte/);
 assert.match(fs.readFileSync('src/board/effects.js','utf8'),/paintCombatScript/);
+assert.match(fs.readFileSync('src/board/effects.js','utf8'),/paintImpactWitness/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintMiniatureMatte/);
 
 const footfallSource=fs.readFileSync('src/board/paper-footfalls.js','utf8');

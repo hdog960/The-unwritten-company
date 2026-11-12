@@ -363,9 +363,12 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   }
   ctx.strokeStyle='#e0bd83';ctx.lineWidth=1;ctx.strokeRect(barX,barY,barW,barH);
   if(lastCombat?.id===foe.id){
-    ctx.beginPath();ctx.arc(50,45,34,0,Math.PI*2);
-    ctx.strokeStyle=lastCombat.hit?'#f6db9c':'#92d9d9';
-    ctx.lineWidth=3;ctx.stroke();
+    // Earlier hit ring crossed the face; the source event now earns a tiny
+    // lower-left paper witness instead. A real miss has NO broken armor seal.
+    const hit=!!lastCombat.hit;
+    mark(ctx,[[19,73],[27,70],[35,73]],hit?'#f6db9c':'#92d9d9',2.8);
+    if(hit)mark(ctx,[[22,78],[30,75],[38,78]],'#e8b484',1.7);
+    else mark(ctx,[[23,79],[29,77]],'#b1e9e6',1.4);
   }
   ctx.restore();
 }
