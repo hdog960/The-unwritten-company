@@ -7,6 +7,7 @@ import {figureBeat} from './combat-beats.js';
 import {paintGestureJoints} from './pose-gestures.js';
 import {paintFigureCondition} from './figure-condition.js';
 import {paintFigureRelief} from './figure-relief.js';
+import {paintVisage} from './visages.js';
 export const HERO_SILHOUETTES=Object.freeze(['captain','brunna','kess','mirelle']);
 export const FOE_SILHOUETTES=Object.freeze(['briar','shade']);
 const H=100;
@@ -40,8 +41,8 @@ function podium(ctx,tone,dead=false){
 function head(ctx,x,y,skin,hair){
   bead(ctx,x,y,9,skin,'#31303a');
   polygon(ctx,[[x-9,y-3],[x-10,y-10],[x-3,y-13],[x+8,y-9],[x+9,y-2],[x+5,y-7],[x-5,y-7]],hair,'#27303a',1.4);
-  bead(ctx,x-3,y+1,1,'#28313b');bead(ctx,x+3,y+1,1,'#28313b');
-  mark(ctx,[[x-2,y+6],[x+3,y+6]],'#9c6d56',1);
+  // Identity-specific eyes, eyebrows and expression are painted on top of
+  // each completed headwear silhouette by paintVisage(), not generic dots.
 }
 function ornament(ctx,x,y){
   polygon(ctx,[[x,y-4],[x+4,y],[x,y+4],[x-4,y]],'#e7c481','#4c493f',1.2);
@@ -104,12 +105,17 @@ function drawKess(ctx){
   polygon(ctx,[[39,36],[47,32],[57,31],[65,42],[59,66],[42,65]],thinGradient(ctx,31,40,'#7d9681','#2b504b'),'#1e3435',2.4);
   polygon(ctx,[[40,44],[48,37],[49,59],[40,60]],'#a0a781','#304743',1.6);
   mark(ctx,[[45,52],[59,50]],'#d4c189',2);
-  head(ctx,51,26,'#d5b797','#503f3a');
+  head(ctx,51,26,'#d5b797','#d8d9c9');
   // Long ears read at small phone tiles.
   polygon(ctx,[[42,26],[28,19],[38,30]],'#d9b38f','#385044',1.3);
   polygon(ctx,[[60,26],[73,18],[63,31]],'#d9b38f','#385044',1.3);
-  polygon(ctx,[[34,22],[40,10],[55,8],[68,23],[58,19],[50,18],[41,24]],'#305447','#263b3c',2);
-  mark(ctx,[[36,20],[52,12],[62,17]],'#86ac86',2);
+  // Portrait parity: Kess is a pale-haired elf, not a dark-hooded stranger.
+  // Swept ivory locks frame the same visible green leather and pointed ears.
+  polygon(ctx,[[34,22],[40,10],[55,8],[68,23],[58,19],[50,18],[41,24]],'#d2d8c6','#294941',2);
+  polygon(ctx,[[35,21],[40,20],[39,34],[34,41],[30,35]],'#d9dfce','#40524c',1.5);
+  polygon(ctx,[[64,21],[67,27],[64,38],[60,35],[60,24]],'#aabbb0','#344d48',1.4);
+  mark(ctx,[[36,20],[52,12],[62,17]],'#fff2d7',2);
+  mark(ctx,[[35,29],[34,35],[32,38]],'#f6e9cf',1.25);
   // Signature weapon is painted separately by the animated paper-joint rig.
   bead(ctx,50,56,2.5,'#dfc98e');
 }
@@ -121,11 +127,19 @@ function drawMirelle(ctx){
   polygon(ctx,[[44,38],[55,38],[50,55]],'#b8c8b4','#3a5d6a',1.4);
   ornament(ctx,50,44);
   head(ctx,51,27,'#ddbea0','#4b5671');
-  // Scholar's great soft brim and asymmetrical pointed crown.
-  polygon(ctx,[[30,23],[35,18],[46,18],[56,12],[63,20],[73,24],[56,27],[36,27]],'#5a4a76','#292f45',2);
-  polygon(ctx,[[39,20],[52,3],[57,12],[61,20]],'#6c5a86','#30384c',2.4);
-  mark(ctx,[[37,21],[67,22]],'#d6b980',2.6);
-  bead(ctx,52,14,2.2,'#d9c5a9');
+  // Portrait parity: her signature is long midnight scholarly hair, not an
+  // unrelated pointed wizard hat. The U-shaped piece leaves her face clear.
+  polygon(ctx,[[32,47],[30,31],[33,18],[40,10],[54,8],[65,13],[70,27],
+    [69,44],[64,51],[61,45],[63,30],[59,22],[44,20],[40,31],[40,49]],
+    '#2e334f','#69749a',2);
+  polygon(ctx,[[34,23],[39,12],[51,9],[65,17],[64,23],[56,19],[45,19],
+    [37,27]],'#505878','#272c42',1.7);
+  mark(ctx,[[35,22],[45,16],[55,16],[64,21]],'#9ea5c9',2);
+  mark(ctx,[[33,32],[33,39],[36,47]],'#948cb7',1.6);
+  mark(ctx,[[66,29],[68,38],[65,45]],'#858bb8',1.45);
+  // A small engraved Collegium circlet differentiates the scholarly face.
+  mark(ctx,[[43,21],[51,18],[59,22]],'#dcc89c',1.75);
+  bead(ctx,51,18,1.6,'#9ce5d7');
   // Signature weapon is painted separately by the animated paper-joint rig.
   polygon(ctx,[[25,44],[33,38],[37,55],[28,58]],'#9d8796','#353a48');
   bead(ctx,26,57,2,'#e9c98d');
@@ -258,6 +272,7 @@ export function drawHero(ctx,rect,id,fallen=false,pose=null,condition={}){
   else if(id==='mirelle')drawMirelle(ctx);
   else drawCaptain(ctx);
   finishHeroInk(ctx,id,pose);
+  paintVisage(ctx,id,pose,{...condition,fallen});
   paintArticulatedCloth(ctx,id,pose,'front');
   paintFigureRelief(ctx,id,pose,'finish',fallen);
   paintFigureCondition(ctx,id,{...condition,fallen,pose});
@@ -320,6 +335,7 @@ export function drawFoe(ctx,rect,foe,lastCombat,pose=null){
   paintArticulatedCloth(ctx,foe.id,pose,'back');
   if(foe.id==='briar')briar(ctx);else shade(ctx);
   finishFoeInk(ctx,foe.id,pose);
+  paintVisage(ctx,foe.id,pose,{hp:foe.hp,maxHp:foe.maxHp});
   paintArticulatedCloth(ctx,foe.id,pose,'front');
   paintFigureRelief(ctx,foe.id,pose,'finish');
   paintFigureCondition(ctx,foe.id,{hp:foe.hp,maxHp:foe.maxHp,pose});

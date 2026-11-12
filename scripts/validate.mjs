@@ -118,3 +118,7 @@ assert.match(sculpturalInk,/paintFigureRelief/);
 assert.match(tileBevelInk,/paintTileRelief/);
 assert.match(miniature,/paintFigureRelief/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintTileRelief/);
+
+const visageSource=fs.readFileSync('src/board/visages.js','utf8');
+assert.match(visageSource,/paintVisage/);
+assert.match(miniature,/paintVisage/);
