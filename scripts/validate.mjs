@@ -113,6 +113,11 @@ assert.match(conditionArt,/paintFigureCondition/);
 assert.match(miniature,/paintFigureCondition/);
 
 const sculpturalInk=fs.readFileSync('src/board/figure-relief.js','utf8');
+const stoneSource=fs.readFileSync('src/board/stone-strata.js','utf8');
+assert.match(stoneSource,/stoneStrataPlan/);
+assert.match(stoneSource,/paintStoneStrata/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintStoneStrata/);
+assert.ok(fs.readFileSync('service-worker.js','utf8').includes("'./src/board/stone-strata.js'"));
 const tileBevelInk=fs.readFileSync('src/board/tile-relief.js','utf8');
 assert.match(sculpturalInk,/paintFigureRelief/);
 assert.match(tileBevelInk,/paintTileRelief/);
