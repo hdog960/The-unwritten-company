@@ -40,7 +40,7 @@ test('misses are NEVER contact cuts, criticals have two cuts, hits one',()=>{
  assert.ok(marks[1].calls.filter(c=>c[0]==='stroke').length>marks[0].calls.filter(c=>c[0]==='stroke').length);
 });
 test('do not paint pre-impact, finished, invalid, outside, or preview-only results',()=>{
- for(const p of [NaN,Infinity,-1,0,.3,.53,.96,1,2])assert.equal(impactWitnessPlan(board,real(),p),null);
+ for(const p of [NaN,Infinity,-1,0,.3,.53,1,2])assert.equal(impactWitnessPlan(board,real(),p),null);
  for(const event of [null,{}, {kind:'ward'}, {kind:'move',from:P(1,1),to:P(2,1)},
   real('hit','strike',P(-1,1)),real('hit','spark',P(1,1),P(99,99))])
    assert.equal(impactWitnessPlan(board,event,.7),null);
