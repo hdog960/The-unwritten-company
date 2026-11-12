@@ -19,6 +19,7 @@ import {paintPressRelics} from './press-ruins.js';
 import {paintPuppetShadow} from './paper-puppets.js';
 import {paintActionSeal} from './action-seals.js';
 import {paintTileRelief} from './tile-relief.js';
+import {paintStoneStrata} from './stone-strata.js';
 import {paintPaperHabitat,physicalHabitatCells} from './paper-habitat.js';
 import {paintMiniatureMatte} from './miniature-matte.js';
 import {paintRealFootfalls} from './paper-footfalls.js';
@@ -73,7 +74,7 @@ function paintBackdrop(ctx,board){
     line(ctx,[[sideX,sideY+signY*6],[sideX+signX*4,sideY+signY*17]],'#a78350',1.3);
   }
 }
-function drawStone(ctx,x,y,s,r,c){
+function drawStone(ctx,x,y,s,r,c,kind='stone'){
   const variation=FRACTAL(r,c,7);
   const base=variation>.6?'#77766d':variation>.27?'#656e69':'#58645e';
   const p=s*.045;
@@ -82,7 +83,7 @@ function drawStone(ctx,x,y,s,r,c){
   line(ctx,[[x+s*.16,y+s*.82],[x+s*.81,y+s*.87]],'#293b3dbb',Math.max(.65,s*.014));
   // Hand drawn irregular fracture and grit, seeded by coordinates (stable on resize).
   const k=FRACTAL(r,c,28);
-  line(ctx,[[x+s*(.23+k*.21),y+s*.22],[x+s*(.36+k*.21),y+s*.37],[x+s*(.29+k*.21),y+s*.46]],'#283f3f99',Math.max(.7,s*.018));
+  if(kind!=='stone')line(ctx,[[x+s*(.23+k*.21),y+s*.22],[x+s*(.36+k*.21),y+s*.37],[x+s*(.29+k*.21),y+s*.46]],'#283f3f99',Math.max(.7,s*.018));
   for(let n=0;n<7;n++){
     const xx=x+s*(.16+.7*FRACTAL(r,c,n+150));
     const yy=y+s*(.16+.7*FRACTAL(r,c,n+210));
@@ -116,7 +117,7 @@ function drawRubble(ctx,x,y,s){
 }
 function drawTile(ctx,rect,kind,row,column){
   const {x,y,width:s}=rect;
-  drawStone(ctx,x,y,s,row,column);
+  drawStone(ctx,x,y,s,row,column,kind);
   if(kind==='moss')drawMoss(ctx,x,y,s,row,column);
   else if(kind==='water')drawWater(ctx,x,y,s,row,column);
   else if(kind==='rubble')drawRubble(ctx,x,y,s);
@@ -154,6 +155,8 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const terrain=getTile(row,col);
     drawTile(ctx,rect,terrain,row,col);
     paintAtelierTile(ctx,rect,terrain,row,col);
+    // Four source-cut, non-actionable stone veins replace repeated chevrons.
+    if(terrain==='stone')paintStoneStrata(ctx,rect,row,col);
     // Raised cut-card bevels remain within real terrain cells, beneath units.
     paintTileRelief(ctx,rect,terrain,row,col);
   }
