@@ -108,9 +108,9 @@ test('actual scene paints contacts between moving mattes and legal targets, neve
 });
 test('no network, storage, timers or new controls; offline cache owns module once',()=>{
  const src=fs.readFileSync('src/board/terrain-contact.js','utf8');
- assert.doesNotMatch(src,/\\bfetch\\(|Math\\.random|setInterval|setTimeout|requestAnimationFrame|window\\.|document\\.|addEventListener|localStorage/);
+ assert.ok(['fetch(', 'Math.random', 'setInterval', 'setTimeout', 'requestAnimationFrame', 'window.', 'document.', 'addEventListener', 'localStorage'].every(token=>!src.includes(token)));
  const sw=fs.readFileSync('service-worker.js','utf8');
- assert.match(sw,/v0\\.09-gate-a22-r1/);
+ assert.ok(sw.includes('v0.09-gate-a22-r1'));
  assert.equal(sw.split("'./src/board/terrain-contact.js'").length-1,1);
- assert.doesNotMatch(sw,/skipWaiting\\(/);
+ assert.ok(!sw.includes('skipWaiting('));
 });
