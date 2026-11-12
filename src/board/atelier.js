@@ -79,15 +79,15 @@ function rubble(ctx,x,y,s,r,c){
   outline(ctx,[[x+s*.65,y+s*.26],[x+s*.76,y+s*.31]],'#dfc6a57c',Math.max(.8,s*.016));
 }
 function glyph(ctx,x,y,s,r,c){
-  const cx=x+s*.5,cy=y+s*.5;
-  ctx.beginPath();ctx.arc(cx,cy,s*.3,0,Math.PI*2);ctx.strokeStyle='#f7d68d9e';ctx.lineWidth=Math.max(1,s*.035);ctx.stroke();
-  for(let i=0;i<8;i++){
-    const a=(Math.PI*i/4),dx=Math.cos(a),dy=Math.sin(a);
-    outline(ctx,[[cx+dx*s*.32,cy+dy*s*.32],[cx+dx*s*.37,cy+dy*s*.37]],'#ffe6a8',Math.max(.8,s*.023));
-  }
-  const dots=[[.18,.19],[.81,.18],[.18,.8],[.81,.8]];
-  for(const [dx,dy]of dots){circle(ctx,x+s*dx,y+s*dy,s*.022,'#dfcb97');}
-  outline(ctx,[[cx-s*.13,cy-s*.14],[cx+s*.13,cy+s*.14]],'#0f293870',Math.max(.8,s*.019));
+  // Quiet physical paper scratches only. The three unique folios are added
+  // later by the shared world glyph renderer, not duplicated here.
+  // Former permanent gold ring/dots looked like selectable spell targets.
+  outline(ctx,[[x+s*.14,y+s*.34],[x+s*.22,y+s*.22],[x+s*.36,y+s*.2]],
+    '#baa88887',Math.max(.8,s*.018));
+  outline(ctx,[[x+s*.64,y+s*.78],[x+s*.76,y+s*.74],[x+s*.84,y+s*.62]],
+    '#52685c9a',Math.max(.8,s*.022));
+  outline(ctx,[[x+s*.18,y+s*.68],[x+s*.29,y+s*.73]],
+    '#dbc79b70',Math.max(.8,s*.015));
 }
 export function paintAtelierTile(ctx,rect,kind,row,column){
   if(!ctx||!rect||!ATELIER_TERRAINS.includes(kind))return false;

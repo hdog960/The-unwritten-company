@@ -173,3 +173,8 @@ const floorCutouts=fs.readFileSync('src/board/scenery.js','utf8');
 assert.match(floorCutouts,/scenicArtifactPlan/);
 assert.match(floorCutouts,/paintScenicArtifact/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintFloorVignettes\(ctx,board,occupiedHabitat\)/);
+
+const glyphFolioSource=fs.readFileSync('src/board/glyph-folios.js','utf8');
+assert.match(glyphFolioSource,/glyphFolioPlan/);
+assert.match(glyphFolioSource,/paintGlyphFolios/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintGlyphFolios\(ctx,board,getTile\)/);
