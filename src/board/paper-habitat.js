@@ -9,7 +9,8 @@
  *
  * No timer, DOM, RNG, network, save, click region or engine modification.
  */
-import {cellRect} from './geometry.js';
+import {cellRect,hitTestBoard} from './geometry.js';
+import {animatedHeroRect} from './motion.js';
 
 export const HABITAT_KINDS=Object.freeze(['water','moss']);
 export const HABITAT_EDGES=Object.freeze(['north','east','south','west']);
@@ -60,6 +61,38 @@ export function habitatPlan(board,tileAt,occupied=[]){
  }
  return Object.freeze(result);
 }
+/** Figure-aware *paint* occupancy. The reducer commits a completed Move
+ * before the walk animation finishes, so logical destination alone is NOT
+ * the place where a hand-painted miniature currently stands. Sample the
+ * actual animated body apron (18–82% of its original tile-size bounding box).
+ * When crossing a border both cells gently part their dense vines. No
+ * preview, future destination, hit testing, targeting or battle data changes.
+ */
+export function physicalHabitatCells(board,positions={},targets={},frame=null){
+ if(!board||!Number.isFinite(board.tile)||board.tile<=0||
+    !Number.isInteger(board.rows)||!Number.isInteger(board.columns))return Object.freeze([]);
+ const cells=[],seen=new Set();
+ const add=p=>{
+  if(!p||!Number.isInteger(p.column)||!Number.isInteger(p.row)||
+     !cellRect(board,p.column,p.row))return;
+  const key=p.row+':'+p.column;
+  if(!seen.has(key)){seen.add(key);cells.push(Object.freeze({column:p.column,row:p.row}));}
+ };
+ for(const [id,logical] of Object.entries(positions??{})){
+  if(!logical||!Number.isInteger(logical.column)||!Number.isInteger(logical.row))continue;
+  const physical=animatedHeroRect(board,logical,id,frame);
+  if(!physical)continue;
+  for(const dy of [.18,.82])for(const dx of [.18,.82]){
+   add(hitTestBoard(board,physical.x+physical.width*dx,
+                           physical.y+physical.height*dy));
+  }
+ }
+ // The enemy pawn never walks under this effect; dead foes leave no foliage gap.
+ for(const foe of Object.values(targets??{}))
+  if(foe?.hp>0)add(foe.position);
+ return Object.freeze(cells);
+}
+
 const isLinked=(feature,dir)=>feature.linked.includes(dir);
 const clamp=t=>Math.min(.98,Math.max(.02,t));
 function loc(feature,x,y){
@@ -142,6 +175,56 @@ function mossVines(ctx,feature){
  dot(ctx,...loc(feature,.73,.72),Math.max(.8,s*.018),'#d1bd8c');
  // Existing glyph and actual threatened unit margins always render later.
 }
+/** Sewn vellum veining adds depth to existing TRUE moss cells. Dense
+ * paper leaves are intentionally absent beneath living moving figures.
+ * Raised accents are edge-biased, without target rings, UI icons or arrows.
+ */
+function mossLeafRelief(ctx,feature){
+ const s=feature.rect.width,shift=(feature.variant-1)*.027;
+ const leaves=[
+  {a:[[.11,.35],[.15,.24],[.26,.22],[.23,.36]],b:[[.15,.31],[.2,.25],[.23,.27]]},
+  {a:[[.71,.71],[.79,.61],[.9,.66],[.83,.79]],b:[[.74,.72],[.82,.67],[.86,.68]]},
+  {a:[[.66,.17],[.74,.13],[.82,.19],[.77,.29]],b:[[.7,.21],[.76,.18],[.8,.21]]}
+ ];
+ for(const [i,leaf] of leaves.entries()){
+  const dx=(i===1?-1:1)*shift;
+  const under=trace(feature,leaf.a.map(([x,y])=>[x+dx,y]));
+  const upper=trace(feature,leaf.a.map(([x,y])=>[x+dx*.8,y-.018]));
+  shape(ctx,under,'#274b3a','#162f31',Math.max(.7,s*.023));
+  shape(ctx,upper,i%2?'#8fae82':'#bdcba0','#477259',Math.max(.7,s*.017));
+  pen(ctx,trace(feature,leaf.b.map(([x,y])=>[x+dx,y-.018])),
+      '#e9ddad',Math.max(.7,s*.018));
+ }
+}
+/** Occupied moss should still look physically present, not become an
+ * inexplicable blank square. Pressed, folded marginal leaves survive around
+ * the paper figure while its ENTIRE 25–75% center stays clear. */
+function partedMoss(ctx,feature){
+ const s=feature.rect.width,shift=(feature.variant-1)*.014;
+ const corners=[
+  {under:[[.035,.18],[.075,.09],[.21,.055],[.19,.14],[.11,.23]],
+   upper:[[.05,.18],[.11,.095],[.18,.085],[.15,.15]],
+   seam:[[.065,.19],[.12,.14],[.175,.105]]},
+  {under:[[.81,.84],[.9,.79],[.965,.87],[.915,.95],[.79,.95]],
+   upper:[[.83,.87],[.9,.825],[.945,.885],[.9,.925]],
+   seam:[[.825,.94],[.875,.88],[.94,.86]]}
+ ];
+ for(const [i,edge] of corners.entries()){
+  const dx=i===0?shift:-shift;
+  shape(ctx,trace(feature,edge.under.map(([x,y])=>[x+dx,y])),
+        '#2e4c40','#193b37',Math.max(.7,s*.024));
+  shape(ctx,trace(feature,edge.upper.map(([x,y])=>[x+dx,y])),
+        '#91ab7b','#42624e',Math.max(.7,s*.017));
+  pen(ctx,trace(feature,edge.seam.map(([x,y])=>[x+dx,y])),
+      '#c8c59b',Math.max(.7,s*.016));
+ }
+ // A low relief signature of compressed plant material at each margin only.
+ pen(ctx,trace(feature,[[.05,.66],[.11,.63],[.185,.68]]),
+     '#506d50',Math.max(.65,s*.014));
+ pen(ctx,trace(feature,[[.815,.32],[.895,.3],[.95,.35]]),
+     '#6f9266',Math.max(.65,s*.014));
+}
+
 /** Return number of real habitat tiles drawn. The river's bank and water
  * geometry is clipped to native cells; unit footlights and legal targets
  * always render ABOVE it in scene.js.
@@ -151,7 +234,6 @@ export function paintPaperHabitat(ctx,board,tileAt,occupied=[]){
  const plan=habitatPlan(board,tileAt,occupied);
  let count=0;
  for(const item of plan){
-  if(item.quiet)continue;
   const r=item.rect,s=r.width;
   ctx.save();ctx.beginPath();
   ctx.rect(r.x+1,r.y+1,s-2,s-2);ctx.clip();
@@ -161,8 +243,13 @@ export function paintPaperHabitat(ctx,board,tileAt,occupied=[]){
    if(!isLinked(item,'east'))riverBank(ctx,item,'east');
    if(!isLinked(item,'north'))riverEnd(ctx,item,'north');
    if(!isLinked(item,'south'))riverEnd(ctx,item,'south');
-  }else mossVines(ctx,item);
-  ctx.restore();count++;
+  }else if(item.quiet){
+   partedMoss(ctx,item);
+  }else{
+   mossVines(ctx,item);
+   mossLeafRelief(ctx,item);
+  }
+  ctx.restore();if(!item.quiet)count++;
  }
  return count;
 }

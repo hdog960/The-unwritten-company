@@ -152,3 +152,8 @@ assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintRealFootfalls/);
 const chasedArt=fs.readFileSync('src/board/chased-relief.js','utf8');
 assert.match(chasedArt,/paintChasedRelief/);
 assert.match(miniature,/paintChasedRelief/);
+
+const partingSource=fs.readFileSync('src/board/paper-habitat.js','utf8');
+assert.match(partingSource,/physicalHabitatCells/);
+assert.match(partingSource,/partedMoss/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/physicalHabitatCells/);
