@@ -591,6 +591,22 @@ async function main(){
       console.log('Glyph folio PASS',width+'x'+height,visibleGlyphOrigins.length,
         'distinct real material prints, original 44px board, no fictitious extra targets');
 
+      // Gate A 30: inspect ACTUAL game DOM enemy intents, not a fabricated
+      // standalone unit fixture. The new original thorn/bell ink module must
+      // load and preserve both real source/victim pairings on all three widths.
+      const stitchedSourceLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/threat-threadwork.js'))");
+      assert.equal(stitchedSourceLoaded,true,'physical enemy threadwork must load in genuine Chromium');
+      const liveThreadwork=await run("(async()=>{const {threatEngravings}=await import('./src/board/battle-engraving.js');const {threatThreadPlan}=await import('./src/board/threat-threadwork.js');const {measureBoard}=await import('./src/board/geometry.js');const c=document.querySelector('#battle-canvas'),r=c.getBoundingClientRect(),b=measureBoard(r.width,r.height),summary=document.querySelector('#combat-summary'),command=document.querySelector('#command-view'),ints=JSON.parse(summary.dataset.intents),positions=JSON.parse(command.dataset.positions);return threatThreadPlan(b,threatEngravings(b,ints,positions),positions).map(x=>({foeId:x.foeId,victimId:x.victimId,type:x.type,attack:x.attack,notches:x.notches}));})()",true);
+      assert.ok(liveThreadwork.length>=2,'real enemy path must show source-specific physical ink');
+      assert.deepEqual(new Set(liveThreadwork.map(x=>x.foeId)),new Set(['briar','shade']),
+        'both actual foe types must have visually separate ink signatures');
+      assert.ok(liveThreadwork.every(x=>intentions.some(i=>i.foeId===x.foeId&&i.victimId===x.victimId&&i.attack===x.attack)),
+        'ink must never invent enemy turns, attacks or victims');
+      assert.ok(liveThreadwork.every(x=>x.notches===(x.attack?3:1)),
+        'actual attack gets triple paper cut, approach single (non-color cue)');
+      console.log('Threat-threadwork PASS',width+'x'+height,
+        liveThreadwork.length,'source-grounded physical notches, both living foes, no invented target');
+
       const quillModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/quill.js'))");
       assert.equal(quillModuleLoaded,true,'world-space target quill must be loaded on the actual iPhone-sized page');
 
