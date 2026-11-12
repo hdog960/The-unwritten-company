@@ -18,7 +18,7 @@ import {paintPressRelics} from './press-ruins.js';
 import {paintPuppetShadow} from './paper-puppets.js';
 import {paintActionSeal} from './action-seals.js';
 import {paintTileRelief} from './tile-relief.js';
-import {paintPaperHabitat} from './paper-habitat.js';
+import {paintPaperHabitat,physicalHabitatCells} from './paper-habitat.js';
 import {paintMiniatureMatte} from './miniature-matte.js';
 import {paintRealFootfalls} from './paper-footfalls.js';
 import {paintTerrainContact} from './terrain-contact.js';
@@ -174,12 +174,11 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintPressRelics(ctx,board,getTile);
   paintJoinedTerrain(ctx,board,getTile);
   paintMaterialTransitions(ctx,board,getTile);
-  // Connected, original die-cut riverbanks and etched ivy. Suppress dense
-  // foliage underneath real party/enemy miniatures; never fake a target.
-  const occupiedHabitat=[
-    ...Object.values(overlay?.positions??{}),
-    ...Object.values(overlay?.targets??{}).filter(foe=>foe.hp>0).map(foe=>foe.position)
-  ];
+  // Physical foliage must follow the moving BODY, not the reducer's already
+  // committed end square; pressed edge-paper remains on cleared moss cells.
+  // Only existing real actor rectangles and living foes affect presentation.
+  const occupiedHabitat=physicalHabitatCells(
+    board,overlay?.positions,overlay?.targets,frame);
   paintPaperHabitat(ctx,board,getTile,occupiedHabitat);
   paintBoardLighting(ctx,board);
   paintLanternPools(ctx,board,getTile);
