@@ -81,8 +81,14 @@ test('all original glyph strokes remain well WITHIN a tile, away from selectable
 test('full original glyph source Canvas is deterministic at the three phone board cell sizes',()=>{
  for(const [w,h] of [[328,270],[435,286],[483,326]]){
   const b=measureBoard(w,h),a=calls(),repeat=calls();
+  // Narrow 667px stage exposes only five rows at >=44px tap targets,
+  // therefore row-five's third glyph is not on the REAL visible board.
+  // The painter must render exactly the glyphs in visible whole cells.
+  const expected=[[0,3],[3,6],[5,0]].filter(([row,col])=>
+    row<b.rows&&col<b.columns);
   const count=glyphFolioPlan(b,getTile).length;
-  assert.equal(count,3);
+  assert.equal(count,expected.length);
+  assert.deepEqual(glyphFolioPlan(b,getTile).map(p=>[p.row,p.column]),expected);
   assert.equal(paintGlyphFolios(a,b,getTile),count);
   assert.equal(paintGlyphFolios(repeat,b,getTile),count);
   assert.deepEqual(a.calls,repeat.calls);
