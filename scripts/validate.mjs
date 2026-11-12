@@ -168,3 +168,8 @@ assert.match(newThreatSource,/intentWitnessPlan/);
 assert.match(newThreatSource,/paintIntentWitnesses/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintIntentWitnesses/);
 assert.match(fs.readFileSync('src/board/battle-engraving.js','utf8'),/SOURCE_THREADS/);
+
+const floorCutouts=fs.readFileSync('src/board/scenery.js','utf8');
+assert.match(floorCutouts,/scenicArtifactPlan/);
+assert.match(floorCutouts,/paintScenicArtifact/);
+assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintFloorVignettes\(ctx,board,occupiedHabitat\)/);
