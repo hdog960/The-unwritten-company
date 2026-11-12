@@ -6,6 +6,7 @@ import {PARTY_SLOTS} from '../party/model.js';
 import {drawWorldEffect,isValidEffect,EFFECT_DURATION_MS} from './effects.js';
 import {paintTargetIndicators} from './targeting.js';
 import {paintFloorVignettes} from './scenery.js';
+import {paintGlyphFolios} from './glyph-folios.js';
 import {animatedHeroRect} from './motion.js';
 import {puppetPose} from './choreography.js';
 import {bearingPose} from './bearings.js';
@@ -113,31 +114,17 @@ function drawRubble(ctx,x,y,s){
   poly(ctx,[[x+s*.23,y+s*.19],[x+s*.49,y+s*.1],[x+s*.56,y+s*.28],[x+s*.31,y+s*.41]],'#777b6b','#364446',1);
   line(ctx,[[x+s*.4,y+s*.3],[x+s*.65,y+s*.25]],'#d0bd9899',Math.max(.7,s*.02));
 }
-function drawGlyph(ctx,x,y,s){
-  const cx=x+s/2,cy=y+s/2;
-  disk(ctx,cx,cy,s*.34,'#53665b','#e5c67d',Math.max(1,s*.027));
-  ctx.save();ctx.strokeStyle='#f5d69dbb';ctx.lineWidth=Math.max(.8,s*.028);
-  ctx.beginPath();ctx.arc(cx,cy,s*.25,Math.PI*.11,Math.PI*1.91);ctx.stroke();
-  line(ctx,[[cx,cy-s*.2],[cx+s*.17,cy],[cx,cy+s*.22],[cx-s*.17,cy],[cx,cy-s*.2]],'#f3d392',Math.max(.8,s*.03));
-  disk(ctx,cx,cy,s*.052,'#f6da9f');
-  ctx.restore();
-}
 function drawTile(ctx,rect,kind,row,column){
   const {x,y,width:s}=rect;
   drawStone(ctx,x,y,s,row,column);
   if(kind==='moss')drawMoss(ctx,x,y,s,row,column);
   else if(kind==='water')drawWater(ctx,x,y,s,row,column);
   else if(kind==='rubble')drawRubble(ctx,x,y,s);
-  else if(kind==='glyph')drawGlyph(ctx,x,y,s);
   // Faint illuminated manuscript stippling keeps stone from reading as flat web grid.
   for(let n=0;n<4;n++){
     const px=x+s*(.16+.68*FRACTAL(row,column,n+411));
     const py=y+s*(.18+.63*FRACTAL(row,column,n+535));
     disk(ctx,px,py,Math.max(.5,s*.009),n%2?'#ebd6a333':'#171f2c55');
-  }
-  if(kind==='glyph'){
-    ctx.strokeStyle='#f3d58a44';ctx.lineWidth=Math.max(1,s*.017);
-    ctx.strokeRect(x+s*.13,y+s*.13,s*.74,s*.74);
   }
   // Native-to-world seams, no HUD or outside-the-board controls.
   ctx.strokeStyle='#1b292d99';ctx.lineWidth=Math.max(.75,s*.012);
@@ -171,6 +158,9 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     paintTileRelief(ctx,rect,terrain,row,col);
   }
   paintWorldRelief(ctx,board,getTile);
+  // Three authored printed remnants on actual walkable glyph material.
+  // Do not draw rings/diamonds that could impersonate legal target marks.
+  paintGlyphFolios(ctx,board,getTile);
   // Broken bookbinder equipment is authored ONLY on existing blocked rubble.
   paintPressRelics(ctx,board,getTile);
   paintJoinedTerrain(ctx,board,getTile);

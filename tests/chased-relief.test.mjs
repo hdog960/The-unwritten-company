@@ -87,7 +87,7 @@ test('no DOM, storage, RNG, network, independent timing or new target layer in s
  const src=fs.readFileSync('src/board/chased-relief.js','utf8');
  for(const token of ['fetch(','Math.random','setInterval','setTimeout','requestAnimationFrame','window.','document.','addEventListener','localStorage','AudioContext'])assert.ok(!src.includes(token),token);
  const sw=fs.readFileSync('service-worker.js','utf8');
- assert.ok(sw.includes('v0.09-gate-a28-r1'));
+ assert.ok(sw.includes('v0.09-gate-a29-r1'));
  assert.equal(sw.split("'./src/board/chased-relief.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
 });

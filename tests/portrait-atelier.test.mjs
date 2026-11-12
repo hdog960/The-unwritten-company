@@ -125,7 +125,7 @@ test('full battle remains pure with new character art, offline assets, untouched
  const art=fs.readFileSync('src/board/figure-edge-ink.js','utf8');
  assert.doesNotMatch(art,/Math\.random|setInterval|setTimeout|fetch\(|window\.|document\.|localStorage|addEventListener|requestAnimationFrame/);
  const worker=fs.readFileSync('service-worker.js','utf8');
- assert.ok(worker.includes('v0.09-gate-a28-r1'));
+ assert.ok(worker.includes('v0.09-gate-a29-r1'));
  assert.equal(worker.split("'./src/board/figure-edge-ink.js'").length-1,1);
  for(const id of heroes)assert.equal(worker.split("'./art/portraits/"+id+".svg'").length-1,1);
 });

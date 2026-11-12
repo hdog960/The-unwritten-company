@@ -85,7 +85,7 @@ test('real 4v2 full scene and true move-preview AP/MP are untouched, seals drawn
 test('zero independent clocks, input, network, storage; exact safe offline module graph',()=>{
  const src=fs.readFileSync('src/board/intent-witnesses.js','utf8'),sw=fs.readFileSync('service-worker.js','utf8');
  for(const x of ['fetch(','Math.random','setTimeout','setInterval','requestAnimationFrame','window.','document.','localStorage','addEventListener','AudioContext'])assert.ok(!src.includes(x),x);
- assert.ok(sw.includes('v0.09-gate-a28-r1'));
+ assert.ok(sw.includes('v0.09-gate-a29-r1'));
  assert.equal(sw.split("'./src/board/intent-witnesses.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
 });

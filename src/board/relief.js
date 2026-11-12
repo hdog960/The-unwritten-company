@@ -45,8 +45,11 @@ function inset(ctx,rect,kind){
       '#bacc9290',Math.max(.8,s*.019));
   }
   if(kind==='glyph'){
-    ctx.beginPath();ctx.arc(x+s*.5,y+s*.5,s*.38,-.9,.65);
-    ctx.strokeStyle=paint.edge;ctx.lineWidth=Math.max(1,s*.03);ctx.stroke();
+    // Two incomplete paper edge-scars rather than a ring/target marker.
+    stroke(ctx,[[x+s*.14,y+s*.31],[x+s*.21,y+s*.19],[x+s*.34,y+s*.17]],
+      paint.edge,Math.max(.8,s*.024));
+    stroke(ctx,[[x+s*.65,y+s*.83],[x+s*.78,y+s*.78],[x+s*.84,y+s*.65]],
+      paint.shade,Math.max(.8,s*.022));
   }
   ctx.restore();return true;
 }
