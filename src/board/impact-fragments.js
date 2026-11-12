@@ -12,7 +12,7 @@ export function paintImpactFragments(ctx,board,mark,progress){
   const rect=mark.to&&cellRect(board,mark.to.column,mark.to.row);
   if(!rect)return 0;
   const t=clamp(progress);if(t<=0||t>=1)return 0;
-  const {x,y,width:s}=rect,cx=x+s*.5,cy=y+s*.5;
+  const {x,y,width:s}=rect,cx=x+s*.5,cy=y+s*.74;
   const n=mark.kind==='critical'?9:mark.kind==='hit'?6:4;
   const [light,dark]=COLORS[mark.kind];
   // Direction comes from the actual attack origin, never a visual-only guess.
@@ -27,7 +27,11 @@ export function paintImpactFragments(ctx,board,mark,progress){
   for(let i=0;i<n;i++){
     const angle=heading+direction*(i+.25)*Math.PI*2/n + .24*t;
     const dx=Math.cos(angle),dy=Math.sin(angle);
-    const px=cx+dx*travel,py=cy+dy*travel;
+    // Every fleeting fleck stays with the physical lower bookboard edge,
+    // outside illustrated eyes and face. Real direction still determines
+    // side scatter without emitting a center-screen impact corona.
+    const px=cx+dx*travel*.82;
+    const py=Math.max(y+s*.69,Math.min(y+s*.80,cy+dy*travel*.33));
     const tx=-dy,ty=dx;
     ctx.beginPath();
     if(mark.kind==='miss'){

@@ -6,6 +6,7 @@ import {cellRect} from './geometry.js';
 import {visibleMarks} from './choreography.js';
 import {paintImpactFragments} from './impact-fragments.js';
 import {paintCombatScript} from './combat-script.js';
+import {paintImpactWitness} from './impact-witness.js';
 export const EFFECT_KINDS=Object.freeze(['hit','critical','miss','ward','move','enemy-phase']);
 export const EFFECT_DURATION_MS=490;
 export function isValidEffect(event){
@@ -30,25 +31,6 @@ function glyph(ctx,x,y,r,color,sides=6){
     if(i)ctx.lineTo(...p);else ctx.moveTo(...p);
   }
   ctx.closePath();ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,r*.105);ctx.stroke();
-}
-function flash(ctx,x,y,s,p,kind){
-  const color=kind==='critical'?'#ffedb3':kind==='miss'?'#9fe2e6':'#fac09c';
-  const rays=kind==='critical'?10:kind==='miss'?4:7;
-  for(let i=0;i<rays;i++){
-    const a=Math.PI*2*i/rays+.13;
-    const small=s*(.1+.07*p),large=s*(.2+.23*p);
-    ctx.beginPath();
-    ctx.moveTo(x+Math.cos(a)*small,y+Math.sin(a)*small);
-    ctx.lineTo(x+Math.cos(a)*large,y+Math.sin(a)*large);
-    ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,s*.038)*(1-p*.48);ctx.stroke();
-  }
-  ring(ctx,x,y,s*(.12+.24*p),-.6,Math.PI*1.7,color,Math.max(1.5,s*.068)*(1-p*.58));
-  if(kind==='critical')glyph(ctx,x,y,s*(.17+.18*p),'#fff6d3',8);
-  if(kind==='miss'){
-    ctx.setLineDash([s*.09,s*.075]);
-    ring(ctx,x,y,s*(.3+.15*p),0,Math.PI*2,'#9fbfd5',Math.max(1,s*.028));
-    ctx.setLineDash([]);
-  }
 }
 function channel(ctx,board,mark,p){
   const origin=center(board,mark.from),dest=center(board,mark.to);
@@ -76,15 +58,13 @@ function channel(ctx,board,mark,p){
   }
   if(p>.46){
     ctx.globalAlpha=1-.18*impact;
-    flash(ctx,dest.x,dest.y,s,impact,mark.kind);
+    // Physically pressed lower-apron cut replaces the former face-obscuring
+    // radial blast. Actual hit/miss/critical remains battle-event derived.
+    paintImpactWitness(ctx,board,mark,p);
     // Real impact provenance only; a miss shows a broken, non-contact nib.
     paintCombatScript(ctx,{x:dest.x,y:dest.y,s},mark,impact,'impact');
     // Tiny physical paper flecks trail the actual impact window, never the windup.
     if(impact>0)paintImpactFragments(ctx,board,mark,impact);
-    if(mark.skillId==='sigil'&&mark.kind!=='miss'){
-      glyph(ctx,dest.x,dest.y,s*(.19+.18*impact),'#ecdaa3',4);
-      glyph(ctx,dest.x,dest.y,s*(.11+.15*impact),'#b6e5d3',4);
-    }
   }
 }
 function ward(ctx,board,mark,p){
