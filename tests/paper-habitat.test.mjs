@@ -84,7 +84,7 @@ test('native paper painting is deterministic and balanced from 38px to 70px batt
  }
 });
 test('each water and moss rendering plan stays strictly within its own logical cell',()=>{
- for(const kind of HABITAT_KIN){
+ for(const kind of HABITAT_KINDS){
   const only=(row,col)=>row===1&&col===3?kind:'stone';
   const b=measureBoard(440,290),plan=habitatPlan(b,only);
   assert.equal(plan.length,1);
