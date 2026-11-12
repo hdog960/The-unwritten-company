@@ -3,6 +3,7 @@
  * it never resolves combat, alters AP/MP, moves actors or adds tap targets.
  */
 import {cellRect} from './geometry.js';
+import {paintRouteTickets} from './route-tickets.js';
 
 const COLORS=Object.freeze({
   attack:'#f5af96', approach:'#d8c898', travel:'#9be0cb', blocked:'#ee967d'
@@ -135,15 +136,10 @@ export function paintTravelEngraving(ctx,board,overlay){
     ctx.beginPath();ctx.moveTo(route[0].x,route[0].y);
     for(const p of route.slice(1))if(p)ctx.lineTo(p.x,p.y);
     ctx.stroke();ctx.setLineDash([]);ctx.restore();
-    for(let i=1;i<route.length;i++){
-      const p=route[i];if(!p)continue;
-      // Paired stamped footsteps remain below the miniature bases.
-      const j=(i%2?1:-1)*s*.065;
-      stroke(ctx,[[p.x-s*.10,p.y+s*.28+j],[p.x-s*.035,p.y+s*.20+j]],
-        color,Math.max(.85,s*.025));
-      stroke(ctx,[[p.x+s*.008,p.y+s*.30+j],[p.x+s*.07,p.y+s*.22+j]],
-        color,Math.max(.85,s*.025));
-    }
+    // Native engraved cost tickets replace ambiguous identical foot-stamps.
+    // Their one/two cut marks use the actual Dijkstra terrain cost; no preview
+    // ever enters the combat reducer or changes remaining movement.
+    paintRouteTickets(ctx,board,overlay);
   }
   if(destination){
     const {x,y}=destination,r=s*.365,a=s*.105;

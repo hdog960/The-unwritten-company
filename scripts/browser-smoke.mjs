@@ -284,6 +284,36 @@ async function main(){
       assert.equal(await run("document.querySelector('#command-ap').dataset.ap"),'1','member AP must persist across party switches');
       console.log('Command PASS',width+'x'+height,'4 abilities, invalid/valid target, cancel, 2AP commit, end-turn and per-member AP');
 
+      // Gate A 26: genuine in-browser two-MP WATER preview. The seven-column
+      // 667px board spawns Kess ON water (5,1), while eight columns spawn
+      // Kess beside it (6,1); use the actually adjacent water cell in each.
+      // Deliberately CANCEL, preserving the entire existing study/skirmish
+      // sequence and every AP/MP assertion below.
+      await run("document.querySelector('[data-member-id=\"kess\"]').click()");
+      await run("document.querySelector('#command-move').click()");
+      const doubleCostWaterColumn=5;
+      const doubleCostWaterRow=boardMetrics.cols===7?2:1;
+      await tap(
+        boardMetrics.board.left+boardMetrics.x+boardMetrics.tile*(doubleCostWaterColumn+.5),
+        boardMetrics.board.top+boardMetrics.y+boardMetrics.tile*(doubleCostWaterRow+.5)
+      );
+      assert.equal(await run("document.querySelector('#command-readout').dataset.valid"),'true',
+        'authored water destination must be a genuinely valid route at '+width+'x'+height);
+      assert.match(await run("document.querySelector('#command-readout').textContent"),/cost 2 movement/,
+        'actual WATER entry must charge two MP, never one');
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5',
+        'two-hatch route preview must never spend movement');
+      assert.equal(await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/route-tickets.js'))"),true,
+        'new author-painted route ticket source must actually load in real Chromium');
+      await fsp.mkdir('artifacts',{recursive:true});
+      const waterCostShot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+      await fsp.writeFile('artifacts/route-water-'+width+'x'+height+'.png',Buffer.from(waterCostShot.data,'base64'));
+      await run("document.querySelector('#command-cancel').click()");
+      await run("document.querySelector('[data-member-id=\"mirelle\"]').click()");
+      assert.equal(await run("document.querySelector('#command-move').dataset.mp"),'5');
+      console.log('Route-ticket PASS',width+'x'+height,
+        'real water=2 MP preview, native art loaded, cancellation free, screenshots captured');
+
       // Movement in the same two-rail control scheme. Mirelle currently active
       // with 1 AP; movement must remain a separate 5 MP budget.
       const moveButton=await run("(()=>{const r=document.querySelector('#command-move').getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()");
