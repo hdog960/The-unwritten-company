@@ -578,10 +578,18 @@ async function main(){
       const glyphModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/glyph-folios.js'))");
       assert.equal(glyphModuleLoaded,true,'glyph art must load in genuine browser network graph');
       const actualGlyphSites=await run("(async()=>{const {glyphFolioPlan}=await import('./src/board/glyph-folios.js');const {getTile,measureBoard}=await import('./src/board/geometry.js');const canvas=document.querySelector('#battle-canvas'),bounds=canvas.getBoundingClientRect(),board=measureBoard(bounds.width,bounds.height);return glyphFolioPlan(board,getTile).map(x=>({row:x.row,column:x.column,style:x.style,cost:x.cost}));})()",true);
-      assert.deepEqual(actualGlyphSites.map(x=>x.style),['broken-astral-register','binder-tally','root-cipher'],'actual source-painted glyphs must be genuinely different');
-      assert.deepEqual(actualGlyphSites.map(x=>[x.row,x.column]),[[0,3],[3,6],[5,0]],'real stage floor relics must never create extra tactical tiles');
-      assert.ok(actualGlyphSites.every(x=>x.cost===1),'none of the historical glyph art may falsely alter MP');
-      console.log('Glyph folio PASS',width+'x'+height,'three original non-target materials, genuine DOM scene and terrain origins');
+      // Real landscape board exposes 5 or 6 rows. Never invent an offscreen
+      // sixth-row glyph on the narrowest iPhone or reduce the 44px tap size.
+      const visibleGlyphOrigins=[[0,3],[3,6],[5,0]].filter(([row,col])=>
+        row<boardMetrics.rows&&col<boardMetrics.cols);
+      const visibleGlyphStyles=['broken-astral-register','binder-tally','root-cipher'].slice(0,visibleGlyphOrigins.length);
+      assert.deepEqual(actualGlyphSites.map(x=>x.style),visibleGlyphStyles,
+        'only real visible source-painted glyph styles may render in live Chromium');
+      assert.deepEqual(actualGlyphSites.map(x=>[x.row,x.column]),visibleGlyphOrigins,
+        'real stage folios must never invent an offscreen tactical tile');
+      assert.ok(actualGlyphSites.every(x=>x.cost===1),'historical glyph art must never falsely alter MP');
+      console.log('Glyph folio PASS',width+'x'+height,visibleGlyphOrigins.length,
+        'distinct real material prints, original 44px board, no fictitious extra targets');
 
       const quillModuleLoaded=await run("performance.getEntriesByType('resource').some(e=>e.name.includes('/src/board/quill.js'))");
       assert.equal(quillModuleLoaded,true,'world-space target quill must be loaded on the actual iPhone-sized page');
