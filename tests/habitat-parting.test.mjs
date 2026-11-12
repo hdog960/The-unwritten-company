@@ -101,7 +101,7 @@ test('real scene composes physical foliage before authoritative marks and miniat
 test('all physical art remains offline with zero new network, input, storage or clock',()=>{
  const source=fs.readFileSync('src/board/paper-habitat.js','utf8'),sw=fs.readFileSync('service-worker.js','utf8');
  for(const term of ['fetch(','Math.random','setTimeout','setInterval','requestAnimationFrame','localStorage','window.','document.','addEventListener'])assert.ok(!source.includes(term),term);
- assert.ok(sw.includes('v0.09-gate-a29-r1'));
+ assert.ok(sw.includes('v0.09-gate-a30-r1'));
  assert.equal(sw.split("'./src/board/paper-habitat.js'").length-1,1);
  assert.equal(sw.split("'./src/board/motion.js'").length-1,1);
  assert.ok(!sw.includes('skipWaiting('));
