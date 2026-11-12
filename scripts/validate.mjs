@@ -130,3 +130,7 @@ assert.match(fs.readFileSync('src/board/scene.js','utf8'),/bearingPose/);
 const habitatInk=fs.readFileSync('src/board/paper-habitat.js','utf8');
 assert.match(habitatInk,/paintPaperHabitat/);
 assert.match(fs.readFileSync('src/board/scene.js','utf8'),/paintPaperHabitat/);
+
+const figureEdgeSource=fs.readFileSync('src/board/figure-edge-ink.js','utf8');
+assert.match(figureEdgeSource,/paintFigureEdgeInk/);
+assert.match(miniature,/paintFigureEdgeInk/);
