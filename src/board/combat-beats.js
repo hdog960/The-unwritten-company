@@ -57,7 +57,12 @@ export function figureBeat(id,pose=null){
    turn=bearing.x*character.turn*.8*pulse;
   }else{x=-character.dir*4.5*pulse;y=3.3*pulse;turn=-character.turn*.8*pulse;}
  }else if(pose?.kind==='move'){
-  x=character.dir*.65*pulse;y=-2.6*pulse;turn=character.turn*.16*pulse;
+  // Boots, torso and weapon wrists point along the REAL traversed segment;
+  // the old per-character sway remains only for unbound study poses.
+  const walk=pose?.bearing?.role==='move'?pose.bearing:null;
+  x=walk?walk.x*.9*pulse:character.dir*.65*pulse;
+  y=-(walk?.y===-1?3.1:2.6)*pulse;
+  turn=character.turn*.16*pulse*(walk?.x<0?-1:1);
  }else if(pose?.kind==='ward'){
   y=-1.9*pulse;turn=character.turn*.2*pulse;
  }

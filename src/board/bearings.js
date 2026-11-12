@@ -3,6 +3,7 @@
  * target, autoplay clock, input handler, RNG, hitbox or gameplay mutation.
  */
 import {visibleMarks} from './choreography.js';
+import {movementDirection} from './paper-footfalls.js';
 
 const same=(a,b)=>!!a&&!!b&&a.column===b.column&&a.row===b.row;
 const valid=p=>!!p&&Number.isInteger(p.column)&&Number.isInteger(p.row);
@@ -32,8 +33,10 @@ export function combatBearing(frame,position,pose){
 }
 /** Adds metadata to the already real puppet pose without editing either the
  * frame, mark, positions or original pose object; no new gameplay branches. */
-export function bearingPose(frame,position,pose){
+export function bearingPose(frame,position,pose,board=null){
  if(!pose)return null;
- const bearing=combatBearing(frame,position,pose);
+ const bearing=pose.kind==='move'&&board?
+  movementDirection(board,frame,position,frame?.event?.actorId):
+  combatBearing(frame,position,pose);
  return bearing?Object.freeze({...pose,bearing}):pose;
 }

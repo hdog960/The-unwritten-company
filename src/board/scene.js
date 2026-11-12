@@ -20,6 +20,7 @@ import {paintActionSeal} from './action-seals.js';
 import {paintTileRelief} from './tile-relief.js';
 import {paintPaperHabitat} from './paper-habitat.js';
 import {paintMiniatureMatte} from './miniature-matte.js';
+import {paintRealFootfalls} from './paper-footfalls.js';
 
 const COLOR={ink:'#151f2a',sand:'#ac9579',light:'#e5cfaa',moss:'#476b50',water:'#305d70',gold:'#dfbb76',coral:'#d97e68'};
 const FRACTAL=(x,y,salt=0)=>{let z=Math.imul(x+23,92837111)^Math.imul(y+41,689287499)^Math.imul(salt+77,283923481);z^=z>>>13;return((Math.imul(z,1274126177)>>>0)%100000)/100000;};
@@ -153,8 +154,8 @@ function drawSelection(ctx,rect){
   }
 }
 /** Backward-compatible renderer API: timing is owned by one visual-only helper. */
-export function miniaturePose(frame,position,isEnemy=false){
-  return bearingPose(frame,position,puppetPose(frame,position));
+export function miniaturePose(frame,position,isEnemy=false,board=null){
+  return bearingPose(frame,position,puppetPose(frame,position),board);
 }
 export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   paintBackdrop(ctx,board);
@@ -185,12 +186,22 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
   const vignetteOccupants={...(overlay?.positions??{})};
   for(const [id,foe] of Object.entries(overlay?.targets??{}))if(foe.hp>0)vignetteOccupants['foe:'+id]=foe.position;
   paintFloorVignettes(ctx,board,vignetteOccupants);
+  // Genuine committed footsteps belong to the walked route, never a preview.
+  paintRealFootfalls(ctx,board,frame,overlay?.positions);
   // Hand-cut paper pockets isolate tiny miniature silhouettes from busy water
   // and ivy. They stay under ALL true target/intent marks and native figures.
   for(const [id,point] of Object.entries(overlay?.positions??{})){
-    const rect=cellRect(board,point.column,point.row);
-    if(rect)paintMiniatureMatte(ctx,rect,id,getTile(point.row,point.column),
-      {fallen:(overlay?.partyHp?.[id]??1)<=0});
+    // The figure's original paper backing must travel WITH its real moving
+    // body, not be left behind at the reducer's already-committed destination.
+    const rect=animatedHeroRect(board,point,id,frame);
+    if(rect){
+      const row=Math.max(0,Math.min(board.rows-1,
+        Math.floor((rect.y+rect.width*.5-board.y)/board.tile)));
+      const col=Math.max(0,Math.min(board.columns-1,
+        Math.floor((rect.x+rect.width*.5-board.x)/board.tile)));
+      paintMiniatureMatte(ctx,rect,id,getTile(row,col),
+        {fallen:(overlay?.partyHp?.[id]??1)<=0});
+    }
   }
   for(const foe of Object.values(overlay?.targets??{})){
     const point=foe.position,rect=cellRect(board,point.column,point.row);
@@ -212,7 +223,7 @@ export function renderBoard(ctx,board,selection=null,overlay=null,frame=null){
     const rect=animatedHeroRect(board,{column:miniature.col,row:miniature.row},id,frame);
     if(!rect)continue;
     const member=PARTY_SLOTS.find(item=>item.id===id);
-    const pose=miniaturePose(frame,{column:miniature.col,row:miniature.row});
+    const pose=miniaturePose(frame,{column:miniature.col,row:miniature.row},false,board);
     paintMiniatureBackdrop(ctx,rect,id,{active:overlay?.actorId===id,fallen:(overlay?.partyHp?.[id]??1)<=0,hp:overlay?.partyHp?.[id]??null,maxHp:member?.maxHp});
     paintActionSeal(ctx,rect,id,pose,{fallen:overlay?.partyHp?.[id]===0});
     paintPuppetShadow(ctx,rect,id,{pose,fallen:overlay?.partyHp?.[id]===0});

@@ -30,7 +30,11 @@ export function foldedShadowProfile(id,pose=null){
     lean=pose?.bearing?.role==='impact'?.08*pose.bearing.x*t:-.08*t;
     lift=-.020*t;
   }
-  if(pose?.kind==='move'){lean=.012*t;lift=.03*t;}
+  if(pose?.kind==='move'){
+    const walk=pose?.bearing?.role==='move'?pose.bearing:null;
+    lean=walk?.x===0?0:(walk?walk.x*.023:.012)*t;
+    lift=.03*t;
+  }
   if(pose?.kind==='ward'){lean=0;lift=.018*t;}
   return Object.freeze(outline.map(([x,y],i)=>Object.freeze([
     Math.max(.07,Math.min(.93,x+lean*(i%3===0 ? .5 : 1))),

@@ -119,7 +119,7 @@ test('new habitat art has no networking, interaction or independent animation cl
  assert.equal(paintPaperHabitat(null,board,getTile),0);
  assert.equal(paintPaperHabitat(ink(),null,getTile),0);
  const worker=fs.readFileSync('service-worker.js','utf8');
- assert.match(worker,/v0\.09-gate-a20-r1/);
+ assert.match(worker,/v0\.09-gate-a21-r1/);
  assert.ok(worker.includes("'./src/board/paper-habitat.js'"));
  assert.equal(worker.split("'./src/board/paper-habitat.js'").length-1,1);
 });
